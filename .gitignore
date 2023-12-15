@@ -7,8 +7,11 @@
 /vendor/.composer/
 .env
 .env.local
-storage/*
+storage/*.key
 storage/app
+storage/dotenv-editor/*
+storage/debugbar/*
+storage/logs/*.log
 public/images
 public/files
 

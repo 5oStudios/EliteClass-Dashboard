@@ -30,8 +30,10 @@ WORKDIR /var/www
 
 COPY . .
 
-RUN composer update && \
-    composer install --no-progress && composer dump-autoload
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader && composer dump-autoload
+
+#RUN composer update && \
+#    composer install --no-progress && composer dump-autoload
 
 # Create system user to run Composer and Artisan Commands
 RUN useradd -G www-data,root -u $uid -d /home/$user $user

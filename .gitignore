@@ -8,7 +8,8 @@
 .env
 .env.local
 storage/*.key
-storage/app
+storage/app/files/*
+storage/app/public/*
 storage/dotenv-editor/*
 storage/debugbar/*
 storage/logs/*.log

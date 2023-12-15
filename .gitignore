@@ -3,7 +3,6 @@
 .vscode/
 /vendor/
 /node_modules/
-/bootstrap/cache/
 /storage/*.key
 /vendor/.composer/
 .env

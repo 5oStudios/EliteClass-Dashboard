@@ -1,0 +1,368 @@
+@extends('admin.layouts.master')
+@section('title', 'Dashboard - Instructor')
+
+@section('maincontent')
+
+    @component('components.breadcumb', ['' => 'active'])
+        @slot('heading')
+            {{ __('Dashboard') }}
+        @endslot
+    @endcomponent
+
+    @if (Auth::User()->role == 'instructor')
+        <div class="contentbar">
+            <!-- Start row -->
+            <div class="row">
+                <!-- Start col -->
+                <div class="col-lg-12">
+                    <!-- Start row -->
+                    <div class="row">
+                        <!-- Start col -->
+                        <div class="col-md-3">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4> {{ $course_count }} </h4>
+                                            <p class="font-14 mb-0">{{ __('Courses') }}</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ url('course') }}">
+                                                <div><i class="text-success feather icon-book-open"
+                                                        style="font-size:45px;"></i></div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4> {{ $student_count }} </h4>
+                                            <p class="font-14 mb-0">{{ __('Students Enrolled') }}</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ route('user.enroll.fullpayment') }}">
+                                                <div><i class="text-warning feather icon-users" style="font-size:45px;"></i>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4> {{ $question_count }} </h4>
+                                            <p class="font-14 mb-0">{{ __('Total Questions') }}</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ url('instructorquestion') }}">
+                                                <div><i class="text-info feather icon-file-plus"
+                                                        style="font-size:45px;"></i></div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4> {{ $answer_count }}</h4>
+                                            <p class="font-14 mb-0">{{ __('Total Answers') }}</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ url('instructoranswer') }}">
+                                                <div><i class=" text-secondary feather icon-x-square"
+                                                        style="font-size:45px;"></i></div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Display none start -->
+                        <div class="col-md-3" style="display:none;">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4>@php
+                                                $answer = App\Course::where('user_id', Auth::User()->id)
+                                                    ->where('status', '1')
+                                                    ->get();
+                                                if (count($answer) > 0) {
+                                                    echo count($answer);
+                                                } else {
+                                                    echo '0';
+                                                }
+                                            @endphp</h4>
+                                            <p class="font-14 mb-0">Featured Courses</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ url('featurecourse') }}">
+                                                <div><i class=" text-danger feather icon-user-plus"
+                                                        style="font-size:45px;"></i></div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3" style="display:none;">
+                            <div class="card m-b-30">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-7">
+                                            <h4> @php
+                                                $answer = App\Blog::where('user_id', Auth::User()->id)
+                                                    ->where('status', '1')
+                                                    ->get();
+                                                if (count($answer) > 0) {
+                                                    echo count($answer);
+                                                } else {
+                                                    echo '0';
+                                                }
+                                            @endphp</h4>
+                                            <p class="font-14 mb-0">Blog</p>
+                                        </div>
+                                        <div class="col-5 text-right">
+                                            <a href="{{ url('blog') }}">
+                                                <div><i class="text-success feather icon-book-open"
+                                                        style="font-size:45px;"></i></div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (isset($zoom_enable) && $zoom_enable == 1)
+                            <div class="col-md-3" style="display:none;">
+                                <div class="card m-b-30">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-7">
+                                                <h4>@php
+                                                    $answer = App\Meeting::where('user_id', Auth::User()->id)->get();
+                                                    if (count($answer) > 0) {
+                                                        echo count($answer);
+                                                    } else {
+                                                        echo '0';
+                                                    }
+                                                @endphp</h4>
+                                                <p class="font-14 mb-0">Zoom Meeting</p>
+                                            </div>
+                                            <div class="col-5 text-right">
+                                                <a href="{{ route('zoom.index') }}">
+                                                    <div><i class="text-info feather icon-video"
+                                                            style="font-size:45px;"></i></div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                        <!-- Display none end -->
+
+                        @if (isset($gsetting) && $gsetting->bbl_enable == 1)
+                            <div class="col-md-3">
+                                <div class="card m-b-30">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col-7">
+                                                <h4> {{ $meeting_count }} </h4>
+                                                <p class="font-14 mb-0">Big Blue Live Streamings</p>
+                                            </div>
+                                            <div class="col-5 text-right">
+                                                <a href="{{ route('bbl.all.meeting') }}">
+                                                    <div><i class="feather icon-mic" style="font-size:45px;"></i></div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-lg-12">
+                    <div class="card m-b-30">
+                        <div class="card-header">
+                            <h5 class="card-title">Total Orders in 2021</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="apex-area-chart">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- <div class="col-md-12">
+                    <div class="card m-b-30 ">
+                        <div class="card-header">
+                            <h5 class="card-title">Monthly Instructor Payout</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas height='200' id="chartjs-bar-chart" class="chartjs-chart"></canvas>
+                        </div>
+                    </div>
+                </div> --}}
+            </div>
+        </div>
+    @endif
+@endsection
+
+
+@section('scripts')
+    <!-- Apex js -->
+    <script src="{{ url('admin_assets/assets/plugins/apexcharts/apexcharts.min.js') }}"></script>
+
+{{-- <script>
+    "use strict";
+    var datas = @json($datas);
+    $(document).ready(function() {
+        var barChartID = document.getElementById("chartjs-bar-chart").getContext('2d');
+        var barChart = new Chart(barChartID, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
+                    'Dec'
+                ],
+                datasets: [{
+                    label: 'Users',
+                    backgroundColor: ["#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4",
+                        "#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4",
+                        "#506fe4", "#506fe4"
+                    ],
+                    borderColor: ["#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4",
+                        "#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4", "#506fe4",
+                        "#506fe4", "#506fe4"
+                    ],
+                    borderWidth: 1,
+                    data: datas,
+                }]
+            },
+            options: {
+
+                responsive: true,
+                legend: {
+                    position: 'top',
+                    height: 100
+                },
+                title: {
+                    display: false,
+                    text: 'Chart.js Bar Chart'
+                },
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Month'
+                        },
+                        gridLines: {
+                            color: 'rgba(0,0,0,0.05)',
+                            lineWidth: 1,
+                            borderDash: [0]
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        },
+
+                        gridLines: {
+                            color: 'rgba(0,0,0,0.05)',
+                            lineWidth: 1,
+                            borderDash: [0]
+                        }
+                    }]
+                }
+            }
+        });
+    });
+</script> --}}
+<script>
+    "use strict";
+    var datas1 = @json($datas1);
+    $(document).ready(function() {
+        var options = {
+            chart: {
+                height: 300,
+                type: 'area',
+                toolbar: {
+                    show: false
+                },
+                zoom: {
+                    type: 'x',
+                    enabled: false,
+                    autoScaleYaxis: true
+                },
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+            },
+            colors: ['#ff3385'],
+            series: [{
+                name: 'Orders',
+                data: datas1
+            }],
+            legend: {
+                show: false,
+            },
+            xaxis: {
+                title: {
+                    text: 'Months',
+                },
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
+                    'Dec'
+                ],
+                axisBorder: {
+                    show: true,
+                    color: 'rgba(0,0,0,0.05)'
+                },
+                axisTicks: {
+                    show: true,
+                    color: 'rgba(0,0,0,0.05)'
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Orders',
+                },
+                min: 0
+            },
+            grid: {
+                row: {
+                    colors: ['transparent', 'transparent'],
+                    opacity: .5
+                },
+                borderColor: '#ff3385'
+            }
+        }
+        var chart = new ApexCharts(
+            document.querySelector("#apex-area-chart"),
+            options
+        );
+        chart.render();
+    });
+</script>
+@endsection

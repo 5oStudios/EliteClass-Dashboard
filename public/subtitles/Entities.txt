@@ -1,0 +1,30 @@
+Course
+	category
+		1*
+		2*
+		3
+	instructor
+	language*
+	refund policy
+	institute*
+	Title*
+	Slug*
+	Short Detail*
+	Requirements*
+	Detail*
+	Country
+	Tags
+	Curse Tags*
+	Paid
+	Featured
+	Status
+	Involvement Request
+	Preview Video
+	URL
+	Duration
+	Image
+	Instructors Revenue
+	Assignment ? 
+	Appointment ?
+	Certificate Enable ?
+	Drip Content ?

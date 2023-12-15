@@ -1,0 +1,193 @@
+@extends('admin.layouts.master')
+@section('title', 'Test Users')
+
+@section('maincontent')
+@component('components.breadcumb', ['secondaryactive' => 'active'])
+    @slot('heading')
+        {{ __('Test Users') }}
+    @endslot
+    @slot('menu1')
+        {{ __('Test Users') }}
+    @endslot
+    @slot('button')
+        <div class="col-md-5 col-lg-5">
+            <div class="widgetbar">
+                @can('Alluser.delete')
+                    <button type="button" class="float-right btn btn-danger-rgba mr-2 " data-toggle="modal"
+                        data-target="#bulk_delete"><i class="feather icon-trash mr-2"></i> {{ __('Delete Selected') }}</button>
+                @endcan
+
+                @if(auth()->user()->hasRole('admin'))
+                    <a href="{{ route('testuser.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
+                            class="feather icon-plus mr-2"></i>{{ __('Add Test User') }}</a>
+                @endif
+            </div>
+        </div>
+    @endslot
+@endcomponent
+
+<div class="contentbar">
+    <div class="row">
+
+        <div class="col-lg-12">
+            <div class="card m-b-30">
+                <div class="card-header">
+                    <h5 class="box-title">{{ __('All Test Users') }}</h5>
+                </div>
+                <div class="card-body">
+
+                    <div class="table-responsive">
+                        <table id="testusertable" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input id="checkboxAll" type="checkbox" class="filled-in" name="checked[]"
+                                            value="all" />
+                                        <label for="checkboxAll" class="material-checkbox"></label>
+                                    </th>
+                                    <th>#</th>
+                                    <th>{{ __('adminstaticword.Name') }}</th>
+                                    <th>{{ __('adminstaticword.Email') }}</th>
+                                    <th>{{ __('adminstaticword.Mobile') }}</th>
+                                    <th>{{ __('adminstaticword.Status') }}</th>
+                                    <th>{{ __('adminstaticword.Action') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <div id="bulk_delete" class="delete-modal modal fade" role="dialog">
+                                <div class="modal-dialog modal-sm">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="delete-icon"></div>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <h4 class="modal-heading">{{ __('Are You Sure ?') }}</h4>
+                                            <p>{{ __('This process') }} <b>{{ __('disabled') }}</b>
+                                                {{ __('the user, Do you really want to disabled the selected user? This
+                                                                                            can be enable by anytime.') }}
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form id="bulk_delete_form" method="post"
+                                                action="{{ route('user.bulk_delete') }}">
+                                                @csrf
+                                                @method('POST')
+                                                <button type="reset" class="btn btn-gray translate-y-3"
+                                                    data-dismiss="modal">{{ __('No') }}</button>
+                                                <button type="submit"
+                                                    class="btn btn-danger">{{ __('Yes') }}</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End col -->
+    </div>
+    <!-- End row -->
+</div>
+@endsection
+
+
+@section('script')
+<script type="text/javascript">
+    $(function() {
+
+        var table = $('#testusertable').DataTable({
+            language: {
+                searchPlaceholder: "Search test users here"
+            },
+
+            processing: true,
+            serverSide: true,
+            searchDelay: 1000,
+            stateSave: true,
+
+            ajax: "{{ route('testuser.index') }}",
+
+            columns: [{
+                    data: 'checkbox',
+                    name: 'checkbox',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'DT_RowIndex',
+                    name: 'users.id'
+                },
+                {
+                    data: 'name',
+                    name: 'users.fname'
+                },
+                {
+                    data: 'email',
+                    name: 'users.email'
+                },
+                {
+                    data: 'mobile',
+                    name: 'users.mobile'
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ]
+        });
+
+    });
+</script>
+<!-- script for datatable start -->
+<script>
+    $(document).on("change", ".user", function() {
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: 'user/status',
+            data: {
+                'status': $(this).is(':checked') ? 1 : 0,
+                'id': $(this).data('id')
+            },
+            success: function(data) {
+                var success = new PNotify({
+                    title: 'success',
+                    text: data.success,
+                    type: 'success',
+                });
+                success.get().click(function() {
+                    success.remove();
+                });
+            },
+            error: function(resp) {
+                var error = new PNotify({
+                    title: 'error',
+                    text: "{{ __('Oops something went wrong, please try again') }}",
+                    type: 'error',
+                });
+                error.get().click(function() {
+                    error.remove();
+                });
+            }
+        });
+    });
+</script>
+<script>
+    $("#checkboxAll").on('click', function() {
+        $('input.check').not(this).prop('checked', this.checked);
+    });
+</script>
+<!-- script for datatable end -->
+@endsection

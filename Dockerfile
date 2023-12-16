@@ -30,8 +30,7 @@ WORKDIR /var/www
 
 COPY . .
 
-RUN composer update && \
-    composer install --no-progress --no-interaction --prefer-dist --optimize-autoloader && composer dump-autoload
+RUN composer install --no-progress --no-interaction --prefer-dist --optimize-autoloader && composer dump-autoload
 
 # Create system user to run Composer and Artisan Commands
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
@@ -41,6 +40,9 @@ RUN mkdir -p /home/$user/.composer && \
     chmod +x entrypoint.sh && \
     chown -R $user:$user /home/$user && \
     chown -R $user:$user .
+
+RUN sed -i 's/user = www-data/user = studios/' /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i 's/group = www-data/group = studios/' /usr/local/etc/php-fpm.d/www.conf
 
 USER $user
 

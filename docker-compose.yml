@@ -12,16 +12,17 @@ services:
     restart: unless-stopped
     ports:
       - '80:80'
-      - '443:443'
     networks:
       - lms-network
     volumes:
       - dashboard:/var/www
       - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - dashboard
 
-# admin dashboard
+  # admin dashboard
   dashboard:
-    image: enegix/lms-dashboard:latest
+    image: enegix/lms-dashboard:beta
     container_name: lms-dashboard
     restart: unless-stopped
     expose:
@@ -58,7 +59,7 @@ services:
 
 # phpmyadmin container
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+    image: phpmyadmin
     container_name: lms-phpmyadmin
     restart: unless-stopped
     ports:
@@ -67,6 +68,7 @@ services:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: lms@root23!pass
       TZ: Asia/Kuwait
+      UPLOAD_LIMIT: 300M
     networks:
       - lms-network
     depends_on:

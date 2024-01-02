@@ -15,7 +15,7 @@ services:
     networks:
       - lms-network
     volumes:
-      - dashboard:/var/www
+#      - dashboard:/var/www/html
       - ./docker/nginx:/etc/nginx/conf.d
     depends_on:
       - dashboard
@@ -32,7 +32,7 @@ services:
     environment:
       TZ: Asia/Kuwait
     volumes:
-      - dashboard:/var/www
+#      - dashboard:/var/www/html
       - uploads:/app/storage/public
     depends_on:
       - mysql

@@ -1,5 +1,43 @@
 docker
 docker-compose.yml
 docker-compose.override.yml
-tests
-vendor
+
+# Ignore Git and version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# Ignore Docker files
+Dockerfile
+.dockerignore
+
+# Ignore Node.js artifacts
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore Composer artifacts
+vendor/
+composer.phar
+
+# Ignore environment files
+#.env
+.env.*
+!.env.example
+
+# Ignore common log files
+*.log
+storage/logs/
+
+# Ignore build artifacts
+build/
+dist/
+
+# Ignore other unnecessary files
+.idea/
+.editorconfig
+.sass-cache/
+.cache
+.DS_Store
+Thumbs.db

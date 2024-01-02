@@ -1,13 +1,12 @@
 FROM php:8.2-fpm
 
 # Arguments defined in docker-compose.yml
-ARG user=studios
-ARG uid=1001
-
+ARG USERNAME=studios
+ARG UID=1001
 ENV TZ=Asia/Kuwait
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     git \
     curl \
     libpng-dev \
@@ -15,37 +14,32 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     zip \
-    unzip
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd soap zip
+    unzip \
+    && docker-php-ext-install mysqli pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && apt clean  \
+    && rm -rf /var/lib/apt/lists/*
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-progress --no-interaction --prefer-dist --optimize-autoloader && composer dump-autoload
+RUN composer update && \
+    composer install --no-progress && composer dump-autoload
 
 # Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
-    rm -r storage/app/public && \
-    ln -s /app/storage/public storage/app/ && \
-    chmod +x entrypoint.sh && \
-    chown -R $user:$user /home/$user && \
-    chown -R $user:$user .
+RUN rm -r storage/app/public  \
+    && ln -s /app/storage/public storage/app/  \
+    && mkdir storage/framework/cache/data \
+    && chmod +x entrypoint.sh  \
+    && chown -R $USERNAME:$USERNAME .
 
-RUN sed -i 's/user = www-data/user = studios/' /usr/local/etc/php-fpm.d/www.conf
-RUN sed -i 's/group = www-data/group = studios/' /usr/local/etc/php-fpm.d/www.conf
-
-USER $user
+USER $USERNAME
 
 EXPOSE 9000
 
-ENTRYPOINT ["/var/www/entrypoint.sh"]
+CMD ["php-fpm"]
+
+ENTRYPOINT ["/var/www/html/entrypoint.sh"]

@@ -6,17 +6,21 @@ ARG UID=1001
 ENV TZ=Asia/Kuwait
 
 # Install system dependencies
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    jpegoptim optipng pngquant gifsicle \
     zip \
     unzip \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && apt clean  \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Get latest Composer

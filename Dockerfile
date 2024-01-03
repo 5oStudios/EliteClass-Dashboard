@@ -33,7 +33,6 @@ RUN composer update && \
 RUN useradd -G www-data,root -u $UID -d /home/$USERNAME $USERNAME \
     && rm -r storage/app/public  \
     && ln -s /app/storage/public storage/app/  \
-    && mkdir storage/framework/cache/data \
     && chmod +x entrypoint.sh  \
     && chown -R $USERNAME:$USERNAME .
 

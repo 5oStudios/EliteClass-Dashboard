@@ -30,7 +30,8 @@ RUN composer update && \
     composer install --no-progress && composer dump-autoload
 
 # Create system user to run Composer and Artisan Commands
-RUN rm -r storage/app/public  \
+RUN useradd -G www-data,root -u $UID -d /home/$USERNAME $USERNAME \
+    && rm -r storage/app/public  \
     && ln -s /app/storage/public storage/app/  \
     && mkdir storage/framework/cache/data \
     && chmod +x entrypoint.sh  \

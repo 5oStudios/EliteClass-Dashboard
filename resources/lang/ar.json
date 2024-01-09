@@ -13,7 +13,6 @@
   "Due Date": "تاريخ الاستحقاق",
   "envato": "إنفاتو",
   "regular": "عادي",
-  
   "Saved successfully": "حفظ بنجاح",
   "Deleted Successfully": "حذف بنجاح",
   "Please select field to be deleted.": "الرجاء تحديد الحقل المراد حذفه.",
@@ -994,15 +993,6 @@
   "Add State": "أضف دولة",
   "Add State Manual": "إضافة دليل الحالة",
   "adminstaticword.Choose State": "adminstaticword.Choose الدولة",
-  "adminstaticword.type": "نوع السؤال",
-  "adminstaticword.mcq": "اختيارات",
-  "adminstaticword.audio": "سؤال صوتي",
-  "adminstaticword.complete": "سؤال اكمال",
-  "adminstaticword.image": "سؤال بصورة",
-  "adminstaticword.essay": "سؤال مقالي",
-  "adminstaticword.Audio": "الملف الصوتي",
-  "adminstaticword.Image": "الصورة",
-
   "Choose Country": "اختر الدولة",
   "Add Coupan": "أضف كووبان",
   "Coupan": "كوبان",

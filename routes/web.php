@@ -22,6 +22,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 |
 */
 
+
 Route::get('send-mail/{email}', function ($email) {
 
     try {
@@ -33,7 +34,7 @@ Route::get('send-mail/{email}', function ($email) {
 });
 
 Route::get('trans', function () {
-    $result =  @file_get_contents(resource_path() . '/lang/en.json');
+    $result = @file_get_contents(resource_path() . '/lang/en.json');
     $result = json_decode($result);
 
     $x = array();
@@ -225,7 +226,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
             Route::get('course-users/{id}', 'CourseController@enrolledUsers')->name("course.users");
             Route::get('course/user/progress/{course_id}/{user_id}', 'CourseController@userCourseProgress')->name("course.user.progress");
             Route::get('/course/create/{id}', 'CourseController@showCourse')->name('course.view');
-            Route::post('course/classes','CourseController@courseClasses')->name('course.classes');
+            Route::post('course/classes', 'CourseController@courseClasses')->name('course.classes');
             Route::post('cource-bulk-delete', 'CourseController@bulk_delete')->name('cource.bulk.delete');
             Route::get("type/categories", "CourseController@type_info");
             Route::get("admin/dropdown", "CourseController@upload_info");
@@ -926,7 +927,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
 
                 Route::post('addtocart', 'CartController@addtocart')->name('addtocart');
                 Route::post('removefromcart/{id}', 'CartController@removefromcart')
-                ->name('remove.item.cart');
+                    ->name('remove.item.cart');
                 Route::get('gotocheckout', 'CheckoutController@checkoutpage');
 
                 Route::get('/view', 'DownloadController@getDownload');

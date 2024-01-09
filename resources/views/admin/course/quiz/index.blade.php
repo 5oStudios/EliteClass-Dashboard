@@ -299,7 +299,7 @@
                                 <input type="hidden" name="topic_id" value="{{ $topic->id }}" />
                                 <div class="row">
                                     <div class="col-md-6 ">
-                                        <div class="col-md-12 question-options">
+                                        <div class="col-md-12 question-title" >
                                             <label for="exampleInputTit1e">{{ __('adminstaticword.Question') }}:<sup
                                                     class="redstar">*</sup></label>
                                             <textarea name="question" rows="6" class="form-control" placeholder="{{__('Enter Your Question')}}" required></textarea>
@@ -309,7 +309,7 @@
                                         <div class="col-md-12">
                                             <label for="exampleInputDetails">{{ __('adminstaticword.Type') }}:<sup
                                             class="redstar">*</sup></label>
-                                            <select style="width: 100%" name="type" class="form-control select2" required>
+                                            <select id="questionType" style="width: 100%" name="type" class="form-control select2" required>
                                                 <option value="none" selected disabled hidden>
                                                     {{ __('adminstaticword.SelectanOption') }}
                                                 </option>
@@ -333,6 +333,34 @@
                                                 <option value="D">{{ __('adminstaticword.D') }}</option>
                                             </select>
                                         </div>
+                                        <div class="col-md-12 question-audio">
+                                         <label class="text-dark" for="exampleInputAudio">{{ __('adminstaticword.Audio') }}:</label>
+                                             <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                  <span class="input-group-text" id="inputGroupFileAddonAudio">{{ __('Upload') }}</span>
+                                                 </div>
+                                                <div class="custom-file">
+                                                    <input type="file" name="audio" class="custom-file-input" id="exampleInputAudio"
+                                                      aria-describedby="inputGroupFileAddonAudio" accept="audio/*">
+                                                     <label class="custom-file-label" for="exampleInputAudio">{{ __('Choose audio file') }}</label>
+                                                </div>
+                                             </div>
+                                        </div>
+                                        <div class="col-md-12 question-image">
+                                            <label class="text-dark" for="exampleInputimage">{{ __('adminstaticword.image') }}:</label>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="inputGroupFileAddonimage">{{ __('Upload') }}</span>
+                                                </div>
+                                                <div class="custom-file">
+                                                    <!-- Change the accept attribute to accept only image files -->
+                                                    <input type="file" name="image" class="custom-file-input" id="exampleInputimage"
+                                                        aria-describedby="inputGroupFileAddonimage" accept="image/*">
+                                                    <label class="custom-file-label" for="exampleInputimage">{{ __('Choose image file') }}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- <br>
                                         <h4 class="extras-heading">{{ __('Video And Image For Question') }}</h4>
                                         <div class="form-group{{ $errors->has('question_video_link') ? ' has-error' : '' }}">
@@ -411,17 +439,56 @@
                 </div>
             </div>
         </div>
+        
     </div>
     <!--Model close -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Hide question-options by default
+        $('.question-options').hide();
+        $('.question-audio').hide();
+        $('.question-image').hide();
+        $('.question-title').hide();
+        $('.question-title :input').prop('required', false);
+        $('.question-options :input').prop('required', false);
+        $('.question-audio :input').prop('required', false);
+        $('.question-image :input').prop('required', false);
+        console.log('hiiis');
+        // Show/hide question-options based on the selected type
+        $('#questionType').on('change', function () {
+            var selectedType = $(this).val();
+            // If the selected type is mcq, show question-options
+            if (selectedType === 'mcq' || selectedType === 'complete' || selectedType === 'image') {
+                $('.question-options').show();
+                $('.question-title').show();
+                $('.question-title :input').prop('required', true);
+                $('.question-options :input').prop('required', true);
+            } else {
+                // Otherwise, hide question-options
+                $('.question-options').hide();
+                $('.question-title :input').prop('required', false);
+                $('.question-options :input').prop('required', false);
+            }
+            if(selectedType === 'audio'){
+                $('.question-audio').show();
+                $('.question-audio :input').prop('required', true);
+            }else{
+                $('.question-audio').hide();
+                $('.question-audio :input').prop('required', false);
+            }
+            if(selectedType === 'image'){
+                $('.question-image').show();
+                $('.question-title :input').prop('required', false);
+
+            }else{
+                $('.question-image').hide();
+            }
+        });
+    });
+</script>
     @endsection
 
-    @extends('layouts.app')
 
-@section('content')
-  <div id="app">
-    <question-component></question-component>
-  </div>
 
-  <!-- Include the compiled JavaScript file -->
-  <script src="{{ mix('js/app.js') }}"></script>
-@endsection

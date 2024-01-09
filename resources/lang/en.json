@@ -740,6 +740,8 @@
   "adminstaticword.complete": "Complete MCQ",
   "adminstaticword.image": "Image MCQ",
   "adminstaticword.essay": "Essay MCQ",
+  "adminstaticword.Audio": "Audio File",
+  "adminstaticword.Image": "Image File",
   "Choose Country": "Choose Country",
   "Dashboard": "Dashboard",
   "Max Usage Limit": "Max Usage Limit",

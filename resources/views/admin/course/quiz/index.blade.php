@@ -58,7 +58,8 @@
                                     <th>{{ __('adminstaticword.Course') }}</th>
                                     <th>{{ __('adminstaticword.Topic') }}</th>
                                     <th>{{ __('adminstaticword.Question') }}</th>
-                                    @if($topic->type == NULL)
+                                    <th>{{ __('adminstaticword.type') }}</th>
+                                    @if($topic->type == NULL || $topic->type == 'mcq' || $topic->type == 'image' || $topic->type== 'complete')
                                         <th>{{ __('adminstaticword.A') }}</th>
                                         <th>{{ __('adminstaticword.B') }}</th>
                                         <th>{{ __('adminstaticword.C') }}</th>
@@ -68,6 +69,7 @@
                                     @can(['question.edit','question.delete'])
                                         <th>{{ __('adminstaticword.Action') }}</th>
                                     @endcan
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -79,7 +81,8 @@
                                     <td>{{$quiz->courses->title}}</td>
                                     <td>{{$quiz->topic->title}}</td>
                                     <td>{{$quiz->question}}</td>
-                                    @if($topic->type == NULL)
+                                    <td>{{$quiz->type}}</td>
+                                    @if($topic->type == NULL || $topic->type == 'mcq' || $topic->type == 'image' || $topic->type== 'complete')
                                     <td>{{$quiz->a}}</td>
                                     <td>{{$quiz->b}}</td>
                                     <td>{{$quiz->c}}</td>
@@ -472,6 +475,10 @@
             }
             if(selectedType === 'audio'){
                 $('.question-audio').show();
+                $('.question-title').show();
+                $('.question-title :input').prop('required', false);
+                $('.question-image :input').prop('required', false);
+               
                 $('.question-audio :input').prop('required', true);
             }else{
                 $('.question-audio').hide();
@@ -480,9 +487,15 @@
             if(selectedType === 'image'){
                 $('.question-image').show();
                 $('.question-title :input').prop('required', false);
+                $('.question-audio :input').prop('required', false);
+
 
             }else{
                 $('.question-image').hide();
+            }
+            if(selectedType === 'essay'){
+                $('.question-title').show();
+                $('.question-title :input').prop('required', true);
             }
         });
     });

@@ -455,7 +455,6 @@
         $('.question-options :input').prop('required', false);
         $('.question-audio :input').prop('required', false);
         $('.question-image :input').prop('required', false);
-        console.log('hiiis');
         // Show/hide question-options based on the selected type
         $('#questionType').on('change', function () {
             var selectedType = $(this).val();

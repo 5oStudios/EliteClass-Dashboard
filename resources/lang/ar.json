@@ -2072,10 +2072,5 @@
   "Transaction ID is missing": "معرف المعاملة مفقود",
   "Payment method not selected": "طريقة الدفع لم يتم تحديدها",
   "Topup success": "محفظة Topup بنجاح",
-  "Choose Video From Vimeo": "اختر الفيديو من Vimeo",
-
-  "Answer should not be more than 500 characters": "الاجابة يجب ألا تتعدى 50 حرف",
-  "Audio file type should be one of :mpeg, mpga, mp3, wav or aac": "نوع الملف الصوتي يجب أن يكون واحداً من هذه الأنواع:mpeg, mpga, mp3, wav or aac",
-  "Image file type should be one of :png, jpg or jpeg": "نوع ملف الصورة يجب أن يكون واحداً من هذه الأنواع :png, jpg or jpeg",
-  "Question type is required": "نوع السؤال مطلوب"
+  "Choose Video From Vimeo": "اختر الفيديو من Vimeo"
 }

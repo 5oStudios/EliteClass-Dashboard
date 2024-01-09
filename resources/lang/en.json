@@ -2218,10 +2218,5 @@
   "Transaction ID is missing": "Transaction ID is missing",
   "Payment method not selected": "Payment method not selected",
   "Topup success": "Wallet Topup Successfully",
-  "Choose Video From Vimeo": "Choose Video From Vimeo",
-
-  "Answer should not be more than 500 characters": "Answer should not be more than 500 characters",
-  "Audio file type should be one of :mpeg, mpga, mp3, wav or aac": "Audio file type should be one of :mpeg, mpga, mp3, wav or aac",
-  "Image file type should be one of :png, jpg or jpeg": "Image file type should be one of :png, jpg or jpeg",
-  "Question type is required": "Question type is required"
+  "Choose Video From Vimeo": "Choose Video From Vimeo"
 }

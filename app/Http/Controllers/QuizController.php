@@ -89,15 +89,18 @@ class QuizController extends Controller
           'answer.size' => __('Answer must contain only one letter'),
         ]);
 
+
+        $input = $request->all();
+
         $quiz = new Quiz();
-        $quiz->course_id = $request->json('course_id');
-        $quiz->topic_id = $request->json('topic_id');
-        $quiz->question = $request->json('question');
-        $quiz->a = $request->json('a');
-        $quiz->b = $request->json('b');
-        $quiz->c = $request->json('c');
-        $quiz->d = $request->json('d');
-        $quiz->answer = $request->json('answer');
+        $quiz->course_id = $input['course_id'];
+        $quiz->topic_id = $input['topic_id'];
+        $quiz->question = $input['question'];
+        $quiz->a = $input['a'];
+        $quiz->b = $input['b'];
+        $quiz->c = $input['c'];
+        $quiz->d = $input['d'];
+        $quiz->answer = $input['answer'];
         $quiz->save();
 
       } elseif ($request->type == 'audio') {
@@ -106,7 +109,7 @@ class QuizController extends Controller
           'topic_id' => 'required',
           'question' => 'sometimes|max:500',
           'answer' => 'sometimes|max:500',
-          'audio' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac'
+          'audio' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac|max:10240'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -118,30 +121,28 @@ class QuizController extends Controller
 
         if ($request->hasFile('audio')) {
           $uniqueId = uniqid();
-          $original_name = $request->file('audio')->getClientOriginalName();
-          $size = $request->file('audio')->getSize();
+          // $original_name = $request->file('audio')->getClientOriginalName();
+          // $size = $request->file('audio')->getSize();
           $extension = $request->file('audio')->getClientOriginalExtension();
-          $filename = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
-          $audioPath = url('/storage/upload/files/audio/' . $filename);
-          $path = $file->storeAs('public/upload/files/audio/', $filename);
-          $all_audios = $audioPath;
+          $name = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('audio')->move(public_path('files/audio'), $name);
         }
 
+        $input = $request->all();
 
-        dd("after saving audio", $all_audios, $path, $audioPath);
-        // $quiz = new Quiz();
-        // $quiz->course_id = $request->json('course_id');
-        // $quiz->topic_id = $request->json('topic_id');
-        // $quiz->question = $request->json('question');
-        // $quiz->audio = $request->json('audio');
-        // $quiz->answer = $request->json('answer');
-        // $quiz->save();
+        $quiz = new Quiz();
+        $quiz->course_id = $input['course_id'];
+        $quiz->topic_id = $input['topic_id'];
+        $quiz->question = $input['question'] ?? null;
+        $quiz->audio = $name;
+        $quiz->answer = $input['answer'] ?? null;
+        $quiz->save();
 
       } elseif ($request->type == 'image') {
         $request->validate([
           'course_id' => 'required',
           'topic_id' => 'required',
-          'question_img' => 'required|file|mimes:png,jpg,jpeg',
+          'question_img' => 'required|file|mimes:png,jpg,jpeg|max:10240',
           'question' => 'sometimes|max:500',
           'a' => 'required|max:200',
           'b' => 'required|max:200',
@@ -165,17 +166,29 @@ class QuizController extends Controller
           'question_img.mimes' => __('Image file type should be one of :png, jpg or jpeg'),
         ]);
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('question_img')) {
           $uniqueId = uniqid();
-          $original_name = $request->file('file')->getClientOriginalName();
-          $size = $request->file('file')->getSize();
-          $extension = $request->file('file')->getClientOriginalExtension();
+          // $original_name = $request->file('question_img')->getClientOriginalName();
+          // $size = $request->file('question_img')->getSize();
+          $extension = $request->file('question_img')->getClientOriginalExtension();
           $name = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
-          $imagePath = url('/storage/uploads/files/' . $name);
-          $path = $request->file('file')->storeAs('public/uploads/files/', $name);
+          $path = $request->file('question_img')->move(public_path('files/images'), $name);
         }
 
-        dd($path, $imagePath);
+        $input = $request->all();
+
+        $quiz = new Quiz();
+        $quiz->course_id = $input['course_id'];
+        $quiz->topic_id = $input['topic_id'];
+        $quiz->question = $input['question'] ?? null;
+        $quiz->question_img = $name;
+        $quiz->a = $input['a'];
+        $quiz->b = $input['b'];
+        $quiz->c = $input['c'];
+        $quiz->d = $input['d'];
+        $quiz->answer = $input['answer'];
+        $quiz->save();
+
 
       } elseif ($request->type == 'essay') {
         $request->validate([
@@ -191,47 +204,19 @@ class QuizController extends Controller
           'answer.max' => __('Answer should not be more than 500 characters'),
         ]);
 
+        $input = $request->all();
+
         $quiz = new Quiz();
-        $quiz->course_id = $request->json('course_id');
-        $quiz->topic_id = $request->json('topic_id');
-        $quiz->question = $request->json('question');
-        $quiz->answer = $request->json('answer');
+        $quiz->course_id = $input['course_id'];
+        $quiz->topic_id = $input['topic_id'];
+        $quiz->question = $input['question'];
+        $quiz->answer = $input['answer'] ?? null;
         $quiz->save();
       }
 
     }
 
-
-
-    // $input = $request->all();
-
-    // if (isset($request->type)) {
-    //   $input['type'] = '1';
-    // } else {
-    //   $input['type'] = null;
-    // }
-    // if ($file = $request->file('question_img')) {
-
-    //   $path = 'images/quiz/';
-
-    //   if (!file_exists(public_path() . '/' . $path)) {
-
-    //     $path = 'images/quiz/';
-    //     File::makeDirectory(public_path() . '/' . $path, 0777, true);
-    //   }
-    //   $optimizeImage = Image::make($file);
-    //   $optimizePath = public_path() . '/images/quiz/';
-    //   $image = time() . $file->getClientOriginalName();
-    //   $optimizeImage->save($optimizePath . $image, 72);
-
-    //   $input['question_img'] = $image;
-
-    // }
-    // $input['answer_exp'] = $request->answer_exp;
-    // $input['answer'] = strtolower($request->answer);
-
-    // Quiz::create($input);
-    // return back()->with('success', trans('flash.AddedSuccessfully'));
+    return back()->with('success', trans('flash.AddedSuccessfully'));
   }
 
   /**

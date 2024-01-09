@@ -298,15 +298,30 @@
 
                                 <input type="hidden" name="topic_id" value="{{ $topic->id }}" />
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="col-md-12">
+                                    <div class="col-md-6 ">
+                                        <div class="col-md-12 question-options">
                                             <label for="exampleInputTit1e">{{ __('adminstaticword.Question') }}:<sup
                                                     class="redstar">*</sup></label>
                                             <textarea name="question" rows="6" class="form-control" placeholder="{{__('Enter Your Question')}}" required></textarea>
                                             <br>
                                         </div>
+                                        
                                         <div class="col-md-12">
-                                            <label for="exampleInputDetails">{{ __('adminstaticword.Answer') }}:<sup
+                                            <label for="exampleInputDetails">{{ __('adminstaticword.Type') }}:<sup
+                                            class="redstar">*</sup></label>
+                                            <select style="width: 100%" name="type" class="form-control select2" required>
+                                                <option value="none" selected disabled hidden>
+                                                    {{ __('adminstaticword.SelectanOption') }}
+                                                </option>
+                                                <option value="mcq">{{ __('adminstaticword.mcq') }}</option>
+                                                <option value="audio">{{ __('adminstaticword.audio') }}</option>
+                                                <option value="complete">{{ __('adminstaticword.complete') }}</option>
+                                                <option value="image">{{ __('adminstaticword.image') }}</option>
+                                                <option value="essay">{{ __('adminstaticword.essay') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-12 question-options"  >
+                                            <label for="exampleInputDetails " >{{ __('adminstaticword.Answer') }}:<sup
                                                     class="redstar">*</sup></label>
                                             <select style="width: 100%" name="answer" class="form-control select2" required>
                                                 <option value="none" selected disabled hidden>
@@ -330,7 +345,7 @@
                                             <small class="text-muted text-info"> <i class="text-dark feather icon-help-circle"></i> {{ __('Back') }}YouTube And Vimeo Video Support (Only Embed Code Link)</small>
                                         </div> -->
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 question-options" >
                                         <div class="col-md-6">
                                             <label for="exampleInputDetails">{{ __('adminstaticword.AOption') }} :<sup
                                                     class="redstar">*</sup></label>
@@ -400,7 +415,13 @@
     <!--Model close -->
     @endsection
 
-@section('scripts')
+    @extends('layouts.app')
 
+@section('content')
+  <div id="app">
+    <question-component></question-component>
+  </div>
 
+  <!-- Include the compiled JavaScript file -->
+  <script src="{{ mix('js/app.js') }}"></script>
 @endsection

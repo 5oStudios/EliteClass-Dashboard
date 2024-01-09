@@ -16,6 +16,10 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
+use App\Http\Controllers\QuizController;
+
+Route::post('/test', [QuizController::class, 'store']);
+
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);
 //   $code = $user->code;
@@ -127,16 +131,16 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
   Route::get('user/knet/payment/error', 'Api\KnetPaymentController@knetPaymentError')->name('knet.payment.error');
 
   // UPayment API Response URLs
-  Route::prefix('user/upayment')->group( function() {
-      Route::get('/success', 'Api\UPaymentController@success')->name('upayment.success');
-      Route::get('/error', 'Api\UPaymentController@error')->name('upayment.error');
-      Route::get('/payinstallment/success', 'Api\UPaymentController@payInstallmentSuccess')->name('upayment.payinstallment.success');
-      Route::get('/payinstallment/error', 'Api\UPaymentController@payInstallmentError')->name('upayment.payinstallment.error');
+  Route::prefix('user/upayment')->group(function () {
+    Route::get('/success', 'Api\UPaymentController@success')->name('upayment.success');
+    Route::get('/error', 'Api\UPaymentController@error')->name('upayment.error');
+    Route::get('/payinstallment/success', 'Api\UPaymentController@payInstallmentSuccess')->name('upayment.payinstallment.success');
+    Route::get('/payinstallment/error', 'Api\UPaymentController@payInstallmentError')->name('upayment.payinstallment.error');
     //   Route::get('/wallet/topup/success', 'Api\UPaymentController@walletTopUpSuccess')->name('upayment.wallet.topup.success'); // abandoned
     //   Route::get('/wallet/topup/error', 'Api\UPaymentController@walletTopUpError')->name('upayment.wallet.topup.error'); //abandoned
-    });
+  });
 
-  Route::prefix('upayment')->group( function() {
+  Route::prefix('upayment')->group(function () {
     Route::post('/cart/webhookurl', 'Api\UPaymentController@cartWebhookUrl')->name('cart.upayment.webhook');
     Route::post('/pay-installment/webhookurl', 'Api\UPaymentController@payInstallmentWebhookUrl')->name('installment.upayment.webhook');
     // Route::get('/topup/webhookurl', 'Api\UPaymentController@topUpWebhookUrl')->name('topup.upayment.webhook'); //abandoned
@@ -147,7 +151,7 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
     Route::post('remove/user/order', 'Api\UserApiController@removeUserFromOrder');
 
     Route::post('playerdeviceid', 'Api\UserApiController@storePlayerDeviceId');
-    
+
     Route::post('logout', 'Api\Auth\LoginController@logoutApi');
     Route::post('change-pass', 'Api\UserApiController@ChangePass');
     Route::post('notifications', 'Api\UserApiController@Notifications');
@@ -218,7 +222,7 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
 
     Route::post('apply/coupon/order', 'Api\CouponController@applyOrdercoupon'); // before used, abandoned
     Route::post('apply/coupon', 'Api\CouponController@applycoupon'); // before used, abandoned
-    Route::post('remove/coupon', 'Api\CouponController@remove');// before used, abandoned
+    Route::post('remove/coupon', 'Api\CouponController@remove'); // before used, abandoned
     Route::post('cart/coupon', 'Api\CouponController@applyCartCoupon'); // being used
     Route::post('pending-installment/coupon', 'Api\CouponController@applyPendingInstallmentCoupon'); // being used
 
@@ -388,14 +392,14 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
     Route::get('order/{id}', 'Api\InstructorApiController@getorder');
     Route::delete('order/{id}', 'Api\InstructorApiController@deleteorder');
 
-    Route::middleware(['restrictFileAccess'])->group( function () {
+    Route::middleware(['restrictFileAccess'])->group(function () {
       Route::get('courseclass/file/{id}/url', 'Api\CourseController@previewFileURL')->name('file.url');
     });
     Route::post('courseclass/file/permission', 'Api\CourseController@allowFileDownloadOrPrint');
-    
+
   });
 
-    Route::get('courseclass/file/preview', 'Api\CourseController@previewFile')->name('preview.file');//->middleware('signed');
+  Route::get('courseclass/file/preview', 'Api\CourseController@previewFile')->name('preview.file'); //->middleware('signed');
 
   Route::middleware(['allowFileDownloadOrPrint'])->group(function () {
     Route::get('courseclass/file/{id}/download', 'Api\CourseController@downloadFile');

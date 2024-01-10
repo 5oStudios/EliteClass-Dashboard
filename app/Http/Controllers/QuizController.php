@@ -113,11 +113,12 @@ class QuizController extends Controller
           'audio' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac|max:10240'
         ], [
           'course_id.required' => __('Course is required'),
-          'topic_id.string' => __('Quiz Topic is required'),
+          'topic_id.required' => __('Quiz Topic is required'),
           'question.required' => __('Quiz question is required'),
           'question.max' => __('Quiz question should not be more than 500 characters'),
           'answer.max' => __('Answer should not be more than 500 characters'),
           'audio.mimes' => __('Audio file type should be one of :mpeg, mpga, mp3, wav or aac'),
+          'audio.max' => __('Audio file type should be less than 10 MB'),
         ]);
 
         if ($request->hasFile('audio')) {
@@ -166,6 +167,7 @@ class QuizController extends Controller
           'answer.required' => __('Answer is required'),
           'answer.size' => __('Answer must contain only one letter'),
           'question_img.mimes' => __('Image file type should be one of :png, jpg or jpeg'),
+          'question_img.max' => __('Image file type should be less than 10 MB'),
         ]);
 
         if ($request->hasFile('question_img')) {
@@ -313,6 +315,7 @@ class QuizController extends Controller
         'question.max' => __('Quiz question should not be more than 500 characters'),
         'answer.max' => __('Answer should not be more than 500 characters'),
         'audio.mimes' => __('Audio file type should be one of :mpeg, mpga, mp3, wav or aac'),
+        'audio.max' => __('Audio file type should be less than 10 MB'),
       ]);
 
       if ($request->hasFile('audio')) {
@@ -358,6 +361,7 @@ class QuizController extends Controller
         'd.max' => __('Option d should not be more than 200 characters'),
         'answer.size' => __('Answer must contain only one letter'),
         'question_img.mimes' => __('Image file type should be one of :png, jpg or jpeg'),
+        'question_img.max' => __('Image file type should be less than 10 MB'),
       ]);
 
       if ($request->hasFile('question_img')) {

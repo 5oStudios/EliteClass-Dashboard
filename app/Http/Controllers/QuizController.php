@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Course;
 use App\QuizTopic;
 use App\QuizAnswer;
-use File;
+use Illuminate\Support\Facades\File;
 use Image;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Support\Facades\Validator;
@@ -297,7 +297,7 @@ class QuizController extends Controller
       }
 
       if ($input['answer']) {
-        $question->a = $input['answer'];
+        $question->answer = $input['answer'];
       }
 
       $question->save();
@@ -316,7 +316,10 @@ class QuizController extends Controller
 
       if ($request->hasFile('audio')) {
         $audioPath = public_path("/files/audio" . $question->audio);
-        dd($audioPath);
+        if (File::exists($audioPath)) {
+          File::delete($audioPath);
+        }
+
 
         $uniqueId = uniqid();
         // $original_name = $request->file('audio')->getClientOriginalName();
@@ -358,7 +361,9 @@ class QuizController extends Controller
 
       if ($request->hasFile('question_img')) {
         $imagePath = public_path("/files/images" . $question->question_img);
-        dd($imagePath);
+        if (File::exists($imagePath)) {
+          File::delete($imagePath);
+        }
 
         $uniqueId = uniqid();
         // $original_name = $request->file('question_img')->getClientOriginalName();
@@ -391,7 +396,7 @@ class QuizController extends Controller
       }
 
       if ($input['answer']) {
-        $question->a = $input['answer'];
+        $question->answer = $input['answer'];
       }
 
       $question->save();
@@ -410,7 +415,7 @@ class QuizController extends Controller
       }
 
       if ($input['answer']) {
-        $question->a = $input['answer'];
+        $question->answer = $input['answer'];
       }
 
       $question->save();

@@ -101,6 +101,7 @@ class QuizController extends Controller
         $quiz->c = $input['c'];
         $quiz->d = $input['d'];
         $quiz->answer = $input['answer'];
+        $quiz->type = $input['type'];
         $quiz->save();
 
       } elseif ($request->type == 'audio') {
@@ -136,6 +137,7 @@ class QuizController extends Controller
         $quiz->question = $input['question'] ?? null;
         $quiz->audio = $name;
         $quiz->answer = $input['answer'] ?? null;
+        $quiz->type = $input['type'];
         $quiz->save();
 
       } elseif ($request->type == 'image') {
@@ -187,6 +189,7 @@ class QuizController extends Controller
         $quiz->c = $input['c'];
         $quiz->d = $input['d'];
         $quiz->answer = $input['answer'];
+        $quiz->type = $input['type'];
         $quiz->save();
 
 
@@ -211,9 +214,9 @@ class QuizController extends Controller
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'];
         $quiz->answer = $input['answer'] ?? null;
+        $quiz->type = $input['type'];
         $quiz->save();
       }
-
     }
 
     return back()->with('success', trans('flash.AddedSuccessfully'));

@@ -258,56 +258,166 @@ class QuizController extends Controller
   public function update(Request $request, $id)
   {
     $question = Quiz::findOrFail($id);
-    $request->validate([
-      'topic_id' => 'required',
-      'question' => 'required|max:500',
-      'a' => 'required|max:100',
-      'b' => 'required|max:100',
-      'c' => 'required|max:100',
-      'd' => 'required|max:100',
-      'answer' => 'required|size:1',
-    ], [
-      'course_id.required' => __('Course is required'),
-      'topic_id.string' => __('Quiz Topic is required'),
-      'question.required' => __('Quiz question is required'),
-      'question.max' => __('Quiz question should not be more than 500 characters'),
-      'a.required' => __('Option a is required'),
-      'a.max' => __('Option a should not be more than 200 characters'),
-      'b.required' => __('Option b is required'),
-      'b.max' => __('Option b should not be more than 200 characters'),
-      'c.required' => __('Option c is required'),
-      'c.max' => __('Option c should not be more than 200 characters'),
-      'd.required' => __('Option d is required'),
-      'd.max' => __('Option d should not be more than 200 characters'),
-      'answer.required' => __('Answer is required'),
-      'answer.size' => __('Answer must contain only one letter'),
-    ]);
-
     $input = $request->all();
 
-    if ($file = $request->file('question_img')) {
-
-      $path = 'images/quiz/';
-
-      if (!file_exists(public_path() . '/' . $path)) {
-
-        $path = 'images/quiz/';
-        File::makeDirectory(public_path() . '/' . $path, 0777, true);
+    if ($question->type == 'mcq' || $question->type == null) {
+      $request->validate([
+        'question' => 'sometimes|max:500',
+        'a' => 'sometimes|max:200',
+        'b' => 'sometimes|max:200',
+        'c' => 'sometimes|max:200',
+        'd' => 'sometimes|max:200',
+        'answer' => 'sometimes|size:1',
+      ], [
+        'question.max' => __('Quiz question should not be more than 500 characters'),
+        'a.max' => __('Option a should not be more than 200 characters'),
+        'b.max' => __('Option b should not be more than 200 characters'),
+        'c.max' => __('Option c should not be more than 200 characters'),
+        'd.max' => __('Option d should not be more than 200 characters'),
+        'answer.size' => __('Answer must contain only one letter'),
+      ]);
+      if ($input['question']) {
+        $question->question = $input['question'];
       }
-      $optimizeImage = Image::make($file);
-      $optimizePath = public_path() . '/images/quiz/';
-      $image = time() . $file->getClientOriginalName();
-      $optimizeImage->save($optimizePath . $image, 72);
 
-      $input['question_img'] = $image;
+      if ($input['a']) {
+        $question->a = $input['a'];
+      }
 
+      if ($input['b']) {
+        $question->a = $input['b'];
+      }
+
+      if ($input['c']) {
+        $question->a = $input['c'];
+      }
+
+      if ($input['d']) {
+        $question->a = $input['d'];
+      }
+
+      if ($input['answer']) {
+        $question->a = $input['answer'];
+      }
+
+      $question->save();
+
+    } elseif ($question->type == 'audio') {
+      $request->validate([
+        'question' => 'sometimes|max:500',
+        'answer' => 'sometimes|max:500',
+        'audio' => 'sometimes|file|mimes:audio/mpeg,mpga,mp3,wav,aac|max:10240'
+      ], [
+        'question.required' => __('Quiz question is required'),
+        'question.max' => __('Quiz question should not be more than 500 characters'),
+        'answer.max' => __('Answer should not be more than 500 characters'),
+        'audio.mimes' => __('Audio file type should be one of :mpeg, mpga, mp3, wav or aac'),
+      ]);
+
+      if ($request->hasFile('audio')) {
+        $audioPath = public_path("/files/audio" . $question->audio);
+        dd($audioPath);
+
+        $uniqueId = uniqid();
+        // $original_name = $request->file('audio')->getClientOriginalName();
+        // $size = $request->file('audio')->getSize();
+        $extension = $request->file('audio')->getClientOriginalExtension();
+        $name = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+        $path = $request->file('audio')->move(public_path('files/audio'), $name);
+        $question->audio = $name;
+      }
+
+      if ($input['question']) {
+        $question->question = $input['question'];
+      }
+
+      if ($input['answer']) {
+        $question->answer = $input['answer'];
+      }
+
+      $question->save();
+
+    } elseif ($question->type == 'image') {
+      $request->validate([
+        'question_img' => 'sometimes|file|mimes:png,jpg,jpeg|max:10240',
+        'question' => 'sometimes|max:500',
+        'a' => 'sometimes|max:200',
+        'b' => 'sometimes|max:200',
+        'c' => 'sometimes|max:200',
+        'd' => 'sometimes|max:200',
+        'answer' => 'sometimes|size:1',
+      ], [
+        'question.max' => __('Quiz question should not be more than 500 characters'),
+        'a.max' => __('Option a should not be more than 200 characters'),
+        'b.max' => __('Option b should not be more than 200 characters'),
+        'c.max' => __('Option c should not be more than 200 characters'),
+        'd.max' => __('Option d should not be more than 200 characters'),
+        'answer.size' => __('Answer must contain only one letter'),
+        'question_img.mimes' => __('Image file type should be one of :png, jpg or jpeg'),
+      ]);
+
+      if ($request->hasFile('question_img')) {
+        $imagePath = public_path("/files/images" . $question->question_img);
+        dd($imagePath);
+
+        $uniqueId = uniqid();
+        // $original_name = $request->file('question_img')->getClientOriginalName();
+        // $size = $request->file('question_img')->getSize();
+        $extension = $request->file('question_img')->getClientOriginalExtension();
+        $name = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+        $path = $request->file('question_img')->move(public_path('files/images'), $name);
+
+        $question->question_img = $name;
+      }
+
+      if ($input['question']) {
+        $question->question = $input['question'];
+      }
+
+      if ($input['a']) {
+        $question->a = $input['a'];
+      }
+
+      if ($input['b']) {
+        $question->a = $input['b'];
+      }
+
+      if ($input['c']) {
+        $question->a = $input['c'];
+      }
+
+      if ($input['d']) {
+        $question->a = $input['d'];
+      }
+
+      if ($input['answer']) {
+        $question->a = $input['answer'];
+      }
+
+      $question->save();
+    } elseif ($question->type == 'essay') {
+
+      $request->validate([
+        'question' => 'sometimes|max:500',
+        'answer' => 'sometimes|max:500',
+      ], [
+        'question.max' => __('Quiz question should not be more than 500 characters'),
+        'answer.size' => __('Answer must contain only one letter'),
+      ]);
+
+      if ($input['question']) {
+        $question->question = $input['question'];
+      }
+
+      if ($input['answer']) {
+        $question->a = $input['answer'];
+      }
+
+      $question->save();
+    } else {
+      return back()->with('error', trans('flash.NotFound'));
     }
 
-
-
-    $input['answer_exp'] = $request->answer_exp;
-    $input['answer'] = strtolower($request->answer);
-    $question->update($input);
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
   }
 

@@ -331,7 +331,7 @@ class QuizController extends Controller
         $question->audio = $name;
       }
 
-      if ($input['question']) {
+      if (isset($input['question'])) {
         $question->question = $input['question'];
       }
 
@@ -376,27 +376,27 @@ class QuizController extends Controller
         $question->question_img = $name;
       }
 
-      if ($input['question']) {
+      if (isset($input['question'])) {
         $question->question = $input['question'];
       }
 
-      if ($input['a']) {
+      if (isset($input['a'])) {
         $question->a = $input['a'];
       }
 
-      if ($input['b']) {
+      if (isset($input['b'])) {
         $question->a = $input['b'];
       }
 
-      if ($input['c']) {
+      if (isset($input['c'])) {
         $question->a = $input['c'];
       }
 
-      if ($input['d']) {
+      if (isset($input['d'])) {
         $question->a = $input['d'];
       }
 
-      if ($input['answer']) {
+      if (isset($input['answer'])) {
         $question->answer = $input['answer'];
       }
 
@@ -411,11 +411,11 @@ class QuizController extends Controller
         'answer.size' => __('Answer must contain only one letter'),
       ]);
 
-      if ($input['question']) {
+      if (isset($input['question'])) {
         $question->question = $input['question'];
       }
 
-      if ($input['answer']) {
+      if (isset($input['answer'])) {
         $question->answer = $input['answer'];
       }
 

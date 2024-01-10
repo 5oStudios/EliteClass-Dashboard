@@ -276,27 +276,28 @@ class QuizController extends Controller
         'd.max' => __('Option d should not be more than 200 characters'),
         'answer.size' => __('Answer must contain only one letter'),
       ]);
-      if ($input['question']) {
+
+      if (isset($input['question'])) {
         $question->question = $input['question'];
       }
 
-      if ($input['a']) {
+      if (isset($input['a'])) {
         $question->a = $input['a'];
       }
 
-      if ($input['b']) {
+      if (isset($input['b'])) {
         $question->a = $input['b'];
       }
 
-      if ($input['c']) {
+      if (isset($input['c'])) {
         $question->a = $input['c'];
       }
 
-      if ($input['d']) {
+      if (isset($input['d'])) {
         $question->a = $input['d'];
       }
 
-      if ($input['answer']) {
+      if (isset($input['answer'])) {
         $question->answer = $input['answer'];
       }
 
@@ -334,7 +335,7 @@ class QuizController extends Controller
         $question->question = $input['question'];
       }
 
-      if ($input['answer']) {
+      if (isset($input['answer'])) {
         $question->answer = $input['answer'];
       }
 

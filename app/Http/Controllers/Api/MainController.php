@@ -3274,7 +3274,8 @@ class MainController extends Controller
 
                     $result[] = [
                         'question_id' => $q->id,
-                        'correct' => strtolower($request->answer[$i]) == strtolower($q->answer) ? true : false
+                        'correct' => strtolower($request->answer[$i]) == strtolower($q->answer) ? true : false,
+                        'grade' => $grade
                     ];
                 }
                 $correct = $mark * $topics->per_q_mark;

@@ -3253,7 +3253,9 @@ class MainController extends Controller
 
                     $q = Quiz::find($unique_question[$i]);
 
-                    if ($q->type == 'mcq' || $q->type == 'image') {
+                    $grade = null;
+
+                    if ($q->type == 'mcq' || $q->type == 'image' || $q->type == null) {
                         $grade = strtolower($request->answer[$i]) == strtolower($q->answer) ? 1 : 0;
                     }
 

@@ -3248,8 +3248,15 @@ class MainController extends Controller
         $result = [];
         if ($topics->type == null) {
             if ($quiz_already == null || $topics->quiz_again) {
+
                 for ($i = 0; $i < count($request->answer); $i++) {
+
                     $q = Quiz::find($unique_question[$i]);
+
+                    if ($q->type == 'mcq' || $q->type == 'image') {
+                        $grade = strtolower($request->answer[$i]) == strtolower($q->answer) ? 1 : 0;
+                    }
+
                     $answers[] = [
                         'user_id' => Auth::guard('api')->user()->id,
                         'user_answer' => strtolower($request->answer[$i]),
@@ -3259,7 +3266,10 @@ class MainController extends Controller
                         'attempt' => ($quiz_already && $quiz_already->attempt) ? ($quiz_already->attempt + 1) : 1,
                         'answer' => strtolower($q->answer),
                         'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                        'type' => $q->type,
+                        'grade' => $grade
                     ];
+
                     $mark += strtolower($request->answer[$i]) == strtolower($q->answer) ? 1 : 0;
 
                     $result[] = [

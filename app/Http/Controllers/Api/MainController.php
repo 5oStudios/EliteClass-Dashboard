@@ -3180,7 +3180,7 @@ class MainController extends Controller
                     "id" => $q->id,
                     "question" => $q->question,
                     "question_video_link" => $q->question_video_link,
-                    "question_img" => url('/images/quiz/' . $q->question_img),
+                    "question_img" => $q->question_img,
                     "a" => $q->a,
                     "b" => $q->b,
                     "c" => $q->c,

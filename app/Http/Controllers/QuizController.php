@@ -613,7 +613,7 @@ class QuizController extends Controller
   {
 
     // $request->validate([
-    //   $course_id => [
+    //   'course_id' => [
     //     'required',
     //     Rule::exists('courses', 'id')->where(function ($query) {
     //       return $query->where('status', '1')
@@ -658,6 +658,61 @@ class QuizController extends Controller
     $student = $student->toArray();
 
     return view('admin.course.quiztopic.studentMark', compact('questions', 'student', 'course', 'topic'));
+  }
+
+  public function manualGrading(Request $request)
+  {
+    $request->validate([
+      'course_id' => [
+        'required',
+        Rule::exists('courses', 'id')->where(function ($query) {
+          return $query->where('status', '1')
+            ->where('end_date', '>=', date('Y-m-d'));
+        })
+      ],
+      'topic_id' => 'required|exists:quiz_topics,id',
+      'student_id' => 'required|exists:users,id',
+      'question_id' => 'required|exists:quiz_answers,id',
+      'grade' => 'required|integer|min:0|max:1'
+    ], [
+      'course_id.required' => __("course not selected"),
+      "course_id.exists" => __("course not found"),
+      'topic_id.required' => __("Topic not selected"),
+      "topic_id.exists" => __("Topic not found"),
+      'student_id.required' => __("Student can not be empty"),
+      'student_id.exists' => __("Student not found"),
+      'question_id.required' => __("Question can not be empty"),
+      'question_id.exists' => __("Question not found"),
+    ]);
+
+    $course = Course::where('id', $request->course_id)->select('id', 'title', 'slug')->first();
+
+    $topic = QuizTopic::where('id', $request->topic_id)->select('id', 'title')->first();
+
+    $student = User::where('id', $request->student_id)->select('id', 'fname', 'lname', 'email')->first();
+
+    $last = QuizAnswer::where('course_id', $course->id)
+      ->where('topic_id', $topic->id)
+      ->where('user_id', $student->id)
+      ->orderBy('attempt', 'desc')->first();
+
+    $question = QuizAnswer::where('course_id', $course->id)
+      ->where('topic_id', $topic->id)
+      ->where('user_id', $student->id)
+      ->where('attempt', $last->attempt)
+      ->where('type', '!=', null)
+      ->whereIn('type', ['essay', 'audio'])
+      ->where('id', $request->question_id)
+      ->first();
+
+    dd($question);
+
+
+    $question->grade = $request->grade;
+    $question->save();
+
+    return back()->with('success', trans('flash.UpdatedSuccessfully'));
+
   }
 
 }

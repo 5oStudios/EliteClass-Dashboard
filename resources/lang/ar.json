@@ -2094,5 +2094,7 @@
   "Audio file type should be less than 10 MB": "ملف الصوت يجب ألا يتعدى 10 ميجا بايت",
   "Image file type should be less than 10 MB": "ملف الصورة يجب ألا يتعدى 10 ميجا بايت",
   "Student can not be empty": "يجب اضافة الطالب",
-  "Student not found": "لا يكمن ايجاد الطالب"
+  "Student not found": "لا يكمن ايجاد الطالب",
+  "Question can not be empty": "يجب تحديد السؤال",
+  "Question not found": "لا يمكن ايجاد السؤال"
 }

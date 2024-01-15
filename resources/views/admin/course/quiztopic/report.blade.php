@@ -37,6 +37,7 @@
                               <th>{{ __('Quiz') }}</th>
                               <th>{{ __('Marks Get') }}</th>
                               <th>{{ __('Total Marks') }}</th>
+                              <th >{{ __('Actions') }}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -67,12 +68,31 @@
                                   <td>
                                     {{$c_que*$topics->per_q_mark}}
                                   </td>
+                                  <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-round btn-outline-primary" type="button" id="CustomdropdownMenuButton1"
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
+                                                class="feather icon-more-vertical-"></i></button>
+                                        <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">          
+                                          <a class="dropdown-item" href="www.google.com"><i
+                                            class="feather icon-edit mr-2"></i>{{ __('Mark') }}
+                                          </a>
+                                          
+                                        </div>
+                                    </div>
+                                   </td>
                                 </tr>
                               @endforeach
             
                             @endif
                           </tbody>
             </table>
+            {{$ans}}
+            <br>
+            {{$student}}
+            <br>
+            {{$topics}}
+            <br>
           </div>
       </div>
   </div>
@@ -92,5 +112,7 @@
             },
         });
     });
+    
+
 </script>
 @endsection

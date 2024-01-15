@@ -632,9 +632,11 @@ class QuizController extends Controller
     // ]);
 
 
-    $course = Course::find($course_id);
-    $topic = QuizTopic::find($topic_id);
-    $student = User::where('id', $student_id)->first();
+    $course = Course::where('id', $course_id)->select('id', 'title', 'slug')->first();
+
+    $topic = QuizTopic::where('id', $topic_id)->select('id', 'title')->first();
+
+    $student = User::where('id', $student_id)->select('id', 'fname', 'lname', 'email')->first();
 
     $last = QuizAnswer::where('course_id', $course->id)
       ->where('topic_id', $topic->id)
@@ -648,10 +650,14 @@ class QuizController extends Controller
       ->where('attempt', $last->attempt)
       ->where('type', '!=', null)
       ->whereIn('type', ['essay', 'audio'])
-      ->get();
+      ->with('quiz')
+      ->get()->toArray();
 
+    $course = $course->toArray();
+    $topic = $topic->toArray();
+    $student = $student->toArray();
 
-    return view('admin.course.quiztopic.studentMark', compact('questions'));
+    return view('admin.course.quiztopic.studentMark', compact('questions', 'student', 'course', 'topic'));
   }
 
 }

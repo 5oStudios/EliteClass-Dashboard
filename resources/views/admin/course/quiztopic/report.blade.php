@@ -74,7 +74,7 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">          
-                                          <a class="dropdown-item" href="www.google.com"><i
+                                          <a class="dropdown-item" href="{{url('manualGrading/course/'.$ans->course_id/topic/.$ans->topic_id/student/.$ans->user_id)}}"><i
                                             class="feather icon-edit mr-2"></i>{{ __('Mark') }}
                                           </a>
                                           

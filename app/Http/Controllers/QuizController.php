@@ -608,52 +608,50 @@ class QuizController extends Controller
 
   }
 
-  public function getManualGrading(Request $request)
+
+  public function getManualGrading(Request $request, $course_id, $topic_id, $student_id)
   {
-    $request->validate([
-      'course_id' => [
-        'required',
-        Rule::exists('courses', 'id')->where(function ($query) {
-          return $query->where('status', '1')
-            ->where('end_date', '>=', date('Y-m-d'));
-        })
-      ],
-      'topic_id' => 'required|exists:quiz_topics,id',
-      'student_id' => 'required|exists:users,id',
-    ], [
-      'course_id.required' => __("course not selected"),
-      "course_id.exists" => __("course not found"),
-      'topic_id.required' => __("Topic not selected"),
-      "topic_id.exists" => __("Topic not found"),
-      'student_id.required' => __("Student can not be empty"),
-      'student_id.exists' => __("Student not found"),
-    ]);
+
+    // $request->validate([
+    //   $course_id => [
+    //     'required',
+    //     Rule::exists('courses', 'id')->where(function ($query) {
+    //       return $query->where('status', '1')
+    //         ->where('end_date', '>=', date('Y-m-d'));
+    //     })
+    //   ],
+    //   'topic_id' => 'required|exists:quiz_topics,id',
+    //   'student_id' => 'required|exists:users,id',
+    // ], [
+    //   'course_id.required' => __("course not selected"),
+    //   "course_id.exists" => __("course not found"),
+    //   'topic_id.required' => __("Topic not selected"),
+    //   "topic_id.exists" => __("Topic not found"),
+    //   'student_id.required' => __("Student can not be empty"),
+    //   'student_id.exists' => __("Student not found"),
+    // ]);
 
 
-    $course = Course::find($request->course_id);
-    $topic = QuizTopic::find($request->topic_id);
-    $student = User::where('student_id', $request->student_id)->first();
+    $course = Course::find($course_id);
+    $topic = QuizTopic::find($topic_id);
+    $student = User::where('id', $student_id)->first();
+
+    $last = QuizAnswer::where('course_id', $course->id)
+      ->where('topic_id', $topic->id)
+      ->where('user_id', $student->id)
+      ->orderBy('attempt', 'desc')->first();
+
 
     $questions = QuizAnswer::where('course_id', $course->id)
       ->where('topic_id', $topic->id)
       ->where('user_id', $student->id)
-      ->orWhere(function ($query) {
-        $query->where('type', 'essay')
-          ->orWhere('type', 'audio');
-      })
-      ->groupBy('attempt')
-      ->all();
+      ->where('attempt', $last->attempt)
+      ->where('type', '!=', null)
+      ->whereIn('type', ['essay', 'audio'])
+      ->get();
 
-    dd($questions);
 
-    return response()->json(
-      array(
-        'message' => 'Quiz Submitted',
-        'status' => 'success',
-        'questions' => $questions
-      ),
-      200
-    );
+    return view('admin.course.quiztopic.studentMark', compact('questions'));
   }
 
 }

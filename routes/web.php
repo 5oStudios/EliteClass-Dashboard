@@ -753,6 +753,8 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('reposition/category', 'CategoriesController@reposition')->name('category_reposition');
 
                 Route::resource('admin/quiztopic', 'QuizTopicController');
+                Route::get('manual-grading/course/{cource_id}/topic/{topic_id}/student/{student_id}', 'QuizController@getManualGrading');
+
                 Route::resource('/admin/questions', 'QuizController');
                 Route::resource('blog', 'BlogController');
                 Route::resource('order', 'OrderController');

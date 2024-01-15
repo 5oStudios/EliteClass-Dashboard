@@ -612,26 +612,6 @@ class QuizController extends Controller
   public function getManualGrading(Request $request, $course_id, $topic_id, $student_id)
   {
 
-    // $request->validate([
-    //   'course_id' => [
-    //     'required',
-    //     Rule::exists('courses', 'id')->where(function ($query) {
-    //       return $query->where('status', '1')
-    //         ->where('end_date', '>=', date('Y-m-d'));
-    //     })
-    //   ],
-    //   'topic_id' => 'required|exists:quiz_topics,id',
-    //   'student_id' => 'required|exists:users,id',
-    // ], [
-    //   'course_id.required' => __("course not selected"),
-    //   "course_id.exists" => __("course not found"),
-    //   'topic_id.required' => __("Topic not selected"),
-    //   "topic_id.exists" => __("Topic not found"),
-    //   'student_id.required' => __("Student can not be empty"),
-    //   'student_id.exists' => __("Student not found"),
-    // ]);
-
-
     $course = Course::where('id', $course_id)->select('id', 'title', 'slug')->first();
 
     $topic = QuizTopic::where('id', $topic_id)->select('id', 'title')->first();
@@ -662,6 +642,7 @@ class QuizController extends Controller
 
   public function manualGrading(Request $request)
   {
+
     $request->validate([
       'course_id' => [
         'required',
@@ -705,7 +686,6 @@ class QuizController extends Controller
       ->where('id', $request->question_id)
       ->first();
 
-    dd($question);
 
 
     $question->grade = $request->grade;
@@ -714,5 +694,7 @@ class QuizController extends Controller
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
 
   }
+
+
 
 }

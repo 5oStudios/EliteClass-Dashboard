@@ -70,7 +70,7 @@ console.log('i will fetch');
       headers: {
         'Content-Type': 'application/json',
       },
-      body: requestBody,
+      body: JSON.stringify(requestBody),
     })
       .then(response => response.json())
       .then(data => {

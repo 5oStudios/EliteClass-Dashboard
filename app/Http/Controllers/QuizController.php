@@ -644,6 +644,8 @@ class QuizController extends Controller
       ->groupBy('attempt')
       ->all();
 
+    dd($questions);
+
     return response()->json(
       array(
         'message' => 'Quiz Submitted',

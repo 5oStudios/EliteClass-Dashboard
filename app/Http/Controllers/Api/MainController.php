@@ -306,6 +306,7 @@ class MainController extends Controller
         foreach ($slid as $b) {
             $slider[] = [
                 'image' => url('/images/slider/' . $b->image),
+                'link' => $b->link
             ];
         }
 

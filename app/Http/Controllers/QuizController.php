@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use DB;
+use Image;
+use Session;
 use App\Quiz;
-use Illuminate\Http\Request;
+use App\User;
 use App\Course;
 use App\QuizTopic;
-use App\QuizAnswer;
-use Illuminate\Support\Facades\File;
-use Image;
-use Illuminate\Support\Facades\DB as FacadesDB;
-use Illuminate\Support\Facades\Validator;
-use Rap2hpoutre\FastExcel\FastExcel;
-use Session;
-use DB;
-use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
+use App\QuizAnswer;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Rap2hpoutre\FastExcel\FastExcel;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 
 class QuizController extends Controller
@@ -603,6 +606,52 @@ class QuizController extends Controller
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
 
 
+  }
+
+  public function getManualGrading(Request $request)
+  {
+    $request->validate([
+      'course_id' => [
+        'required',
+        Rule::exists('courses', 'id')->where(function ($query) {
+          return $query->where('status', '1')
+            ->where('end_date', '>=', date('Y-m-d'));
+        })
+      ],
+      'topic_id' => 'required|exists:quiz_topics,id',
+      'student_id' => 'required|exists:users,id',
+    ], [
+      'course_id.required' => __("course not selected"),
+      "course_id.exists" => __("course not found"),
+      'topic_id.required' => __("Topic not selected"),
+      "topic_id.exists" => __("Topic not found"),
+      'student_id.required' => __("Student can not be empty"),
+      'student_id.exists' => __("Student not found"),
+    ]);
+
+
+    $course = Course::find($request->course_id);
+    $topic = QuizTopic::find($request->topic_id);
+    $student = User::where('student_id', $request->student_id)->first();
+
+    $questions = QuizAnswer::where('course_id', $course->id)
+      ->where('topic_id', $topic->id)
+      ->where('user_id', $student->id)
+      ->orWhere(function ($query) {
+        $query->where('type', 'essay')
+          ->orWhere('type', 'audio');
+      })
+      ->groupBy('attempt')
+      ->all();
+
+    return response()->json(
+      array(
+        'message' => 'Quiz Submitted',
+        'status' => 'success',
+        'questions' => $questions
+      ),
+      200
+    );
   }
 
 }

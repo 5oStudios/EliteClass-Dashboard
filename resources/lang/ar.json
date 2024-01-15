@@ -2092,5 +2092,7 @@
   "Answer should not be more than 500 characters": "الاجابة يجب  ألا تتعدى 500 حرف",
   "Audio file type should be one of :mpeg, mpga, mp3, wav or aac": "نوع الملف الصوتي يجب أن يكون :mpeg أو  mpga أو  mp3 أو  wav أو aac",
   "Audio file type should be less than 10 MB": "ملف الصوت يجب ألا يتعدى 10 ميجا بايت",
-  "Image file type should be less than 10 MB": "ملف الصورة يجب ألا يتعدى 10 ميجا بايت"
+  "Image file type should be less than 10 MB": "ملف الصورة يجب ألا يتعدى 10 ميجا بايت",
+  "Student can not be empty": "يجب اضافة الطالب",
+  "Student not found": "لا يكمن ايجاد الطالب"
 }

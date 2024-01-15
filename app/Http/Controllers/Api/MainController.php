@@ -3132,7 +3132,12 @@ class MainController extends Controller
                 $answer = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->where('attempt', $last_attempt->attempt)->get();
                 $mark = 0;
 
+                $fullyMarked = true;
                 foreach ($answer as $ans) {
+                    if ($ans->grade == null) {
+                        $fullyMarked = false;
+                    }
+
                     $mark += (strtolower($ans->answer) == strtolower($ans->user_answer)) ? 1 : 0;
                 }
                 $grade = round(($mark / $questions) * 100, 2);
@@ -3149,7 +3154,8 @@ class MainController extends Controller
                 'timer' => $quiz->timer,
                 'reattempt' => $quiz->quiz_again ? true : false,
                 'grade' => $grade,
-                'earned_marks' => $grade ? ($mark * $quiz->per_q_mark) : null
+                'earned_marks' => $grade ? ($mark * $quiz->per_q_mark) : null,
+                'fullyMarked' => $fullyMarked
             ];
             return response()->json($data, 200);
 
@@ -3324,7 +3330,6 @@ class MainController extends Controller
             200
         );
     }
-
 
     public function userreview(Request $request)
     {

@@ -194,6 +194,7 @@
                                                                             {{ __('adminstaticword.D') }}</option>
                                                                     </select> 
                                                                 </div>
+                                                                
                                                                 @endif
                                                                 <!-- <br>
                                                                 <h4 class="extras-heading">{{ __('Video And Image For Question') }}</h4>
@@ -315,6 +316,7 @@
                                                             </div>
                                                         </div>
                                                         @endif
+
                                                         <br/>
                                                         <div class="form-group">
                                                             <button type="reset" class="btn btn-danger-rgba"><i class="fa fa-ban"></i>
@@ -381,8 +383,9 @@
                                         <div class="col-md-12 question-title" >
                                             <label for="exampleInputTit1e">{{ __('adminstaticword.Question') }}:<sup
                                                     class="redstar">*</sup></label>
-                                            <textarea name="question" rows="6" class="form-control" placeholder="{{__('Enter Your Question')}}" required></textarea>
+                                            <textarea id="questionTitle" name="question" rows="6" class="form-control" placeholder="{{__('Enter Your Question')}}" required></textarea>
                                             <br>
+                                            <button id="spaceBtn" type="button" class="btn btn-primary-rgba" onclick="addSpecialChars()">Add Space</button>
                                         </div>
                                         
                                        
@@ -590,7 +593,15 @@
         $('#exampleInputimage').change(function () {
             displayImagePreview(this);
         });
+        $('#questionTitle').on('input', function () {
+            var addSpecialCharsButton = $('#spaceBtn');
+            addSpecialCharsButton.prop('disabled', specialCharsExist());
+        });
     });
+    function specialCharsExist() {
+            var questionTitle = $('#questionTitle').val();
+            return questionTitle.includes('%_&');
+        }
 
     function displayImagePreview(input) {
         // Get the selected file
@@ -615,6 +626,25 @@
 
         }
     }
+
+    function addSpecialChars() {
+
+                var textarea = document.getElementById('questionTitle');
+                var btn = document.getElementById('spaceBtn');
+                var specialChars = '%_&';
+
+                // Insert special characters at the cursor position
+                var cursorPos = textarea.selectionStart;
+                var textBeforeCursor = textarea.value.substring(0, cursorPos);
+                var textAfterCursor = textarea.value.substring(cursorPos);
+
+                textarea.value = textBeforeCursor + specialChars + textAfterCursor;
+
+                // Move the cursor after the inserted characters
+                var newCursorPos = cursorPos + specialChars.length;
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                btn.disabled=true
+            }
     
 </script>
     @endsection

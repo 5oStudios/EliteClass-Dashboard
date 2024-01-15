@@ -40,7 +40,7 @@
               <p class="card-text">answer: {{$question['user_answer']}}</p>
               <div class="w-50 mx-auto">
                 <button type="button" class="btn btn-success" onclick="handleCorrectButtonClick({{ $course['id'] }},'{{ $topic['id'] }}', '{{ $student['id'] }}', '{{ $question['quiz']['id'] }}', '1')">Correct</button>
-                <a href="#" class="card-link"><button type="button" class="btn btn-danger" onclick="handleCorrectButtonClick('{{ $course['id'] }}','{{ $topic['id'] }}', '{{ $student['id'] }}', '{{ $question['quiz']['id'] }}', 0)">Incorrect</button></a>
+                <a href="{{url('/manual-grading/course/'.$course['id'].'/topic/'.$topic['id'].'/student/'.$student['id'].'/question/'.$question['id'].'/grade/'.'0')}}" class="card-link"><button type="button" class="btn btn-danger" >Incorrect</button></a>
               </div>
             </div>
           </div>
@@ -55,30 +55,37 @@
   function handleCorrectButtonClick(courseId,topicId, studentId, questionId,grade) {
 
     // Assuming you want to send the following data in the request body
-    const requestBody = {
-      course_id: courseId, // Replace with the actual course_id
-      topic_id: topicId, // Replace with the actual topic_id
-      student_id: studentId,
-      question_id: questionId,
-      grade,
-    };
-    console.log(requestBody);
-console.log('i will fetch');
-    // Make a POST request to '/manual-grading'
-    fetch('/manual-grading/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    const accessToken = getCookie('access_token');
+    const bodyRequest = {
+        course_id: courseId,
+        topic_id: topicId,
+        student_id: studentId,
+        question_id: questionId,
+        grade
+    }
+    console.log(bodyRequest);
+fetch('/manual-grading/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${accessToken}`,
+  },
+  body: JSON.stringify({
+    bodyRequest
+  }),
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log('Response:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
   }
+  function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
 </script>
 

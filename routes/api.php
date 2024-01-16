@@ -16,9 +16,7 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
-// use App\Http\Controllers\QuizController;
-
-// Route::post('/test', [QuizController::class, 'store']);
+Route::post('test', 'RemarkController@store');
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);

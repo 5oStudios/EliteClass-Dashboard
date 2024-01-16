@@ -23,6 +23,7 @@ use RealRashid\SweetAlert\Facades\Alert;
 */
 
 
+
 Route::get('send-mail/{email}', function ($email) {
 
     try {
@@ -881,6 +882,8 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
 
                 Route::get('show/progress/report', 'CourseProgressController@progressreport')->name('progressreport');
                 Route::get('progress/report/{id}', 'CourseProgressController@progressview')->name('preport');
+
+                Route::post('/remark', 'RemarkController@store');
             });
         });
 

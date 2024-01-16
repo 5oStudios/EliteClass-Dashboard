@@ -2240,8 +2240,14 @@
   "Audio file type should be one of :mpeg, mpga, mp3, wav or aac": "Audio file type should be one of :mpeg, mpga, mp3, wav or aac",
   "Audio file type should be less than 10 MB": "Audio file type should be less than 10 MB",
   "Image file type should be less than 10 MB": "Image file type should be less than 10 MB",
+
   "Student can not be empty": "Student can not be empty",
   "Student not found": "Student not found",
   "Question can not be empty": "Question can not be empty",
-  "Question not found": "Question not found"
+  "Question not found": "Question not found",
+  "The student is required.": "The student is required",
+  "The topic is required.": "The topic is required.",
+  "The content is required.": "The content is required.",
+  "The student not found.": "The student not found.",
+  "The topic not found.": "The topic not found."
 }

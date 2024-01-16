@@ -2098,5 +2098,11 @@
   "Student can not be empty": "يجب اضافة الطالب",
   "Student not found": "لا يكمن ايجاد الطالب",
   "Question can not be empty": "يجب تحديد السؤال",
-  "Question not found": "لا يمكن ايجاد السؤال"
+  "Question not found": "لا يمكن ايجاد السؤال",
+
+  "The student is required.": "يجب اضافة الطالب",
+  "The topic is required.": "يجب اضافة الكويز",
+  "The content is required.": "يجب اضافة محتوى التعليق",
+  "The student not found.": "لا يمكن ايجاد الطالب",
+  "The topic not found.": "لا يمكن ايجاد الكويز"
 }

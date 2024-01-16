@@ -25,11 +25,11 @@ class RemarkController extends Controller
         ];
 
         $customMessages = [
-            'student_id.required' => 'The student is required.',
-            'topic_id.required' => 'The topic is required.',
-            'content.required' => 'The content is required.',
-            'student_id.exists' => 'The student not found.',
-            'topic_id.exists' => 'The topic not found.',
+            'student_id.required' => __('The student is required.'),
+            'topic_id.required' => __('The topic is required.'),
+            'content.required' => __('The content is required.'),
+            'student_id.exists' => __('The student not found.'),
+            'topic_id.exists' => __('The topic not found.'),
         ];
         $request->validate($rules, $customMessages);
 
@@ -40,7 +40,7 @@ class RemarkController extends Controller
             'content' => $request->content,
         ]);
 
-        return back()->with('success', 'FOL El FOL');
+        return back()->with('success', trans('flash.CreatedSuccessfully'));
     }
 
     public function update(Request $request, $id)
@@ -50,18 +50,18 @@ class RemarkController extends Controller
         ];
 
         $customMessages = [
-            'content.required' => 'The content is required.',
+            'content.required' => __('The content is required.'),
         ];
         $request->validate($rules, $customMessages);
 
-        
+
         $remark = Remark::find($id);
-        
+
         if ($request->has('content')) {
             $remark->content = $request->content;
             $remark->save();
         }
-        return back()->with('success', 'FOL El FOL');
+        return back()->with('success', trans('flash.UpdatedSuccessfully'));
     }
 
     public function delete($id)

@@ -11,6 +11,7 @@ use App\Course;
 use App\QuizTopic;
 use Carbon\Carbon;
 use App\QuizAnswer;
+use App\Remark;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -635,7 +636,9 @@ class QuizController extends Controller
     $topic = $topic->toArray();
     $student = $student->toArray();
 
-    return view('admin.course.quiztopic.studentMark', compact('questions', 'student', 'course', 'topic'));
+    $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
+
+    return view('admin.course.quiztopic.studentMark', compact('questions', 'student', 'course', 'topic', 'remark'));
   }
 
   public function manualGrading(Request $request)

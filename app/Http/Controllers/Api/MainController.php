@@ -3128,19 +3128,23 @@ class MainController extends Controller
             $last_attempt = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->orderBy('attempt', 'desc')->first();
             $grade = NULL;
             $mark = null;
+            $fullyMarked = true;
             if ($last_attempt) {
 
                 $answer = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->where('attempt', $last_attempt->attempt)->get();
                 $mark = 0;
 
-                $fullyMarked = true;
                 foreach ($answer as $ans) {
-                    if ($ans->grade == null) {
-                        dd($ans);
+                    
+                    if (is_null($ans->grade) && is_null($ans->type)) {
+                        $mark += (strtolower($ans->answer) == strtolower($ans->user_answer)) ? 1 : 0;
+                    }elseif(is_null($ans->grade) && !is_null($ans->type)){
                         $fullyMarked = false;
                     }
+                    else{
+                        $mark += $ans->grade;
+                    }
 
-                    $mark += (strtolower($ans->answer) == strtolower($ans->user_answer)) ? 1 : 0;
                 }
                 $grade = round(($mark / $questions) * 100, 2);
             }

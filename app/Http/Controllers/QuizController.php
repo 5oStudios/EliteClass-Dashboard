@@ -631,12 +631,13 @@ class QuizController extends Controller
       ->whereIn('type', ['essay', 'audio'])
       ->with('quiz')
       ->get()->toArray();
+      
+      $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
 
     $course = $course->toArray();
     $topic = $topic->toArray();
     $student = $student->toArray();
 
-    $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
 
     return view('admin.course.quiztopic.studentMark', compact('questions', 'student', 'course', 'topic', 'remark'));
   }

@@ -103,45 +103,85 @@
                 
                 @endforeach
             @endif
-        </div>
+            </div>
+          <!-- Button trigger modal -->
+          <div class="d-flex justify-content-center align-items-center">
+            @if(is_null($remark))
+              <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#feedbackModal">
+              Leave Feedback
+              </button>
+            @else
+              <button type="button" class="btn btn-warning " data-toggle="modal" data-target="#feedbackModalUpdate">
+              Update Feedback
+              </button>
+            @endif
+          </div>
+          @if(is_null($remark))
+        
+            <!-- Modal -->
+            <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedbackModalLabel">Leave Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post"  action="{{url('/remark')}}
+                        "data-parsley-validate class="form-horizontal form-label-left" enctype="multipart/form-data">
+                        {{ csrf_field() }}
+                        <input type="text" name="student_id" value="{{$student['id']}}" hidden>
+                        <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
+                        <div class="form-group">
+                            <label for="feedbackTextArea">Feedback</label>
+                            <textarea name="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </div>
+                    </form>
+                </div>
+                </div>
+            </div>
+            </div>
+          @else
+            <!-- Modal -->
+            <div class="modal fade" id="feedbackModalUpdate" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="feedbackModalLabel">Update Feedback</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST"  action="{{url('/remark/'.$remark->id)}}
+                                    "data-parsley-validate class="form-horizontal form-label-left" enctype="multipart/form-data">
+                                    @csrf
+                                    @method("PATCH")
+                                    <input type="text" name="student_id" value="{{$student['id']}}" hidden>
+                                    <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
+                                    <div class="form-group">
+    <label for="feedbackTextArea">Feedback</label>
+    <textarea name="content" id="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3">{{ old('content', $remark->content) }}</textarea>
+</div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-success">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                            </div>
+                  </div>
+            </div>
+          @endif
     </div>
+          
 @endsection
 
-<script>
-    function handleCorrectButtonClick(courseId, topicId, studentId, questionId, grade) {
 
-        // Assuming you want to send the following data in the request body
-        const accessToken = getCookie('access_token');
-        const bodyRequest = {
-            course_id: courseId,
-            topic_id: topicId,
-            student_id: studentId,
-            question_id: questionId,
-            grade
-        }
-        console.log(bodyRequest);
-        fetch('/manual-grading/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify({
-                    bodyRequest
-                }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-</script>

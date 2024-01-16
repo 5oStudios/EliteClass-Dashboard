@@ -54,8 +54,9 @@ class RemarkController extends Controller
         ];
         $request->validate($rules, $customMessages);
 
-        $remark = Remark::where($id)->get();
-
+        
+        $remark = Remark::find($id);
+        
         if ($request->has('content')) {
             $remark->content = $request->content;
             $remark->save();

@@ -653,7 +653,7 @@ class QuizController extends Controller
       ],
       'topic_id' => 'required|exists:quiz_topics,id',
       'student_id' => 'required|exists:users,id',
-      'question_id' => 'required|exists:quiz_answers,id',
+      'answer_id' => 'required|exists:quiz_answers,id',
       'grade' => 'required|integer|min:0|max:1'
     ], [
       'course_id.required' => __("course not selected"),
@@ -662,15 +662,15 @@ class QuizController extends Controller
       "topic_id.exists" => __("Topic not found"),
       'student_id.required' => __("Student can not be empty"),
       'student_id.exists' => __("Student not found"),
-      'question_id.required' => __("Question can not be empty"),
-      'question_id.exists' => __("Question not found"),
+      'answer_id.required' => __("Answer can not be empty"),
+      'answer_id.exists' => __("Answer not found"),
     ]);
 
-    $course = Course::where('id', $request->course_id)->select('id', 'title', 'slug')->first();
+    $course = Course::where('id', $request->course_id)->first();
 
-    $topic = QuizTopic::where('id', $request->topic_id)->select('id', 'title')->first();
+    $topic = QuizTopic::where('id', $request->topic_id)->first();
 
-    $student = User::where('id', $request->student_id)->select('id', 'fname', 'lname', 'email')->first();
+    $student = User::where('id', $request->student_id)->first();
 
     $last = QuizAnswer::where('course_id', $course->id)
       ->where('topic_id', $topic->id)
@@ -683,18 +683,13 @@ class QuizController extends Controller
       ->where('attempt', $last->attempt)
       ->where('type', '!=', null)
       ->whereIn('type', ['essay', 'audio'])
-      ->where('id', $request->question_id)
+      ->where('id', $request->answer_id)
       ->first();
-
-
-
-    $question->grade = $request->grade;
-    $question->save();
+      
+      $question->grade = $request->grade;
+      $question->save();
 
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
-
   }
-
-
 
 }

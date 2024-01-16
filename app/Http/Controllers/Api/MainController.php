@@ -74,6 +74,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
 
+use App\Remark;
+
 class MainController extends Controller
 {
 
@@ -3135,19 +3137,22 @@ class MainController extends Controller
                 $mark = 0;
 
                 foreach ($answer as $ans) {
-                    
+
                     if (is_null($ans->grade) && is_null($ans->type)) {
                         $mark += (strtolower($ans->answer) == strtolower($ans->user_answer)) ? 1 : 0;
-                    }elseif(is_null($ans->grade) && !is_null($ans->type)){
+                    } elseif (is_null($ans->grade) && !is_null($ans->type)) {
                         $fullyMarked = false;
-                    }
-                    else{
+                    } else {
                         $mark += $ans->grade;
                     }
 
                 }
                 $grade = round(($mark / $questions) * 100, 2);
             }
+
+            $remark = Remark::where('topic_id', $id)->where('student_id', $auth->id)->first();
+
+
             $data = [
                 'id' => $quiz->id,
                 'course_id' => $quiz->course_id,
@@ -3161,7 +3166,8 @@ class MainController extends Controller
                 'reattempt' => $quiz->quiz_again ? true : false,
                 'grade' => $grade,
                 'earned_marks' => $grade ? ($mark * $quiz->per_q_mark) : null,
-                'fullyMarked' => $fullyMarked
+                'fullyMarked' => $fullyMarked,
+                'remark' => $remark
             ];
 
 

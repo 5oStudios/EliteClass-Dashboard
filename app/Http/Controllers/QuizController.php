@@ -604,8 +604,6 @@ class QuizController extends Controller
     $user->status = $request->status;
     $user->save();
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
-
-
   }
 
 
@@ -685,9 +683,9 @@ class QuizController extends Controller
       ->whereIn('type', ['essay', 'audio'])
       ->where('id', $request->answer_id)
       ->first();
-      
-      $question->grade = $request->grade;
-      $question->save();
+
+    $question->grade = $request->grade;
+    $question->save();
 
     return back()->with('success', trans('flash.UpdatedSuccessfully'));
   }

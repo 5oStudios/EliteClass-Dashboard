@@ -3136,6 +3136,7 @@ class MainController extends Controller
                 $fullyMarked = true;
                 foreach ($answer as $ans) {
                     if ($ans->grade == null) {
+                        dd($ans);
                         $fullyMarked = false;
                     }
 
@@ -3158,6 +3159,8 @@ class MainController extends Controller
                 'earned_marks' => $grade ? ($mark * $quiz->per_q_mark) : null,
                 'fullyMarked' => $fullyMarked
             ];
+
+
             return response()->json($data, 200);
 
             // else{

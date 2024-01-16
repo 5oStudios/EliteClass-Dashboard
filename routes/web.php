@@ -884,6 +884,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('progress/report/{id}', 'CourseProgressController@progressview')->name('preport');
 
                 Route::post('/remark', 'RemarkController@store');
+                Route::patch('/remark/{id}', 'RemarkController@update');
             });
         });
 

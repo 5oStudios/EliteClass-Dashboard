@@ -45,7 +45,22 @@ class RemarkController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd('from update', $request, $id);
+        $rules = [
+            'content' => 'required|string',
+        ];
+
+        $customMessages = [
+            'content.required' => 'The content is required.',
+        ];
+        $request->validate($rules, $customMessages);
+
+        $remark = Remark::where($id)->get();
+
+        if ($request->has('content')) {
+            $remark->content = $request->content;
+            $remark->save();
+        }
+        return back()->with('success', 'FOL El FOL');
     }
 
     public function delete($id)

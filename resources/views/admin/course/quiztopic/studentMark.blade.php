@@ -108,11 +108,11 @@
           <div class="d-flex justify-content-center align-items-center">
             @if(is_null($remark))
               <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#feedbackModal">
-              Leave Feedback
+              {{__(leave_feedback)}}
               </button>
             @else
               <button type="button" class="btn btn-warning " data-toggle="modal" data-target="#feedbackModalUpdate">
-              Update Feedback
+              {{__(update_feedback)}}
               </button>
             @endif
           </div>
@@ -123,7 +123,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="feedbackModalLabel">Leave Feedback</h5>
+                    <h5 class="modal-title" id="feedbackModalLabel">{{__(leave_feedback)}}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
@@ -135,12 +135,12 @@
                         <input type="text" name="student_id" value="{{$student['id']}}" hidden>
                         <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
                         <div class="form-group">
-                            <label for="feedbackTextArea">Feedback</label>
+                            <label for="feedbackTextArea">{{__(feedback)}}</label>
                             <textarea name="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3"></textarea>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-success">Submit</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__(Close)}}</button>
+                            <button type="submit" class="btn btn-success">{{__(Submit)}}</button>
                         </div>
                     </form>
                 </div>
@@ -153,7 +153,7 @@
                   <div class="modal-dialog" role="document">
                             <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="feedbackModalLabel">Update Feedback</h5>
+                                <h5 class="modal-title" id="feedbackModalLabel">{{__(update_feedback)}}</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                                 </button>
@@ -166,13 +166,13 @@
                                     <input type="text" name="student_id" value="{{$student['id']}}" hidden>
                                     <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
                                     <div class="form-group">
-    <label for="feedbackTextArea">Feedback</label>
+    <label for="feedbackTextArea">{{__(feedback)}}</label>
     <textarea name="content" id="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3">{{ old('content', $remark->content) }}</textarea>
 </div>
 
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-success">Submit</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__(Close)}}</button>
+                                        <button type="submit" class="btn btn-success">{{__(Submit)}}</button>
                                     </div>
                                 </form>
                             </div>

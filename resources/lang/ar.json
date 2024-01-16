@@ -1728,7 +1728,10 @@
   "Wallet Transactions - Admin": "معاملات المحفظة - مشرف",
   "Wallet Transactions": "معاملات المحفظة",
   "Quiz-remark": "تصحيح الكويز",
-
+  "feedback": "تعليق",
+  "leave_feedback": "اترك تعليق",
+  "update_feedback": "تعديل التعليق",
+  "Mark": "تصحيح",
   "Widget Setting": "إعداد القطعة",
   "Enable Widget": "تمكين القطعة",
   "Enable About Us": "قم بتمكين &quot;نبذة عنا&quot;",

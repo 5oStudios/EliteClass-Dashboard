@@ -875,6 +875,7 @@
   "All Report": "All Report",
   "User": "User",
   "Marks Get": "Marks Get",
+  "Mark": "Mark",
   "Total Marks": "Total Marks",
   " Edit Related Course": " Edit Related Course",
   "Related Course": "Related Course",
@@ -1722,6 +1723,10 @@
   "questions in this course": "questions in this course",
   "Ask a new question": "Ask a new question",
   "Submit": "Submit",
+  "feedback": "Feedback",
+  "leave_feedback": "Leave Feedback",
+  "update_feedback": "Update Feedback",
+
   "Answer": "Answer",
   "Title": "Title",
   "No announcements": "No announcements",

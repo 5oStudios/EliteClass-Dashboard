@@ -271,7 +271,7 @@
                                     <div style="display: none;" id="pricebox">
                                         <label for="exampleInputSlug">{{ __('adminstaticword.Price') }}: <sup
                                                 class="redstar">*</sup></label>
-                                        <input type="number" step="0.001" min="0" required
+                                        <input type="number" step="1" min="0" required
                                              class="form-control"
                                             name="price" id="priceMain"
                                             placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.Price') }}"

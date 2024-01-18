@@ -214,7 +214,9 @@ class CourseController extends Controller
             // 'course_tags' => 'required',
             'start_date' => 'required|date_format:Y-m-d|after_or_equal:' . date('Y-m-d'),
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
-            'price' => 'required_with:type|numeric',
+            'price' => 'required_with:type|numeric|min:0',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'required_if:installment,1|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),
@@ -992,7 +994,7 @@ class CourseController extends Controller
                 // if ($class->pdf == !NULL && @file_get_contents(public_path() . 'files/pdf/' . $class->pdf)) {
                 if (
                     $class->file != null &&
-                    ($class->type == 'pdf' ||  $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
+                    ($class->type == 'pdf' || $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
                     Storage::exists("/files/$class->type/" . $class->file)
                 ) {
                     $oldPathFile = Storage::path("/files/$class->type/" . $class->file);
@@ -1133,7 +1135,10 @@ class CourseController extends Controller
             'amount' => 'required|array|min:2|max:4',
             'amount.*' => 'required|numeric|min:1',
             'due_date' => [
-                'required', 'array', 'min:2', 'max:4',
+                'required',
+                'array',
+                'min:2',
+                'max:4',
                 function ($attribute, $value, $fail) {
                     for ($i = 1; $i < count($value); $i++) {
                         if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {

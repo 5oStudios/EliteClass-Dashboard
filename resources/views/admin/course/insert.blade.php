@@ -272,7 +272,7 @@
                                         <label for="exampleInputSlug">{{ __('adminstaticword.Price') }}: <sup
                                                 class="redstar">*</sup></label>
                                         <input type="number" step="0.001" min="0" required
-                                            oninput="javascript:offerPrice.value = this.value;" class="form-control"
+                                             class="form-control"
                                             name="price" id="priceMain"
                                             placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.Price') }}"
                                             value="{{ old('price') ?? 0 }}">
@@ -590,26 +590,21 @@
                 });
             });
             function updatePrefix() {
-            console.log('asdasds');
 
                 var discountType = document.getElementById('discount_type').value;
                 var prefixElement = document.getElementById('prefix');
-                console.log(discountType);
                 if (discountType === 'percentage') {
                     prefixElement.textContent = '%';
-                    console.log('%');
                 } else if (discountType === 'fixed') {
                     prefixElement.textContent = 'KWD';
-                    console.log('KWD');
                 } else {
                     prefixElement.textContent = '';
                 }
             };
 
             // Add an event listener to the discount type select element
-            document.getElementById('discount_type').addEventListener('change', ()=>{
-                console.log('test');
-            } );
+            $('#discount_type').change(()=>{
+                updatePrefix()            })
 
             // Initial call to set the prefix based on the default selected value
             updatePrefix();

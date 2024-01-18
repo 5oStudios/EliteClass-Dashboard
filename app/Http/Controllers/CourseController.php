@@ -299,6 +299,11 @@ class CourseController extends Controller
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
+        if ($input['price_discount'] && $input['price_discount'] == 0) {
+            $input['price_discount'] = null;
+            $input['discount_type'] = null;
+        }
+
         Course::create($input);
 
         Session::flash('success', trans('flash.AddedSuccessfully'));

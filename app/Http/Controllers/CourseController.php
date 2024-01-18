@@ -299,7 +299,7 @@ class CourseController extends Controller
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
-        if ($input['price_discount'] && $input['price_discount'] == 0) {
+        if (!isset($input['price_discount']) || !isset($input['discount_type']) || $input['price_discount'] == 0) {
             $input['price_discount'] = null;
             $input['discount_type'] = null;
         }
@@ -352,6 +352,8 @@ class CourseController extends Controller
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
             'price' => 'required_with:type|numeric',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'sometimes|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),

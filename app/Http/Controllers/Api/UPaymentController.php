@@ -48,13 +48,13 @@ class UPaymentController extends Controller
             'payment_method.in' => 'Payment method is invalid',
         ]);
 
-        $msg =  null;
+        $msg = null;
         $auth = Auth::guard('api')->user();
 
         $msg = Cart::validatecartitem($auth->id);  // validate cart items
 
         if ($msg) {
-            $resp =  [
+            $resp = [
                 'invoiceURL' => null,
                 'isExpiredItem' => true,
                 'description' => 'This transaction is captured by system beacause it has zero amount to pay because cart item price is zero by using coupon.
@@ -76,7 +76,19 @@ class UPaymentController extends Controller
 
         foreach ($carts as $c) {
             //cart item price i.e. offer_price
-            $total_amount = $total_amount + $c->offer_price;
+            // $total_amount = $total_amount + $c->offer_price;
+            if (is_null($c->offer_type) && $c->offer_price) {
+                $total_amount += $c->offer_price;
+            } else {
+                //fixed
+                if ($c->offer_type == 'fixed') {
+                    $total_amount += ($c->price - $c->offer_price);
+                }
+                //%
+                elseif ($c->offer_type == 'percentage') {
+                    $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                }
+            }
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {
@@ -100,7 +112,7 @@ class UPaymentController extends Controller
             try {
                 PaymentController::couponCartOrder();
 
-                $resp =  [
+                $resp = [
                     'invoiceURL' => null,
                     'isDirectEnroll' => true,
                     'description' => 'This transaction is captured by system beacause it has zero amount to pay because cart item price is zero by using coupon.
@@ -139,7 +151,7 @@ class UPaymentController extends Controller
 
 
         foreach ($carts as $cart) {
-            $cart_item  = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
+            $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
 
             $created_orders[] = Order::create([
                 'title' => $cart_item->_title(),
@@ -226,7 +238,7 @@ class UPaymentController extends Controller
 
             $upaymentResp = json_decode($responseData);
 
-            $invoice =  [
+            $invoice = [
                 'invoiceId' => $trackId,
                 'invoiceURL' => $upaymentResp->paymentURL,
             ];
@@ -422,14 +434,14 @@ class UPaymentController extends Controller
                         'amount' => $inst->amount,
                         'due_date' => $inst->due_date,
                         'installment_no' => $inst->sort,
-                        'payment_date' => $i < $totalInstallments ?  now() : null,
+                        'payment_date' => $i < $totalInstallments ? now() : null,
                         'status' => $i < $totalInstallments ? 'Paid' : null,
                     ]);
                 }
             }
 
-            $created_order->paid_amount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount  >= $carts[$key]->offer_price) ? 0 : $carts[$key]->offer_price - $carts[$key]->cartCoupon->disamount) : $carts[$key]->offer_price) : $created_order->installments_list->sum('total_amount');
-            $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount  >= $carts[$key]->offer_price) ? $carts[$key]->offer_price : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
+            $created_order->paid_amount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? 0 : $carts[$key]->offer_price - $carts[$key]->cartCoupon->disamount) : $carts[$key]->offer_price) : $created_order->installments_list->sum('total_amount');
+            $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? $carts[$key]->offer_price : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
             $created_order->coupon_id = $carts[$key]->installment == 0 ? optional($carts[$key]->cartCoupon)->coupon_id : null;
             $created_order->transaction_id = $wallet_transaction->id;
             $created_order->status = 1;
@@ -486,7 +498,7 @@ class UPaymentController extends Controller
     {
         $this->errorResponse($response);
 
-        return  redirect(config('app.front-end-url') . '/user/cart?success=0&message=Payment Failed');
+        return redirect(config('app.front-end-url') . '/user/cart?success=0&message=Payment Failed');
     }
 
     public function errorResponse($response)
@@ -630,7 +642,7 @@ class UPaymentController extends Controller
 
             Cache::forget($auth->id);
 
-            $resp =  [
+            $resp = [
                 'invoiceURL' => null,
                 'isDirectEnroll' => true,
                 'description' => 'This transaction is captured by system beacause it has zero amount to pay because installment amount is zero by using coupon.
@@ -703,7 +715,7 @@ class UPaymentController extends Controller
 
             $upaymentResp = json_decode($responseData);
 
-            $invoice =  [
+            $invoice = [
                 'invoiceId' => $inst->id,
                 'invoiceURL' => $upaymentResp->paymentURL,
             ];
@@ -950,7 +962,7 @@ class UPaymentController extends Controller
 
             $upaymentResp = json_decode($responseData);
 
-            $invoice =  [
+            $invoice = [
                 'invoiceId' => $auth->wallet->id,
                 'invoiceURL' => $upaymentResp->paymentURL,
             ];

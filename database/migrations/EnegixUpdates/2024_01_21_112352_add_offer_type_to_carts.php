@@ -13,11 +13,11 @@ class AddOfferTypeToCarts extends Migration
      */
     public function up()
     {
-        Schema::table('carts', function (Blueprint $table) {
+        if (!Schema::hasColumn('carts', 'offer_type')) {
             Schema::table('carts', function (Blueprint $table) {
                 $table->string('offer_type')->nullable();
             });
-        });
+        }
     }
 
     /**

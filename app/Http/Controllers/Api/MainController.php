@@ -2020,7 +2020,7 @@ class MainController extends Controller
             'is_cart' => $user ? ($user->cartType('course', $course->id)->exists() ? true : false) : false,
             'price' => $course->price,
             'discount_price' => $course->discount_price,
-            'discount_type' => $course->discount_price,
+            'discount_type' => $course->discount_type,
             'instalment_price' => $course->discount_price > 0 ? $course->_installments()->sum('amount') ?? 0 : null,
             'instalments' => $course->discount_price > 0 ? $course->_installments() : [],
             'course_tags' => $course->course_tags

@@ -158,7 +158,6 @@ class MainController extends Controller
         // ->get();
 
         $Course->getCollection()->transform(function ($b) use ($user) {
-            dd($b);
             return [
                 'id' => $b->id,
                 'title' => $b->title,

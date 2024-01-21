@@ -2018,8 +2018,9 @@ class MainController extends Controller
             'is_chapter_carted' => $is_chapter_carted ?? false,
             'is_chapter_purchased' => $is_chapter_purchased ?? false,
             'is_cart' => $user ? ($user->cartType('course', $course->id)->exists() ? true : false) : false,
-            // 'price' => $course->price ?? 0,
+            'price' => $course->price,
             'discount_price' => $course->discount_price,
+            'discount_type' => $course->discount_price,
             'instalment_price' => $course->discount_price > 0 ? $course->_installments()->sum('amount') ?? 0 : null,
             'instalments' => $course->discount_price > 0 ? $course->_installments() : [],
             'course_tags' => $course->course_tags

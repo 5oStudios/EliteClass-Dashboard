@@ -37,10 +37,10 @@ class BundleCourseController extends Controller
     public function index(Request $request)
     {
         $bundles = BundleCourse::query()
-                                ->select('bundle_courses.*')
-                                // ->select('id','course_id','user_id','title','preview_image','installment','total_installments','price','discount_price','installment_price','status','type')
-                                ->with(['user:id,fname,lname', 'installments:id,bundle_id,amount,due_date'])
-                                ->latest();
+            ->select('bundle_courses.*')
+            // ->select('id','course_id','user_id','title','preview_image','installment','total_installments','price','discount_price','installment_price','status','type')
+            ->with(['user:id,fname,lname', 'installments:id,bundle_id,amount,due_date'])
+            ->latest();
 
         if ($request->ajax()) {
             return DataTables::of($bundles)
@@ -102,6 +102,7 @@ class BundleCourseController extends Controller
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
             'price' => 'required|numeric|min:0',
             'discount_price' => 'required|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
             'total_installments' => 'required_if:installment,1|in:2,3,4',
         ], [
             "course_id.required" => __("At least one course is required"),
@@ -128,6 +129,7 @@ class BundleCourseController extends Controller
 
 
         $input = $request->all();
+
         $input['user_id'] = Auth::id();
 
         $input['installment'] = isset($request->installment) ? 1 : 0;
@@ -138,7 +140,7 @@ class BundleCourseController extends Controller
         $input['slug'] = $slug;
 
         // if (isset($request->type)) {
-            $input['type'] = 1;
+        $input['type'] = 1;
         // } else {
         //     $input['type'] = 0;
         // }
@@ -197,14 +199,19 @@ class BundleCourseController extends Controller
             'bundle_id' => 'required|exists:bundle_courses,id',
             'amount' => 'required|array|min:2|max:4',
             'amount.*' => 'required|numeric|min:1',
-            'due_date' => ['required','array','min:2','max:4',
-                            function ($attribute, $value, $fail) {
-                                for ($i = 1; $i < count($value); $i++) {
-                                    if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {
-                                        $fail(__('Installment date should not be less than previous installment date'));
-                                    }
-                                }
-                            }],
+            'due_date' => [
+                'required',
+                'array',
+                'min:2',
+                'max:4',
+                function ($attribute, $value, $fail) {
+                    for ($i = 1; $i < count($value); $i++) {
+                        if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {
+                            $fail(__('Installment date should not be less than previous installment date'));
+                        }
+                    }
+                }
+            ],
             'due_date.*' => 'required|date_format:Y-m-d|after_or_equal:' . $bundle->start_date . '|before_or_equal:' . $bundle->end_date,
         ], [
             "bundle_id.required" => __("Package name is required"),
@@ -348,6 +355,7 @@ class BundleCourseController extends Controller
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
             'price' => 'required|numeric|min:0',
             'discount_price' => 'required|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
             'total_installments' => 'sometimes|in:2,3,4',
         ], [
             "course_id.required" => __("At least one course is required"),
@@ -485,7 +493,7 @@ class BundleCourseController extends Controller
         Log::debug('Existing: price: ' . $bundle->price . ', discounted: ' . $bundle->discount_price . ', interval: ' . $bundle->billing_interval);
 
         if (
-                $this->isPriceChanged($bundle, $input) // FSMS reusing the function to check price change
+            $this->isPriceChanged($bundle, $input) // FSMS reusing the function to check price change
         ) {
             Log::debug('Plan changed therefore creating new plan in stripe. Stripe doesnot allow modifying current plan by design');
 
@@ -539,15 +547,15 @@ class BundleCourseController extends Controller
 
         DB::table('carts')->insert(
             array(
-                    'user_id' => Auth::user()->id,
-                    'course_id' => null,
-                    'price' => $bundle_course->price,
-                    'offer_price' => $bundle_course->discount_price,
-                    'bundle_id' => $id,
-                    'type' => 1,
-                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                )
+                'user_id' => Auth::user()->id,
+                'course_id' => null,
+                'price' => $bundle_course->price,
+                'offer_price' => $bundle_course->discount_price,
+                'bundle_id' => $id,
+                'type' => 1,
+                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+            )
         );
 
         return back()->with('success', trans('flash.CartAdded'));
@@ -569,14 +577,14 @@ class BundleCourseController extends Controller
         $bundle_course_id = $course->course_id;
 
         $created_order = Order::create([
-                    'user_id' => Auth::user()->id,
-                    'instructor_id' => $course->user_id,
-                    'course_id' => null,
-                    'total_amount' => 'Free',
-                    'status' => 1,
-                    'bundle_id' => $course->id,
-                    'bundle_course_id' => $bundle_course_id,
-                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+            'user_id' => Auth::user()->id,
+            'instructor_id' => $course->user_id,
+            'course_id' => null,
+            'total_amount' => 'Free',
+            'status' => 1,
+            'bundle_id' => $course->id,
+            'bundle_course_id' => $bundle_course_id,
+            'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
         ]);
 
         return back()->with('success', trans('flash.EnrolledSuccessfully'));

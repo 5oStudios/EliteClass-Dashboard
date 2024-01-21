@@ -31,51 +31,80 @@ class BundleCourse extends Model
     protected $table = 'bundle_courses';
 
     protected $fillable = [
-        'user_id', 'course_id', 'title', 'detail', 'price', 'discount_price', 'type', 'start_date', 'end_date', 'slug', 'status', 'featured', 'preview_image', 'is_subscription_enabled', 'billing_interval', 'price_id',  'subscription_mode', 'product_id', 'duration', 'duration_type', 'short_detail'
-     ,'total_installments','installment_price','installment'
-       ];
+        'user_id',
+        'course_id',
+        'title',
+        'detail',
+        'price',
+        'discount_price',
+        'type',
+        'start_date',
+        'end_date',
+        'slug',
+        'status',
+        'featured',
+        'preview_image',
+        'is_subscription_enabled',
+        'billing_interval',
+        'price_id',
+        'subscription_mode',
+        'product_id',
+        'duration',
+        'duration_type',
+        'short_detail'
+        ,
+        'total_installments',
+        'installment_price',
+        'installment',
+        'discount_type'
+    ];
 
     protected $casts = [
         'course_id' => 'array'
     ];
 
-    public function scopeActive($query){
+    public function scopeActive($query)
+    {
         $query->where('bundle_courses.status', '1')
-                ->where('bundle_courses.end_date','>=', date('Y-m-d'));
+            ->where('bundle_courses.end_date', '>=', date('Y-m-d'));
     }
 
-    public function _title() {
+    public function _title()
+    {
         return $this->title;
     }
 
-    public function _instructor() {
+    public function _instructor()
+    {
         return $this->user_id;
     }
 
-    public function _enrollstart() {
+    public function _enrollstart()
+    {
         return $this->start_date;
     }
 
-    public function _enrollexpire() {
+    public function _enrollexpire()
+    {
         return $this->end_date;
     }
 
     public function courses()
     {
-        return \App\Course::whereIn('id',$this->course_id)->get();//$this->hasMany('App\Course', 'course_id', 'id');
+        return \App\Course::whereIn('id', $this->course_id)->get(); //$this->hasMany('App\Course', 'course_id', 'id');
     }
-    
+
     public function allcourses()
     {
         return $this->hasMany(CoursesInBundle::class, 'bundle_id');
     }
     public function wishlist()
     {
-        return $this->hasOne('App\Wishlist','bundle_id');
+        return $this->hasOne('App\Wishlist', 'bundle_id');
     }
     public function inwishlist($user)
     {
-        return $this->hasMany('App\Wishlist','bundle_id')->where('user_id',$user)->first();
+        return $this->hasMany('App\Wishlist', 'bundle_id')->where('user_id', $user)->first();
     }
 
     public function user()
@@ -95,14 +124,15 @@ class BundleCourse extends Model
     {
         return $this->hasMany(\App\Installment::class, 'bundle_id')->orderBy('sort', 'ASC')->take($this->total_installments);
     }
-    
+
     public function _installments()
     {
-        return $this->hasMany(\App\Installment::class,'bundle_id')->select(['id','amount','due_date']);
+        return $this->hasMany(\App\Installment::class, 'bundle_id')->select(['id', 'amount', 'due_date']);
     }
-    public function _image(){
+    public function _image()
+    {
         return url('/images/bundle/' . $this->preview_image);
     }
-    
+
     public $Entity = 'Course Package';
 }

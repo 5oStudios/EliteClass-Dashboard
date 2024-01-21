@@ -1318,6 +1318,7 @@ class MainController extends Controller
                     'category_id' => $course->category_id,
                     'price' => $course->price,
                     'offer_price' => $course->discount_price,
+                    'offer_type' => $course->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -1822,6 +1823,8 @@ class MainController extends Controller
                 'type_id' => $cart_item->id,
                 'title' => $cart_item->_title(),
                 'price' => $c->offer_price,
+                'discountType' => $c->offer_type,
+                'originalPrice' => $c->price,
                 'coupon' => $c->cartCoupon ? $c->cartCoupon->coupon->code : NULL,
                 'coupon_id' => $c->cartCoupon ? $c->cartCoupon->coupon_id : NULL,
                 'cart_coupon_id' => $c->cartCoupon ? $c->cartCoupon->id : NULL,
@@ -1837,7 +1840,19 @@ class MainController extends Controller
 
         foreach ($carts as $c) {
             //cart price after offer
-            $total_amount = $total_amount + $c->offer_price;
+            // $total_amount = $total_amount + $c->offer_price;
+            if (is_null($c->offer_type) && $c->offer_price) {
+                $total_amount += $c->offer_price;
+            } else {
+                //fixed
+                if ($c->offer_type == 'fixed') {
+                    $total_amount += ($c->price - $c->offer_price);
+                }
+                //%
+                elseif ($c->offer_type == 'percentage') {
+                    $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                }
+            }
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {

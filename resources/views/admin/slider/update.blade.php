@@ -117,7 +117,10 @@
                 <input type="checkbox" class="custom_toggle" name="status" {{ $cate->status == '1' ? 'checked' : '' }} />
                 <input type="hidden"  name="free" value="0" for="status" id="status">
               </div>
-               
+              <div class="form-group col-12">
+              <label for="exampleInputDetails">{{ __('adminstaticword.Link') }}:</label><br>
+              <input type="text" class="form-control" name="link" value="{{ $cate->link}}"  />
+            </div>
               
               <!-- <div class="form-group col-md-2">
                 <label for="exampleInputTit1e">{{ __('adminstaticword.TextPosition') }}:</label><br>

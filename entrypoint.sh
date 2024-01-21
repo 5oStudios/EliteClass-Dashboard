@@ -11,5 +11,7 @@ php artisan optimize:clear
 php artisan config:clear
 php artisan cache:clear
 
+php artisan passport:keys
+
 # Start PHP-FPM server
 exec php-fpm

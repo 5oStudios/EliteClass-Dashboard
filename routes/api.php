@@ -16,7 +16,6 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
-Route::post('test', 'RemarkController@store');
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);

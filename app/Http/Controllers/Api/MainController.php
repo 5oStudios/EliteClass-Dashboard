@@ -158,6 +158,7 @@ class MainController extends Controller
         // ->get();
 
         $Course->getCollection()->transform(function ($b) use ($user) {
+            dd($b);
             return [
                 'id' => $b->id,
                 'title' => $b->title,
@@ -167,6 +168,9 @@ class MainController extends Controller
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
                 'rating' => round($b->review->avg('avg_rating'), 2),
                 'reviews_by' => $b->review->count() ?? 0,
+                'price' => $b->price,
+                'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 

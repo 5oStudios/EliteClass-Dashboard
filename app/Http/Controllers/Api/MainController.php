@@ -690,6 +690,7 @@ class MainController extends Controller
             'total_courses' => count($bundle->course_id),
             'price' => $bundle->price,
             'discount_price' => $bundle->discount_price,
+            'discount_type' => $bundle->discount_type,
             'instalment_price' => $bundle->discount_price > 0 ? $bundle->_installments()->sum('amount') ?? 0 : null,
             'instalments' => $bundle->discount_price > 0 ? $bundle->_installments() : [],
             'created_by' => $bundle->user->fname . ' ' . $bundle->user->lname,

@@ -1842,17 +1842,21 @@ class MainController extends Controller
 
         foreach ($carts as $c) {
             //cart price after offer
-            // $total_amount = $total_amount + $c->offer_price;
-            if (is_null($c->offer_type) && $c->offer_price) {
-                $total_amount += $c->offer_price;
+            if ($c->installment == 1) {
+                $total_amount = $total_amount + $c->offer_price;
             } else {
-                //fixed
-                if ($c->offer_type == 'fixed') {
-                    $total_amount += ($c->price - $c->offer_price);
-                }
-                //%
-                elseif ($c->offer_type == 'percentage') {
-                    $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+
+                if (is_null($c->offer_type) && $c->offer_price) {
+                    $total_amount += $c->offer_price;
+                } else {
+                    //fixed
+                    if ($c->offer_type == 'fixed') {
+                        $total_amount += ($c->price - $c->offer_price);
+                    }
+                    //%
+                    elseif ($c->offer_type == 'percentage') {
+                        $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                    }
                 }
             }
 

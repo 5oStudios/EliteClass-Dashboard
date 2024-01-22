@@ -216,6 +216,7 @@ class MainController extends Controller
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
                 'price' => $b->price,
                 'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 

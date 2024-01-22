@@ -16,9 +16,9 @@ class TwoFactorMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $OTP_ENABLE = env('OTP_ENABLE', true);
+        $OTP = config('app.OTP');
 
-        if ($OTP_ENABLE) {
+        if ($OTP) {
 
             $user = auth()->user();
 

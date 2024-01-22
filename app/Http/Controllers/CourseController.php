@@ -299,11 +299,16 @@ class CourseController extends Controller
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
-        if (!isset($input['price_discount']) || !isset($input['discount_type']) || $input['price_discount'] == 0) {
-            $input['price_discount'] = null;
+        if (!isset($input['discount_price']) || !isset($input['discount_type']) || $input['discount_price'] == 0) {
+            // $input['discount_price'] = null;
             $input['discount_type'] = null;
         }
 
+        if ($input['installment'] == 1) {
+            $input['status'] = 0;
+        }
+
+        // dd($input, $request);
         Course::create($input);
 
         Session::flash('success', trans('flash.AddedSuccessfully'));
@@ -1182,6 +1187,7 @@ class CourseController extends Controller
 
         $course->update([
             'installment_price' => $total,
+            'status' => 1,
             // 'total_installments' => 3,
         ]);
 

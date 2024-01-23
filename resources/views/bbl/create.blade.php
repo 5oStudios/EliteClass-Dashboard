@@ -260,13 +260,12 @@
                                 <div class="form-group col-md-6">
                                     <label>{{ __('Set Mute on Start') }}:</label>
                                     <input class="custom_toggle" type="checkbox" name="setMuteOnStart" />
-
                                 </div>
-                                <div class="form-group col-md-6 d-none">
-                                    <label>{{ __('Allow Record') }}:</label>
-
+                                <br>
+                                <div class="form-group col-md-6">
+                                    <label>Allow Record:</label>
+                                    <input class="custom_toggle" type="checkbox" name="allow_record" checked />
                                 </div>
-                                <input type='hidden' class="custom_toggle" value="1" name="allow_record" />
                             </div>
                             <button type="reset" class="btn btn-danger-rgba"><i class="fa fa-ban"></i>
                                 {{ __('Reset') }}</button>

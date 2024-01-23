@@ -85,15 +85,16 @@
                                 <div class="form-group col-md-6">
                                     <label> {{ __('adminstaticword.Meeting') }} {{ __('adminstaticword.Name') }}: <sup
                                             class="redstar">*</sup></label>
-                                    <input id="meetingname" value="{{ old('meetingname', $meeting->meetingname) }}" type="text"
-                                        name="meetingname" class="form-control" required
+                                    <input id="meetingname" value="{{ old('meetingname', $meeting->meetingname) }}"
+                                        type="text" name="meetingname" class="form-control" required
                                         placeholder="{{ __('Enter live streaming name') }}">
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label>{{ __('adminstaticword.MeetingID') }}: <sup class="redstar">*</sup></label>
-                                    <input id="meetingid" value="{{ old('meetingid', $meeting->meetingid) }}" type="text" name="meetingid"
-                                        class="form-control" required placeholder="{{ __('Enter live streaming id') }}">
+                                    <input id="meetingid" value="{{ old('meetingid', $meeting->meetingid) }}"
+                                        type="text" name="meetingid" class="form-control" required
+                                        placeholder="{{ __('Enter live streaming id') }}">
                                 </div>
 
                                 @if (Auth::User()->role == 'admin')
@@ -104,7 +105,8 @@
                                         <select name="instructor_id" required class="form-control js-example-basic-single">
                                             <option value="">{{ __('adminstaticword.SelectanOption') }}</option>
                                             @foreach ($users as $user)
-                                                <option {{ old('instructor_id', $meeting->instructor_id) == $user->id ? 'selected' : '' }}
+                                                <option
+                                                    {{ old('instructor_id', $meeting->instructor_id) == $user->id ? 'selected' : '' }}
                                                     value="{{ $user->id }}">{{ $user->fname }} {{ $user->lname }}
                                                 </option>
                                             @endforeach
@@ -127,7 +129,8 @@
                                 <div class="form-group col-md-6">
                                     <label for="exampleInputDetails">{{ __('adminstaticword.LinkByCourse') }}:</label><br>
                                     <input type="checkbox" id="myCheck" name="link_by"
-                                        {{ old('link_by', $meeting->link_by) == 'course' ? 'checked' : '' }} class="custom_toggle">
+                                        {{ old('link_by', $meeting->link_by) == 'course' ? 'checked' : '' }}
+                                        class="custom_toggle">
                                 </div>
                                 <div class="form-group col-md-6"
                                     style="{{ $meeting['link_by'] == 'course' ? '' : 'display:none' }}"
@@ -135,7 +138,8 @@
                                     <label>{{ __('adminstaticword.Courses') }}:<sup class="text-danger">*</sup></label>
                                     <select name="course_id" id="course_id" class="form-control select2">
                                         @foreach ($course as $caat)
-                                            <option {{ old('course_id', $meeting->course_id) == $caat->id ? 'selected' : '' }}
+                                            <option
+                                                {{ old('course_id', $meeting->course_id) == $caat->id ? 'selected' : '' }}
                                                 value="{{ $caat->id }}">{{ $caat->title }}</option>
                                         @endforeach
                                     </select>
@@ -231,8 +235,8 @@
                                             class="redstar">*</sup><i
                                             class="feather icon-help-circle text-secondary"></i><small class="text-muted">
                                             {{ __('It will be count in minutes.') }}</small></label>
-                                    <input value="{{ old('duration', $meeting->duration) }}" type="number" name="duration"
-                                        min="0" class="form-control" required
+                                    <input value="{{ old('duration', $meeting->duration) }}" type="number"
+                                        name="duration" min="0" class="form-control" required
                                         placeholder="{{ __('Enter live streaming duration eg. 40') }}">
                                 </div>
 
@@ -260,8 +264,8 @@
                                     </label>
 
                                     <div class="input-group">
-                                        <input value="{{ old('expire_date', $meeting->expire_date) }}" name="expire_date" type="text"
-                                            class="form-control datepicker" placeholder="yyyy-mm-dd"
+                                        <input value="{{ old('expire_date', $meeting->expire_date) }}" name="expire_date"
+                                            type="text" class="form-control datepicker" placeholder="yyyy-mm-dd"
                                             aria-describedby="basic-addon5" required />
                                         <div class="input-group-append">
                                             <span class="input-group-text" id="basic-addon5"><i
@@ -298,16 +302,17 @@
                                 </div> --}}
                                 <div class="form-group col-md-6">
                                     <label>{{ __('Set Welcome Message') }}: </label>
-                                    <input value="{{ old('welcomemsg', $meeting->welcomemsg) }}" type="text" class="form-control"
-                                        name="welcomemsg" placeholder="{{ __('Enter welcome message') }}">
+                                    <input value="{{ old('welcomemsg', $meeting->welcomemsg) }}" type="text"
+                                        class="form-control" name="welcomemsg"
+                                        placeholder="{{ __('Enter welcome message') }}">
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label>{{ __('Set Max Participants') }}: <sup class="redstar">*</sup><i
                                             class="feather icon-help-circle text-secondary"></i><small class="text-muted">
                                             {{ __('It will be inclusive of admin or instructor.') }}</small></label>
-                                    <input value="{{ old('setMaxParticipants', $meeting->setMaxParticipants) }}" type="number" min="0"
-                                        class="form-control" name="setMaxParticipants"
+                                    <input value="{{ old('setMaxParticipants', $meeting->setMaxParticipants) }}"
+                                        type="number" min="0" class="form-control" name="setMaxParticipants"
                                         placeholder="{{ __('Enter maximum participant no., leave blank if want unlimited participant') }}"
                                         required />
                                 </div>
@@ -337,8 +342,9 @@
 
                                 <div class="form-group col-md-3">
                                     <label>{{ __('Set Mute on Start') }}:</label>
-                                    <input {{ $meeting->setMuteOnStart == 1 || old('setMuteOnStart') == 'on' ? 'checked' : '' }} class="custom_toggle"
-                                        type="checkbox" name="setMuteOnStart" />
+                                    <input
+                                        {{ $meeting->setMuteOnStart == 1 || old('setMuteOnStart') == 'on' ? 'checked' : '' }}
+                                        class="custom_toggle" type="checkbox" name="setMuteOnStart" />
                                 </div>
 
                                 {{-- <div class="d-none form-group col-md-3">
@@ -347,6 +353,15 @@
                                 </div> --}}
 
                                 {{-- <input type='hidden' class="custom_toggle" value="1" name="allow_record" /> --}}
+
+                                <div class="form-group col-md-6">
+                                    <label>Allow Record: </label>
+                                    @if ($meeting['allow_record'] == 1)
+                                        <input class="custom_toggle" type="checkbox" name="allow_record" checked />
+                                    @else
+                                        <input class="custom_toggle" type="checkbox" name="allow_record" />
+                                    @endif
+                                </div>
 
                             </div>
 

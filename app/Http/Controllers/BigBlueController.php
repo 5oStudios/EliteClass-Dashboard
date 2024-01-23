@@ -147,6 +147,7 @@ class BigBlueController extends Controller
 
     public function store(Request $request)
     {
+
         $date = Carbon::createFromFormat('Y-m-d H:i:s', now(), 'UTC');
         $date->setTimezone(Auth::user()->timezone);
 
@@ -231,7 +232,7 @@ class BigBlueController extends Controller
             $input['setMuteOnStart'] = 0;
         }
 
-        if (isset($request->allow_record)) {
+        if (isset($request->allow_record) && $request->allow_record == 'on') {
             $input['allow_record'] = 1;
         } else {
             $input['allow_record'] = 0;
@@ -366,11 +367,12 @@ class BigBlueController extends Controller
             $input['setMuteOnStart'] = 0;
         }
 
-        if (isset($request->allow_record)) {
+        if (isset($request->allow_record) && $request->allow_record == 'on') {
             $input['allow_record'] = 1;
         } else {
             $input['allow_record'] = 0;
         }
+
 
         if ($request->setMaxParticipants == '') {
             $input['setMaxParticipants'] = '-1';

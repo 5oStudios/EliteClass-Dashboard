@@ -285,6 +285,22 @@ class BigBlueController extends Controller
 
         $newmeeting->create($input);
 
+        //create the meeting as a chapter in the course
+        if ($input['link_by'] == 'course') {
+            $meetingChapter = CourseChapter::create([
+                'course_id' => $input['course_id'],
+                'chapter_name' => $request->meetingname,
+                'detail' => $request->detail,
+                'price' => $request->price,
+                'discount_price' => $request->price,
+                'discount_price' => $request->discount_price,
+                'user_id' => $request->instructor_id,
+                'position' => (CourseChapter::count() + 1),
+                'status' => 0
+            ]);
+        }
+
+
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));
     }
 

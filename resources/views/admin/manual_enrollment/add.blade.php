@@ -236,7 +236,7 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == course_id) {
-                        $('#price').text(row.discount_price + ' ' + 'KWD');
+                        $('#price').text((row.discount_type === 'fixed'? (row.price - row.discount_price):row.discount_type === 'percentage'?  (row.price*((100-row.discount_price)/100)) : (row.discount_price)) + ' ' + 'KWD');
                         course = row; // Assign course here to call its installment on chapter change
 
                         if (row.installment == '1') {
@@ -285,7 +285,7 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == bundle_id) {
-                        $('#price').text(row.discount_price + ' ' + 'KWD');
+                        $('#price').text((row.discount_type === 'fixed'? (row.price - row.discount_price):row.discount_type === 'percentage'?  (row.price*((100-row.discount_price)/100)) : (row.discount_price)) + ' ' + 'KWD');
 
                         if (row.installment === '1') {
                             // Call async function to get installment price

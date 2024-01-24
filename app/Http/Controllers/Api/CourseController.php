@@ -144,10 +144,11 @@ class CourseController extends Controller
         foreach ($course->chapter as $chapter) {
 
             //Check session chapter exist and not being expired IF(Session expired than it will show on chapters list) ELSE (skip this session chapter from chapters list)
-            if ($chapter->type && !$chapter->session) {
-                continue;
+            // if ($chapter->type && !$chapter->session) {
+            //     continue;
 
-            } elseif ($chapter->type && $chapter->session) {
+            // } else
+            if ($chapter->type && $chapter->session) {
                 if ((($un_lock > 0 && $chapter->unlock_installment <= $un_lock) ? false : ($chapter_order ? false : true)) == true) {
 
                     continue;

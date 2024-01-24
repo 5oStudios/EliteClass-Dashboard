@@ -207,7 +207,6 @@ class BigBlueController extends Controller
             "welcomemsg.max" => __("Welcome messsage should not be more than 250 characters"),
         ]);
 
-        $newmeeting = new BBL();
         $input = $request->all();
 
         $allmeeting = BBL::query()
@@ -284,7 +283,8 @@ class BigBlueController extends Controller
 
         $input['owner_id'] = Auth::user()->id;
 
-        $newmeeting->create($input);
+
+        $newmeeting = BBL::create($input);
 
         //create the meeting as a chapter in the course
         if ($input['link_by'] == 'course') {
@@ -294,23 +294,25 @@ class BigBlueController extends Controller
                 'chapter_name' => $request->meetingname,
                 'detail' => $request->detail,
                 'price' => $request->price,
+                'type' => 'live-streaming',
+                'type_id' => $newmeeting->id,
                 'discount_price' => $request->discount_price,
                 'user_id' => $request->instructor_id,
                 'position' => (CourseChapter::count() + 1),
                 'status' => 1
             ]);
 
-            $courseclass = new CourseClass();
-            $courseclass->course_id = $input['course_id'];
-            $courseclass->coursechapter_id = $chapter->id;
-            $courseclass->title = $request->meetingname;
-            $courseclass->status = 1;
-            $courseclass->user_id = $request->instructor_id;
-            $courseclass->position = (CourseClass::where('course_id', $input['course_id'])->count() + 1);
-            $courseclass->type = 'Meeting';
-            $courseclass->duration = $input['duration'];
-            $courseclass->meeting_id = $input['meetingid'];
-            $courseclass->save();
+            // $courseclass = new CourseClass();
+            // $courseclass->course_id = $input['course_id'];
+            // $courseclass->coursechapter_id = $chapter->id;
+            // $courseclass->title = $request->meetingname;
+            // $courseclass->status = 1;
+            // $courseclass->user_id = $request->instructor_id;
+            // $courseclass->position = (CourseClass::where('course_id', $input['course_id'])->count() + 1);
+            // $courseclass->type = 'Meeting';
+            // $courseclass->duration = $input['duration'];
+            // $courseclass->meeting_id = $input['meetingid'];
+            // $courseclass->save();
         }
 
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));

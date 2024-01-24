@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Attandance;
 use App\Categories;
 use App\SubCategory;
+use App\CourseClass;
 use App\ChildCategory;
 use App\CourseChapter;
 use App\secondaryCategory;
@@ -287,19 +288,30 @@ class BigBlueController extends Controller
 
         //create the meeting as a chapter in the course
         if ($input['link_by'] == 'course') {
-            $meetingChapter = CourseChapter::create([
+
+            $chapter = CourseChapter::create([
                 'course_id' => $input['course_id'],
                 'chapter_name' => $request->meetingname,
                 'detail' => $request->detail,
                 'price' => $request->price,
-                'discount_price' => $request->price,
                 'discount_price' => $request->discount_price,
                 'user_id' => $request->instructor_id,
                 'position' => (CourseChapter::count() + 1),
-                'status' => 0
+                'status' => 1
             ]);
-        }
 
+            $courseclass = new CourseClass();
+            $courseclass->course_id = $input['course_id'];
+            $courseclass->coursechapter_id = $chapter->id;
+            $courseclass->title = $request->meetingname;
+            $courseclass->status = 1;
+            $courseclass->user_id = $request->instructor_id;
+            $courseclass->position = (CourseClass::where('course_id', $input['course_id'])->count() + 1);
+            $courseclass->type = 'Meeting';
+            $courseclass->duration = $input['duration'];
+            $courseclass->meeting_id = $input['meetingid'];
+            $courseclass->save();
+        }
 
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));
     }

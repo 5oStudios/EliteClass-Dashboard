@@ -157,10 +157,21 @@ class PaymentController extends Controller
         foreach ($carts as $cart) {
             $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
 
+
+            $total = 0;
+            if ($order_item->discount_type && $order_item->discount_type == 'fixed') {
+                $total = $order_item->price - $order_item->discount_price;
+            } elseif ($order_item->discount_type && $order_item->discount_type == 'percentage') {
+                $total = $order_item->price - (($order_item->discount_price / 100) * $order_item->price);
+            } else {
+                $total = $order_item->discount_price;
+            }
+
             $created_order = Order::create([
                 'title' => $cart_item->_title(),
                 'price' => $cart_item->price,
                 'discount_price' => $cart_item->discount_price,
+                'discount_type' => $cart_item->discount_type ?? null,
                 'user_id' => $auth->id,
                 'instructor_id' => $cart_item->_instructor(),
                 'course_id' => $cart->course_id ?? null,

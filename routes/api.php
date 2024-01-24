@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
+Route::get('/test/{userId}', 'Api\MainController@overdue');
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);
@@ -175,6 +176,8 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
     Route::get('completed/courses', 'Api\CourseController@completedcourse');
     Route::post('my/calendar', 'Api\UserApiController@mycalendar');
     Route::post('user-categories', 'Api\UserApiController@updateUserCategories');
+
+    Route::get('/overdue/{userId}', 'Api\MainController@overdue');
 
     //cart
     Route::post('addtocart/course', 'Api\MainController@addtocartCourse');

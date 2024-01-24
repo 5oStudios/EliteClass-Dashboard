@@ -157,6 +157,7 @@ class UPaymentController extends Controller
                 'title' => $cart_item->_title(),
                 'price' => $cart_item->price,
                 'discount_price' => $cart_item->discount_price,
+                'discount_type' => $cart_item->discount_type,
                 'user_id' => $auth->id,
                 'instructor_id' => $cart_item->_instructor(),
                 'course_id' => $cart->course_id ?? null,

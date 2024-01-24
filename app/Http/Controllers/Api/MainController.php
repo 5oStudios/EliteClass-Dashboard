@@ -18,6 +18,7 @@ use App\Answer;
 use App\Career;
 use App\Coupon;
 use App\Course;
+use App\Remark;
 use App\Slider;
 use App\Adsense;
 use App\Contact;
@@ -61,6 +62,8 @@ use App\CourseProgress;
 use App\OfflineSession;
 use App\PaymentGateway;
 use App\CoursesInBundle;
+use App\OrderInstallment;
+use App\OrderPaymentPlan;
 use App\SessionEnrollment;
 use Illuminate\Support\Str;
 use App\Helpers\Is_wishlist;
@@ -73,8 +76,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
-
-use App\Remark;
 
 class MainController extends Controller
 {
@@ -3992,5 +3993,77 @@ class MainController extends Controller
                 'msg' => 'No courses or category found !',
             ]);
         }
+    }
+
+    public function overdue($userId)
+    {
+        $result = [];
+
+
+        $user = User::findOrFail($userId);
+        // dd($user);
+
+        //go to order installments and filter by user id
+        $orderInstallemts = OrderInstallment::where('user_id', $user->id)->get()->toArray();
+
+        // dd($orderInstallemts);
+        for ($i = 0; $i < count($orderInstallemts); $i++) {
+            //get order Id
+            //Order payment plane and filter by order id and status = null
+            $orderPaymentPlane = OrderPaymentPlan::Where('order_id', $orderInstallemts[$i]['order_id'])
+                ->where('status', null)
+                ->where('due_date', '<=', now()->addDays(2))
+                ->get()->toArray();
+
+            if (count($orderPaymentPlane) > 0) {
+                $order = Order::where('id', $orderInstallemts[$i]['order_id'])
+                    ->with('courses', 'bundle')
+                    ->with([
+                        'payment_plan' => function ($query) {
+                            $query->where('due_date', '<=', now()->addDays(2))->where('status', null);
+                        }
+                    ])
+                    ->get()->toArray();
+
+                $result[] = $order;
+            }
+
+        }
+
+        // dd($result);
+
+        $response = [];
+
+        for ($i = 0; $i < count($result); $i++) {
+            for ($j = 0; $j < count($result[$i]); $j++) {
+
+                if ($result[$i][$j]['courses']['id']) {
+                    $id = $result[$i][$j]['courses']['id'];
+                    $name = $result[$i][$j]['courses']['title'];
+                    $type = 'course';
+                    $image = url($result[$i][$j]['courses']['preview_image']);
+                } else {
+                    $id = $result[$i][$j]['bundle']['id'];
+                    $name = $result[$i][$j]['bundle']['title'];
+                    $type = 'bundle';
+                    $image = url($result[$i][$j]['bundle']['preview_image']);
+                }
+
+                $data = [
+                    'typeId' => $id,
+                    'name' => $name,
+                    'type' => $type,
+                    'image' => $image,
+                    'installmentId' => $result[$i][$j]['payment_plan'][0]['id'],
+                    'dueDate' => $result[$i][$j]['payment_plan'][0]['due_date'],
+                    'amount' => $result[$i][$j]['payment_plan'][0]['amount']
+                ];
+
+                $response[] = $data;
+            }
+        }
+
+
+        return response()->json($response);
     }
 }

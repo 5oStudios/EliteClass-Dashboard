@@ -343,10 +343,20 @@ class ManualEnrollmentController extends Controller
             'detail' => Str::headline($request->type) . ' purchased',
         ]);
 
+        $total = 0;
+        if ($order_item->discount_type && $order_item->discount_type == 'fixed') {
+            $total = $order_item->price - $order_item->discount_price;
+        } elseif ($order_item->discount_type && $order_item->discount_type == 'percentage') {
+            $total = $order_item->price - (($order_item->discount_price / 100) * $order_item->price);
+        } else {
+            $total = $order_item->discount_price;
+        }
+
         $created_order = Order::create([
             'title' => $order_item->_title(),
             'price' => $order_item->price,
             'discount_price' => $order_item->discount_price,
+            'discount_type' => $order_item->discount_type ?? null,
             'user_id' => $auth->id,
             'instructor_id' => $order_item->_instructor(),
             'course_id' => $request->chapter_id ? null : $request->course_id ?? null,
@@ -358,7 +368,7 @@ class ManualEnrollmentController extends Controller
             'order_id' => '#' . sprintf("%08d", intval($number) + 1),
             'transaction_id' => $wallet_transaction->id,
             'payment_method' => $payment_method,
-            'total_amount' => $request->payment_type == 'installments' ? $order_item->installments->sum('amount') : $order_item->discount_price,
+            'total_amount' => $request->payment_type == 'installments' ? $order_item->installments->sum('amount') : $total,
             'paid_amount' => $pay_amount,
             'installments' => $request->payment_type === 'full' ? 0 : 1,
             'total_installments' => $request->payment_type === 'installments' ? $order_item->total_installments : null,

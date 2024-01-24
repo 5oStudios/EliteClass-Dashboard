@@ -169,7 +169,7 @@ class CourseController extends Controller
                     'class_id' => $c->id,
                     'type_id' => $c->type == 'quiz' ? $c->url : ($c->type == 'meeting' ? $c->meeting_id : ($c->type == 'offline_session' ? $c->offline_session_id : null)),
                     // 'quiz_id' => $c->type == 'quiz' ? $c->url : null,
-                    'meeting_id' => $c->type == 'meeting' ? $c->meeting_id : null,
+                    'meeting_id' => $c->type == 'Meeting' ? $c->meeting_id : null,
                     // 'offline_session_id' => $c->type == 'offline_session' ? $c->offline_session_id : null,
                     'type' => ($c->type == 'pdf' || $c->type == 'zip' || $c->type == 'rar' || $c->type == 'word' || $c->type == 'excel' || $c->type == 'powerpoint') ? pathinfo($c->file, PATHINFO_EXTENSION) : $c->type,
                     'iframe_url' => $c->type == 'video' ? $c->iframe_url ?? NULL : NULL,

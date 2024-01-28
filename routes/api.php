@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
-Route::get('/test/{userId}', 'Api\MainController@overdue');
+// Route::get('/test/{userId}', 'Api\MainController@overdue');
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);

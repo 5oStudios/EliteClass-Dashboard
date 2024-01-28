@@ -3999,14 +3999,14 @@ class MainController extends Controller
     {
         $result = [];
 
-
         $user = User::findOrFail($userId);
+        // $user = Auth::user();
         // dd($user);
 
         //go to order installments and filter by user id
         $orderInstallemts = OrderInstallment::where('user_id', $user->id)->get()->toArray();
-
         // dd($orderInstallemts);
+
         for ($i = 0; $i < count($orderInstallemts); $i++) {
             //get order Id
             //Order payment plane and filter by order id and status = null
@@ -4014,6 +4014,7 @@ class MainController extends Controller
                 ->where('status', null)
                 ->where('due_date', '<=', now()->addDays(2))
                 ->get()->toArray();
+            // dd($orderPaymentPlane);
 
             if (count($orderPaymentPlane) > 0) {
                 $order = Order::where('id', $orderInstallemts[$i]['order_id'])
@@ -4025,17 +4026,16 @@ class MainController extends Controller
                     ])
                     ->get()->toArray();
 
+                // dd($order);
                 $result[] = $order;
             }
-
         }
-
-        // dd($result);
 
         $response = [];
 
         for ($i = 0; $i < count($result); $i++) {
             for ($j = 0; $j < count($result[$i]); $j++) {
+                // dd($result[$i][$j]);
 
                 if ($result[$i][$j]['courses']['id']) {
                     $id = $result[$i][$j]['courses']['id'];
@@ -4049,21 +4049,20 @@ class MainController extends Controller
                     $image = url($result[$i][$j]['bundle']['preview_image']);
                 }
 
-                $data = [
-                    'typeId' => $id,
-                    'name' => $name,
-                    'type' => $type,
-                    'image' => $image,
-                    'installmentId' => $result[$i][$j]['payment_plan'][0]['id'],
-                    'dueDate' => $result[$i][$j]['payment_plan'][0]['due_date'],
-                    'amount' => $result[$i][$j]['payment_plan'][0]['amount']
-                ];
-
-                $response[] = $data;
+                for ($k = 0; $k < count($result[$i][$j]['payment_plan']); $k++) {
+                    $data = [
+                        'typeId' => $id,
+                        'name' => $name,
+                        'type' => $type,
+                        'image' => $image,
+                        'installmentId' => $result[$i][$j]['payment_plan'][$k]['id'],
+                        'dueDate' => $result[$i][$j]['payment_plan'][$k]['due_date'],
+                        'amount' => $result[$i][$j]['payment_plan'][$k]['amount']
+                    ];
+                    $response[] = $data;
+                }
             }
         }
-
-
         return response()->json($response);
     }
 }

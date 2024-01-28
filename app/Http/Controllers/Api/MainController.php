@@ -1850,7 +1850,11 @@ class MainController extends Controller
             } else {
 
                 if (is_null($c->offer_type) && $c->offer_price) {
-                    $total_amount += $c->offer_price;
+                    if ($c->offer_price == 0) {
+                        $total_amount += $c->price;
+                    } else {
+                        $total_amount += $c->offer_price;
+                    }
                 } else {
                     //fixed
                     if ($c->offer_type == 'fixed') {

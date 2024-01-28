@@ -1230,7 +1230,8 @@ class MainController extends Controller
             'course_id' => [
                 'required',
                 Rule::exists('courses', 'id')->where(function ($query) {
-                    return $query->where('discount_price', '<>', '0')
+                    return $query
+                        ->where('price', '<>', '0')
                         ->where('end_date', '>=', date('Y-m-d'))
                         ->where('status', '1');
                 })
@@ -1414,7 +1415,8 @@ class MainController extends Controller
             'bundle_id' => [
                 'required',
                 Rule::exists('bundle_courses', 'id')->where(function ($query) {
-                    return $query->where('discount_price', '<>', '0')
+                    return $query
+                        ->where('price', '<>', '0')
                         ->where('end_date', '>=', date('Y-m-d'))
                         ->where('status', '1');
                 })

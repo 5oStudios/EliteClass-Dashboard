@@ -285,6 +285,11 @@ class BigBlueController extends Controller
         $input['owner_id'] = Auth::user()->id;
 
 
+        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
+            $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
+
         $newmeeting = BBL::create($input);
 
         //create the meeting as a chapter in the course
@@ -314,11 +319,6 @@ class BigBlueController extends Controller
             // $courseclass->duration = $input['duration'];
             // $courseclass->meeting_id = $input['meetingid'];
             // $courseclass->save();
-        }
-
-        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
-            $input['discount_price'] = null;
-            $input['discount_type'] = null;
         }
 
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));

@@ -167,6 +167,7 @@ class BigBlueController extends Controller
             'duration' => 'required|digits_between:1,3',
             'price' => 'required|numeric|min:0',
             'discount_price' => 'required|numeric|min:0',
+            'discount_type' => 'required|string|in:fixed,percentage',
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
         ], [
@@ -313,6 +314,11 @@ class BigBlueController extends Controller
             // $courseclass->duration = $input['duration'];
             // $courseclass->meeting_id = $input['meetingid'];
             // $courseclass->save();
+        }
+
+        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
+            $input['discount_price'] = null;
+            $input['discount_type'] = null;
         }
 
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));

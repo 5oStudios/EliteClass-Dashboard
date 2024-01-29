@@ -160,7 +160,7 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if ($row->price == 0 && $row->discount_price == 0 && is_null($row->discount_type)) {
+                    if ($row->price == $row->discount_price && (is_null($row->discount_type) || !is_null($row->discount_type))) {
                         return __('Free');
                     } else {
                         return __('Paid');

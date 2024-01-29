@@ -1498,6 +1498,7 @@ class MainController extends Controller
                     'category_id' => $bundle->category_id,
                     'price' => $bundle->price,
                     'offer_price' => $bundle->discount_price,
+                    'offer_type' => $bundle->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -2069,11 +2070,11 @@ class MainController extends Controller
         $resp = [
             'course' => $courseDetail,
             'instructor' => [
-                    'id' => $course->teacher->id,
-                    'name' => $course->teacher->fname . ' ' . $course->teacher->lname,
-                    'image' => url('/images/user_img/' . $course->teacher->user_img),
-                    'short_info' => $course->teacher->short_info
-                ],
+                'id' => $course->teacher->id,
+                'name' => $course->teacher->fname . ' ' . $course->teacher->lname,
+                'image' => url('/images/user_img/' . $course->teacher->user_img),
+                'short_info' => $course->teacher->short_info
+            ],
             'whatlearns' => $whatlearns,
             'reviews' => $reviewszz ?? null,
             'reviews_added' => $reviews_by_user,
@@ -2385,42 +2386,42 @@ class MainController extends Controller
 
         $course = Course::where('status', 1)
             ->with([
-                    'include' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'include' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with([
-                    'whatlearns' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'whatlearns' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with([
-                    'related' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'related' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with('review')
             ->with([
-                    'language' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'language' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with('user')
             ->with([
-                    'order' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'order' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with([
-                    'chapter' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'chapter' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with([
-                    'courseclass' => function ($query) {
-                        $query->where('status', 1);
-                    }
-                ])
+                'courseclass' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
             ->with('policy')->get();
 
         return response()->json(array('course' => $course), 200);
@@ -2608,11 +2609,11 @@ class MainController extends Controller
 
             CourseProgress::where('course_id', $course->id)->where('user_id', '=', $auth->id)
                 ->update([
-                        'progress' => $progres,
-                        'mark_chapter_id' => $course_return,
-                        'all_chapter_id' => $chapters->pluck('id'),
-                        'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                    ]);
+                    'progress' => $progres,
+                    'mark_chapter_id' => $course_return,
+                    'all_chapter_id' => $chapters->pluck('id'),
+                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                ]);
 
             return response()->json('Updated sucessfully !', 200);
 
@@ -3890,9 +3891,9 @@ class MainController extends Controller
 
                 ReviewHelpful::where('id', $help->id)
                     ->update([
-                            'review_like' => '1',
-                            'review_dislike' => '0',
-                        ]);
+                        'review_like' => '1',
+                        'review_dislike' => '0',
+                    ]);
             } else {
 
                 $created_review = ReviewHelpful::create(
@@ -3907,8 +3908,8 @@ class MainController extends Controller
 
                 ReviewHelpful::where('id', $created_review->id)
                     ->update([
-                            'review_dislike' => '0',
-                        ]);
+                        'review_dislike' => '0',
+                    ]);
             }
         } elseif ($request->review_dislike == '1') {
 
@@ -3916,9 +3917,9 @@ class MainController extends Controller
 
                 ReviewHelpful::where('id', $help->id)
                     ->update([
-                            'review_dislike' => '1',
-                            'review_like' => '0',
-                        ]);
+                        'review_dislike' => '1',
+                        'review_like' => '0',
+                    ]);
             } else {
 
                 $created_review = ReviewHelpful::create(
@@ -3933,19 +3934,19 @@ class MainController extends Controller
 
                 ReviewHelpful::where('id', $created_review->id)
                     ->update([
-                            'review_like' => '0',
-                        ]);
+                        'review_like' => '0',
+                    ]);
             }
         } elseif ($help->review_like == '1') {
             ReviewHelpful::where('id', $help->id)
                 ->update([
-                        'review_like' => '0',
-                    ]);
+                    'review_like' => '0',
+                ]);
         } elseif ($help->review_dislike == '1') {
             ReviewHelpful::where('id', $help->id)
                 ->update([
-                        'review_dislike' => '0',
-                    ]);
+                    'review_dislike' => '0',
+                ]);
         }
 
         return response()->json(array('message' => 'Updated Successfully', 'status' => 'success'), 200);
@@ -3979,10 +3980,10 @@ class MainController extends Controller
                     'imagepath' => url('images/course/' . $course->preview_image),
                     'in_wishlist' => Is_wishlist::in_wishlist($course->id),
                     'instructor' => array(
-                            'id' => $course->user->id,
-                            'name' => $course->user->fname . ' ' . $course->user->lname,
-                            'image' => url('/images/user_img/' . $course->user->user_img),
-                        ),
+                        'id' => $course->user->id,
+                        'name' => $course->user->fname . ' ' . $course->user->lname,
+                        'image' => url('/images/user_img/' . $course->user->user_img),
+                    ),
                 );
             }
 
@@ -4024,10 +4025,10 @@ class MainController extends Controller
                 $order = Order::where('id', $orderInstallemts[$i]['order_id'])
                     ->with('courses', 'bundle')
                     ->with([
-                            'payment_plan' => function ($query) {
-                                $query->where('due_date', '<=', now()->addDays(2))->where('status', null);
-                            }
-                        ])
+                        'payment_plan' => function ($query) {
+                            $query->where('due_date', '<=', now()->addDays(2))->where('status', null);
+                        }
+                    ])
                     ->get()->toArray();
 
                 // dd($order);

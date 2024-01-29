@@ -344,6 +344,7 @@ class BigBlueController extends Controller
             'welcomemsg' => 'max:250',
             'price' => 'required|numeric|min:0',
             'discount_price' => 'required|numeric|min:0',
+            'discount_type' => 'required|string|in:fixed,percentage',
         ], [
             "main_category.required_without" => __("Country name is required"),
             "scnd_category_id.required_with" => __("Type of institute field is required"),
@@ -459,6 +460,11 @@ class BigBlueController extends Controller
                 'price' => $request->price,
                 'offer_price' => $request->discount_price,
             ]);
+
+        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
+            $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
 
         $meeting->update($input);
 

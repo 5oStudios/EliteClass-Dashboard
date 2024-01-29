@@ -106,7 +106,7 @@ class ManualEnrollmentController extends Controller
                 ->get();
         } elseif ($request->type === 'live-streaming') {
             $items = BBL::query()
-                ->select('id', 'meetingname', 'price', 'discount_price')
+                ->select('id', 'meetingname', 'price', 'discount_price', 'discount_type')
                 ->whereDoesntHave('orders', function ($query) {
                     $query->where('user_id', request()->user_id);
                 })

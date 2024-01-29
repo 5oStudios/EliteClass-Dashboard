@@ -216,12 +216,16 @@
 
                                 <div class="form-group col-md-6">
                                 <label for="discount_type">{{ __('discount_type') }}</label>
-                                        <select value="old('discount_type', $meeting->discount_type ?? none)" name="discount_type" id="discount_type" class="form-control js-example-basic-single ">
-                                            <option value="none"  disabled>
+                                <select name="discount_type" id="discount_type" class="form-control js-example-basic-single col-md-7 col-xs-12 mb-2">
+                                            <option value="none" disabled {{ ($meeting->discount_type ?? null) == 'none' ? 'selected' : '' }}>
                                                 {{ __('frontstaticword.SelectanOption') }}
                                             </option>
-                                            <option value="percentage">{{ __('percentage') }}</option>
-                                            <option value="fixed">{{ __('fixed') }}</option>
+                                            <option value="percentage" {{ ($meeting->discount_type ?? null) == 'percentage' ? 'selected' : '' }}>
+                                                {{ __('percentage') }}
+                                            </option>
+                                            <option value="fixed" {{ ($meeting->discount_type ?? null) == 'fixed' ? 'selected' : '' }}>
+                                                {{ __('fixed') }}
+                                            </option>
                                         </select>
                                 </div>
                                 <div class="form-group col-md-6">

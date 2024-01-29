@@ -162,7 +162,7 @@ class CourseController extends Controller
                 ->editColumn('type', function ($row) {
                     if ($row->type == 1 && $row->discount_price != 0) {
                         return __('Paid');
-                    } elseif ($row->type == 0 && $row->discount_price == 0) {
+                    } elseif ($row->type != 1 && (($row->discount_price == 0 && is_null($row->discount_type)) || ($row->price == 0))) {
                         return __('Free');
                     }
                 })

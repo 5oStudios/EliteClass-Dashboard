@@ -285,7 +285,13 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == bundle_id) {
-                        $('#price').text((row.discount_type === 'fixed'? (row.price - row.discount_price):row.discount_type === 'percentage'?  (row.price*((100-row.discount_price)/100)) : (row.discount_price)) + ' ' + 'KWD');
+                        let price = row.discount_price
+                        if(row.discount_type === 'fixed'){
+                            price = row.price - row.discount_price
+                        }else if (row.discount_type === 'percentage'){
+                            price = row.price*((100-row.discount_price)/100)) : (row.discount_price)
+                        }
+                        $('#price').text(price + ' ' + 'KWD');
 
                         if (row.installment === '1') {
                             // Call async function to get installment price

@@ -166,8 +166,8 @@ class BigBlueController extends Controller
             'expire_date' => 'required|date_format:Y-m-d|after_or_equal:' . date('Y-m-d', strtotime($request->start_time)),
             'duration' => 'required|digits_between:1,3',
             'price' => 'required|numeric|min:0',
-            'discount_price' => 'required|numeric|min:0',
-            'discount_type' => 'required|string|in:fixed,percentage',
+            'discount_price' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
         ], [
@@ -343,8 +343,8 @@ class BigBlueController extends Controller
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
             'price' => 'required|numeric|min:0',
-            'discount_price' => 'required|numeric|min:0',
-            'discount_type' => 'required|string|in:fixed,percentage',
+            'discount_price' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
         ], [
             "main_category.required_without" => __("Country name is required"),
             "scnd_category_id.required_with" => __("Type of institute field is required"),

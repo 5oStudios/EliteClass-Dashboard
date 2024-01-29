@@ -236,8 +236,15 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == course_id) {
-                        $('#price').text((row.discount_type === 'fixed'? (row.price - row.discount_price):row.discount_type === 'percentage'?  (row.price*((100-row.discount_price)/100)) : (row.discount_price)) + ' ' + 'KWD');
-                        course = row; // Assign course here to call its installment on chapter change
+                        let price = row.price
+                        if(row.discount_type === 'fixed'){
+                            price = row.price - row.discount_price
+                        }else if (row.discount_type === 'percentage'){
+                            price = row.price*((100-row.discount_price)/100)
+                        } else if(row.discount_price){
+                            price = row.discount_price
+                        }
+                        $('#price').text(price + ' ' + 'KWD');course = row; // Assign course here to call its installment on chapter change
 
                         if (row.installment == '1') {
                             // Call async function to get installment price
@@ -285,11 +292,13 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == bundle_id) {
-                        let price = row.discount_price
+                        let price = row.price
                         if(row.discount_type === 'fixed'){
                             price = row.price - row.discount_price
                         }else if (row.discount_type === 'percentage'){
-                            price = row.price*((100-row.discount_price)/100)) : (row.discount_price)
+                            price = row.price*((100-row.discount_price)/100)
+                        } else if(row.discount_price){
+                            price = row.discount_price
                         }
                         $('#price').text(price + ' ' + 'KWD');
 
@@ -313,7 +322,17 @@
 
                 $.each(order_item, function(key, row) {
                     if (row.id == meeting_id) {
-                        $('#price').text(row.discount_price + ' ' + 'KWD');
+                        let price = row.price
+                        if(row.discount_type === 'fixed'){
+                            price = row.price - row.discount_price
+                        }else if (row.discount_type === 'percentage'){
+                            price = row.price*((100-row.discount_price)/100)
+                            console.log('percent');
+                        } else if(row.discount_price){
+                            price = row.discount_price
+                        }
+                        console.log(row.price,row.discount_price,row.discount_type,price);
+                        $('#price').text(price + ' ' + 'KWD');
                     }
                 });
 

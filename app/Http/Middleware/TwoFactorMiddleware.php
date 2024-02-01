@@ -16,19 +16,24 @@ class TwoFactorMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = auth()->user();
+        $OTP = config('app.OTP');
 
-        if (auth()->check() && !auth()->user()->hasRole('user-unblock-admin') && $user->two_factor_code) {
-            if ($user->two_factor_expires_at < now()) {
-                $user->resetTwoFactorCode();
-                auth()->logout();
+        if ($OTP) {
 
-                return redirect()->route('login')
-                    ->withStatus(__('The two factor code has expired. Please login again.'));
-            }
+            $user = auth()->user();
 
-            if (! $request->is('verify*')) {
-                return redirect()->route('verify.index');
+            if (auth()->check() && !auth()->user()->hasRole('user-unblock-admin') && $user->two_factor_code) {
+                if ($user->two_factor_expires_at < now()) {
+                    $user->resetTwoFactorCode();
+                    auth()->logout();
+
+                    return redirect()->route('login')
+                        ->withStatus(__('The two factor code has expired. Please login again.'));
+                }
+
+                if (!$request->is('verify*')) {
+                    return redirect()->route('verify.index');
+                }
             }
         }
 

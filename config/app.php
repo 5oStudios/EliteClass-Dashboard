@@ -12,8 +12,8 @@ return [
     | any other location as required by the application or its packages.
     |
     */
-    'otp_expire'=>600,//define life in seconds
-    
+    'otp_expire' => 600, //define life in seconds
+
     'name' => env('APP_NAME', 'Laravel'),
     /*
     |--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ return [
 
     'attendeepw' => "abc123",
 
-    'front-end-url'=> env('FRONTEND_URL',"https://lms.elite-class.com"),
+    'front-end-url' => env('FRONTEND_URL', "https://lms.elite-class.com"),
 
     // KNET Payment API Credentials
 
@@ -36,24 +36,24 @@ return [
     'term_resource_key' => '6G3WDAJC050A79H6',
 
     /**
-    * UPayment API Credentials
-    */
+     * UPayment API Credentials
+     */
 
     /**
-    * Sandbox
-    */
+     * Sandbox
+     */
     // 'upayment_url' => 'https://api.upayments.com/test-payment',
     // 'upayment_merchant_id' => '1201',
     // 'upayment_username' => 'test',
     // 'upayment_password' => 'test',
     // 'upayment_api_key' => 'jtest123', 
     // 'upayment_test_mode' => 1, // test mode enabled
-    
+
 
     /**
-    * Production
-    *'upayment_api_key' => '6f46707ec547879c3ff055be66db24ff82b53a56'
-    */ 
+     * Production
+     *'upayment_api_key' => '6f46707ec547879c3ff055be66db24ff82b53a56'
+     */
     'upayment_url' => 'https://api.upayments.com/payment-request',
     'upayment_merchant_id' => '46613',
     'upayment_username' => 'Elite',
@@ -78,6 +78,8 @@ return [
     'version' => '4.6',
 
     'demolock' => '0',
+
+    'OTP' => env('OTP_ENABLE', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -187,9 +189,9 @@ return [
 
     'providers' => [
 
-        /*
-         * Laravel Framework Service Providers...
-         */
+            /*
+             * Laravel Framework Service Providers...
+             */
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,
@@ -216,12 +218,12 @@ return [
         Sentry\Laravel\ServiceProvider::class,
         Ladumor\OneSignal\OneSignalServiceProvider::class,
 
-        
 
 
-        /*
-         * Package Service Providers...
-         */
+
+            /*
+             * Package Service Providers...
+             */
         Intervention\Image\ImageServiceProvider::class,
         DevMarketer\EasyNav\EasyNavServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
@@ -245,12 +247,12 @@ return [
         Torann\GeoIP\GeoIPServiceProvider::class,
         Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
 
-        /*
-         * Application Service Providers...
-         */
+            /*
+             * Application Service Providers...
+             */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
+            // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Itskodinger\Midia\MidiaServiceProvider::class,
@@ -313,12 +315,12 @@ return [
         'Stripe' => Cartalyst\Stripe\Laravel\Facades\Stripe::class,
         'Paystack' => Unicodeveloper\Paystack\Facades\Paystack::class,
         'PaytmWallet' => Anand\LaravelPaytmWallet\Facades\PaytmWallet::class,
-        'Avatar'    => Laravolt\Avatar\Facade::class,
+        'Avatar' => Laravolt\Avatar\Facade::class,
         'NoCaptcha' => Anhskohbo\NoCaptcha\Facades\NoCaptcha::class,
-        'STK'       => SmoDav\Mpesa\Laravel\Facades\STK::class,
-        'Simulate'  => SmoDav\Mpesa\Laravel\Facades\Simulate::class,
+        'STK' => SmoDav\Mpesa\Laravel\Facades\STK::class,
+        'Simulate' => SmoDav\Mpesa\Laravel\Facades\Simulate::class,
         'Registrar' => SmoDav\Mpesa\Laravel\Facades\Registrar::class,
-        'Identity'  => SmoDav\Mpesa\Laravel\Facades\Identity::class,
+        'Identity' => SmoDav\Mpesa\Laravel\Facades\Identity::class,
         'Share' => Jorenvh\Share\ShareFacade::class,
         'Alert' => RealRashid\SweetAlert\Facades\Alert::class,
         'Rave' => KingFlamez\Rave\Facades\Rave::class,
@@ -327,7 +329,7 @@ return [
         'Youtube' => Alaouy\Youtube\Facades\Youtube::class,
         'PDF' => niklasravnsborg\LaravelPdf\Facades\Pdf::class,
         'DotenvEditor' => Jackiedo\DotenvEditor\Facades\DotenvEditor::class,
-        'Aamarpay'   =>  Shipu\Aamarpay\Facades\Aamarpay::class,
+        'Aamarpay' => Shipu\Aamarpay\Facades\Aamarpay::class,
         'Google2FA' => PragmaRX\Google2FALaravel\Facade::class,
         'GeoIP' => \Torann\GeoIP\Facades\GeoIP::class,
         'Sentry' => Sentry\Laravel\Facade::class,
@@ -341,7 +343,7 @@ return [
         '_ENV' => array_keys($_ENV),
         '_POST' => [
             'password',
-        ],      
+        ],
     ],
 
 

@@ -18,6 +18,7 @@ use App\Answer;
 use App\Career;
 use App\Coupon;
 use App\Course;
+use App\Remark;
 use App\Slider;
 use App\Adsense;
 use App\Contact;
@@ -61,6 +62,8 @@ use App\CourseProgress;
 use App\OfflineSession;
 use App\PaymentGateway;
 use App\CoursesInBundle;
+use App\OrderInstallment;
+use App\OrderPaymentPlan;
 use App\SessionEnrollment;
 use Illuminate\Support\Str;
 use App\Helpers\Is_wishlist;
@@ -73,8 +76,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
-
-use App\Remark;
 
 class MainController extends Controller
 {
@@ -167,6 +168,9 @@ class MainController extends Controller
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
                 'rating' => round($b->review->avg('avg_rating'), 2),
                 'reviews_by' => $b->review->count() ?? 0,
+                'price' => $b->price,
+                'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 
@@ -213,6 +217,7 @@ class MainController extends Controller
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
                 'price' => $b->price,
                 'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 
@@ -687,6 +692,7 @@ class MainController extends Controller
             'total_courses' => count($bundle->course_id),
             'price' => $bundle->price,
             'discount_price' => $bundle->discount_price,
+            'discount_type' => $bundle->discount_type,
             'instalment_price' => $bundle->discount_price > 0 ? $bundle->_installments()->sum('amount') ?? 0 : null,
             'instalments' => $bundle->discount_price > 0 ? $bundle->_installments() : [],
             'created_by' => $bundle->user->fname . ' ' . $bundle->user->lname,
@@ -1224,7 +1230,8 @@ class MainController extends Controller
             'course_id' => [
                 'required',
                 Rule::exists('courses', 'id')->where(function ($query) {
-                    return $query->where('discount_price', '<>', '0')
+                    return $query
+                        ->where('price', '<>', '0')
                         ->where('end_date', '>=', date('Y-m-d'))
                         ->where('status', '1');
                 })
@@ -1315,6 +1322,7 @@ class MainController extends Controller
                     'category_id' => $course->category_id,
                     'price' => $course->price,
                     'offer_price' => $course->discount_price,
+                    'offer_type' => $course->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -1407,7 +1415,8 @@ class MainController extends Controller
             'bundle_id' => [
                 'required',
                 Rule::exists('bundle_courses', 'id')->where(function ($query) {
-                    return $query->where('discount_price', '<>', '0')
+                    return $query
+                        ->where('price', '<>', '0')
                         ->where('end_date', '>=', date('Y-m-d'))
                         ->where('status', '1');
                 })
@@ -1489,6 +1498,7 @@ class MainController extends Controller
                     'category_id' => $bundle->category_id,
                     'price' => $bundle->price,
                     'offer_price' => $bundle->discount_price,
+                    'offer_type' => $bundle->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -1819,6 +1829,8 @@ class MainController extends Controller
                 'type_id' => $cart_item->id,
                 'title' => $cart_item->_title(),
                 'price' => $c->offer_price,
+                'discountType' => $c->offer_type,
+                'originalPrice' => $c->price,
                 'coupon' => $c->cartCoupon ? $c->cartCoupon->coupon->code : NULL,
                 'coupon_id' => $c->cartCoupon ? $c->cartCoupon->coupon_id : NULL,
                 'cart_coupon_id' => $c->cartCoupon ? $c->cartCoupon->id : NULL,
@@ -1834,7 +1846,25 @@ class MainController extends Controller
 
         foreach ($carts as $c) {
             //cart price after offer
-            $total_amount = $total_amount + $c->offer_price;
+            if ($c->installment == 1) {
+                $total_amount = $total_amount + $c->offer_price;
+            } else {
+
+                if (is_null($c->offer_type) && $c->offer_price == 0) {
+                    $total_amount += $c->price;
+                } elseif (is_null($c->offer_type) && $c->offer_price) {
+                    $total_amount += $c->offer_price;
+                } else {
+                    //fixed
+                    if ($c->offer_type == 'fixed') {
+                        $total_amount += ($c->price - $c->offer_price);
+                    }
+                    //%
+                    elseif ($c->offer_type == 'percentage') {
+                        $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                    }
+                }
+            }
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {
@@ -2000,8 +2030,9 @@ class MainController extends Controller
             'is_chapter_carted' => $is_chapter_carted ?? false,
             'is_chapter_purchased' => $is_chapter_purchased ?? false,
             'is_cart' => $user ? ($user->cartType('course', $course->id)->exists() ? true : false) : false,
-            // 'price' => $course->price ?? 0,
+            'price' => $course->price,
             'discount_price' => $course->discount_price,
+            'discount_type' => $course->discount_type,
             'instalment_price' => $course->discount_price > 0 ? $course->_installments()->sum('amount') ?? 0 : null,
             'instalments' => $course->discount_price > 0 ? $course->_installments() : [],
             'course_tags' => $course->course_tags
@@ -3967,5 +3998,76 @@ class MainController extends Controller
                 'msg' => 'No courses or category found !',
             ]);
         }
+    }
+
+    public function overdue($userId)
+    {
+        $result = [];
+
+        $user = User::findOrFail($userId);
+        // $user = Auth::user();
+        // dd($user);
+
+        //go to order installments and filter by user id
+        $orderInstallemts = OrderInstallment::where('user_id', $user->id)->get()->toArray();
+        // dd($orderInstallemts);
+
+        for ($i = 0; $i < count($orderInstallemts); $i++) {
+            //get order Id
+            //Order payment plane and filter by order id and status = null
+            $orderPaymentPlane = OrderPaymentPlan::Where('order_id', $orderInstallemts[$i]['order_id'])
+                ->where('status', null)
+                ->where('due_date', '<=', now()->addDays(2))
+                ->get()->toArray();
+            // dd($orderPaymentPlane);
+
+            if (count($orderPaymentPlane) > 0) {
+                $order = Order::where('id', $orderInstallemts[$i]['order_id'])
+                    ->with('courses', 'bundle')
+                    ->with([
+                        'payment_plan' => function ($query) {
+                            $query->where('due_date', '<=', now()->addDays(2))->where('status', null);
+                        }
+                    ])
+                    ->get()->toArray();
+
+                // dd($order);
+                $result[] = $order;
+            }
+        }
+
+        $response = [];
+
+        for ($i = 0; $i < count($result); $i++) {
+            for ($j = 0; $j < count($result[$i]); $j++) {
+                // dd($result[$i][$j]);
+
+                if ($result[$i][$j]['courses']['id']) {
+                    $id = $result[$i][$j]['courses']['id'];
+                    $name = $result[$i][$j]['courses']['title'];
+                    $type = 'course';
+                    $image = url($result[$i][$j]['courses']['preview_image']);
+                } else {
+                    $id = $result[$i][$j]['bundle']['id'];
+                    $name = $result[$i][$j]['bundle']['title'];
+                    $type = 'bundle';
+                    $image = url($result[$i][$j]['bundle']['preview_image']);
+                }
+
+                for ($k = 0; $k < count($result[$i][$j]['payment_plan']); $k++) {
+                    $data = [
+                        'typeId' => $id,
+                        'name' => $name,
+                        'type' => $type,
+                        'image' => $image,
+                        'installmentId' => $result[$i][$j]['payment_plan'][$k]['id'],
+                        'dueDate' => $result[$i][$j]['payment_plan'][$k]['due_date'],
+                        'amount' => $result[$i][$j]['payment_plan'][$k]['amount']
+                    ];
+                    $response[] = $data;
+                }
+            }
+        }
+        return response()->json($response);
     }
 }

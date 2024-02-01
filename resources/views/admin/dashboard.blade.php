@@ -441,9 +441,13 @@
                                                         @if ($topcourse->discount_price == null)
                                                             <span
                                                                 class="badge badge-primary-inverse">{{ __('Price') }}:{{ $topcourse->price }}</span>
-                                                        @else
+                                                        @elseif($topcourse->discount_price !== null && $topcourse->discount_type == 'fixed')
                                                             <span
-                                                                class="badge badge-primary-inverse">{{ __('Price') }}:{{ $topcourse->discount_price }}</span>
+                                                                class="badge badge-primary-inverse">{{ __('Price') }}:{{ $topcourse->price - $topcourse->discount_price }}</span>
+                                                        @elseif($topcourse->discount_price !== null && $topcourse->discount_type == 'percentage')
+                                                        <span
+                                                                class="badge badge-primary-inverse">{{ __('Price') }}:{{ $topcourse->price * ((100 - $topcourse->discount_price)/100) }}</span>
+                                                       
                                                         @endif
                                                     </p>
                                                 </div>
@@ -585,13 +589,25 @@
                                                             </p>
                                                         </td>
                                                         <td><span class="badge badge-warning">
+                                                            @php 
+                                                                $price = 0;
+                                                                if($course['discount_type'] !== null){
+                                                                    if($course['discount_type'] === 'fixed'){
+                                                                        $price = $course['price'] - $course['discount_price'];
+                                                                    }
+                                                                    elseif($course['discount_type'] === 'percentage'){
+
+                                                                        $price = $course['price'] * ((100 - $course['discount_price'])/100)   ;       
+                                                                    }
+                                                                }
+                                                            @endphp
                                                                 @if ($course->type == 1)
                                                                     @if ($course->discount_price == !null)
                                                                         @if ($gsetting['currency_swipe'] == 1)
                                                                             <i
-                                                                                class="{{ $currency['icon'] }}"></i>{{ $course['discount_price'] }}
+                                                                                class="{{ $currency['icon'] }}"></i>{{ $price }}
                                                                         @else
-                                                                            {{ $course['discount_price'] }}<i
+                                                                            {{ $price }}<i
                                                                                 class="{{ $currency['icon'] }}"></i>
                                                                         @endif
                                                                     @else

@@ -160,10 +160,10 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if ($row->type == 1 && $row->discount_price != 0) {
-                        return __('Paid');
-                    } elseif ($row->type == 0 && $row->discount_price == 0) {
+                    if ($row->price == $row->discount_price && (is_null($row->discount_type) || !is_null($row->discount_type))) {
                         return __('Free');
+                    } else {
+                        return __('Paid');
                     }
                 })
                 ->editColumn('status', 'admin.course.datatables.status')
@@ -214,7 +214,9 @@ class CourseController extends Controller
             // 'course_tags' => 'required',
             'start_date' => 'required|date_format:Y-m-d|after_or_equal:' . date('Y-m-d'),
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
-            'price' => 'required_with:type|numeric',
+            'price' => 'required_with:type|numeric|min:0',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'required_if:installment,1|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),
@@ -297,6 +299,16 @@ class CourseController extends Controller
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
+        if (!isset($input['discount_price']) || !isset($input['discount_type']) || $input['discount_price'] == 0) {
+            // $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
+
+        if ($input['installment'] == 1) {
+            $input['status'] = 0;
+        }
+
+        // dd($input, $request);
         Course::create($input);
 
         Session::flash('success', trans('flash.AddedSuccessfully'));
@@ -345,6 +357,8 @@ class CourseController extends Controller
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
             'price' => 'required_with:type|numeric',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'sometimes|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),
@@ -992,7 +1006,7 @@ class CourseController extends Controller
                 // if ($class->pdf == !NULL && @file_get_contents(public_path() . 'files/pdf/' . $class->pdf)) {
                 if (
                     $class->file != null &&
-                    ($class->type == 'pdf' ||  $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
+                    ($class->type == 'pdf' || $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
                     Storage::exists("/files/$class->type/" . $class->file)
                 ) {
                     $oldPathFile = Storage::path("/files/$class->type/" . $class->file);
@@ -1133,7 +1147,10 @@ class CourseController extends Controller
             'amount' => 'required|array|min:2|max:4',
             'amount.*' => 'required|numeric|min:1',
             'due_date' => [
-                'required', 'array', 'min:2', 'max:4',
+                'required',
+                'array',
+                'min:2',
+                'max:4',
                 function ($attribute, $value, $fail) {
                     for ($i = 1; $i < count($value); $i++) {
                         if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {
@@ -1170,6 +1187,7 @@ class CourseController extends Controller
 
         $course->update([
             'installment_price' => $total,
+            'status' => 1,
             // 'total_installments' => 3,
         ]);
 

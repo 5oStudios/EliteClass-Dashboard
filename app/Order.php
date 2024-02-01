@@ -36,14 +36,41 @@ class Order extends Model
     }
 
     protected $fillable = [
-        'title','price', 'discount_price',
-        'installments', 'total_installments', 'coupon_id', 'course_id', 'user_id',
-        'instructor_id', 'order_id', 'is_cart', 'transaction_id', 'payment_method',
-        'total_amount', 'coupon_discount', 'currency', 'currency_icon',
-        'status', 'duration', 'enroll_start', 'enroll_expire', 'bundle_course_id',
-        'bundle_id', 'proof', 'sale_id', 'refunded', 'price_id', 'subscription_id',
-        'customer_id', 'subscription_status',
-        'paid_amount','meeting_id', 'offline_session_id', 'chapter_id'
+        'title',
+        'price',
+        'discount_price',
+        'installments',
+        'total_installments',
+        'coupon_id',
+        'course_id',
+        'user_id',
+        'instructor_id',
+        'order_id',
+        'is_cart',
+        'transaction_id',
+        'payment_method',
+        'total_amount',
+        'coupon_discount',
+        'currency',
+        'currency_icon',
+        'status',
+        'duration',
+        'enroll_start',
+        'enroll_expire',
+        'bundle_course_id',
+        'bundle_id',
+        'proof',
+        'sale_id',
+        'refunded',
+        'price_id',
+        'subscription_id',
+        'customer_id',
+        'subscription_status',
+        'paid_amount',
+        'meeting_id',
+        'offline_session_id',
+        'chapter_id',
+        'discount_type'
     ];
 
     protected $casts = [
@@ -105,7 +132,7 @@ class Order extends Model
 
     public function coupon()
     {
-        return  $this->belongsTo(\App\Coupon::class, 'coupon_id');
+        return $this->belongsTo(\App\Coupon::class, 'coupon_id');
     }
 
     public function item()
@@ -125,26 +152,26 @@ class Order extends Model
 
     public function installments_list()
     {
-        return  $this->hasMany(\App\OrderInstallment::class, 'order_id');
+        return $this->hasMany(\App\OrderInstallment::class, 'order_id');
     }
 
     public function full_payment_transaction()
     {
-        return  $this->hasOne(\App\OrderInstallment::class, 'order_id');
+        return $this->hasOne(\App\OrderInstallment::class, 'order_id');
     }
 
     public function transaction()
     {
-        return  $this->belongsTo(\App\WalletTransactions::class, 'transaction_id');
+        return $this->belongsTo(\App\WalletTransactions::class, 'transaction_id');
     }
 
     public function payment_plan()
     {
-        return  $this->hasMany(\App\OrderPaymentPlan::class, 'order_id', 'id');
+        return $this->hasMany(\App\OrderPaymentPlan::class, 'order_id', 'id');
     }
 
     public function installments_amount()
     {
-        return  $this->hasMany(\App\OrderPaymentPlan::class, 'order_id')->sum('amount');
+        return $this->hasMany(\App\OrderPaymentPlan::class, 'order_id')->sum('amount');
     }
 }

@@ -176,17 +176,44 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup
-                                                class="redstar">*</sup><small class="text-muted"><i
-                                                    class="fa fa-question-circle"></i>
-                                                {{ __('Discounted price Zero(0) consider as free') }}
-                                            </small></label>
-                                        <input type="number" class="form-control " name="discount_price" min="0"
-                                            step="0.001" required
-                                            placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
-                                            value="{{ $cor->discount_price }}">
-                                    </div>
+                                <label for="discount_type">{{ __('discount_type') }}</label>
+                                        <select name="discount_type" id="discount_type" class="form-control js-example-basic-single col-md-7 col-xs-12 mb-2">
+                                            <option value="none" disabled {{ ($cor->discount_type ?? null) == 'none' ? 'selected' : '' }}>
+                                                {{ __('frontstaticword.SelectanOption') }}
+                                            </option>
+                                            <option value="percentage" {{ ($cor->discount_type ?? null) == 'percentage' ? 'selected' : '' }}>
+                                                {{ __('percentage') }}
+                                            </option>
+                                            <option value="fixed" {{ ($cor->discount_type ?? null) == 'fixed' ? 'selected' : '' }}>
+                                                {{ __('fixed') }}
+                                            </option>
+                                        </select>
+
+                                </div>
+                                        <br>
+                                        <div class="col-md-6">
+
+                                        <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup class="redstar">*</sup>
+                                            <small class="text-muted"><i class="fa fa-question-circle"></i>
+                                                {{ __('Discounted price Zero(0) consider as no discount') }}
+                                            </small>
+                                        </label>
+
+                                        <div class="input-group">
+                                            <input type="number" step="0.1" min="0" required class="form-control" name="discount_price" id="offerPrice"
+                                                placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
+                                                value="{{ $cor->discount_price ?? 0 }}" />
+
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" id="prefix">
+                                                    @if(old('discount_type') == 'percentage')
+                                                        %
+                                                    @elseif(old('discount_type') == 'fixed')
+                                                        KWD
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
                                 </div>
                             </div>
 

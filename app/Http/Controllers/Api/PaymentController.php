@@ -56,8 +56,8 @@ class PaymentController extends Controller
     {
         $auth = Auth::guard('api')->user();
 
-        $created_order =  null;
-        $msg =  null;
+        $created_order = null;
+        $msg = null;
 
         Cart::validatecartitem($auth->id);  // validate cart items
 
@@ -74,7 +74,19 @@ class PaymentController extends Controller
 
         foreach ($carts as $c) {
             //cart item price i.e. offer_price
-            $total_amount = $total_amount + $c->offer_price;
+            // $total_amount = $total_amount + $c->offer_price;
+            if (is_null($c->offer_type) && $c->offer_price) {
+                $total_amount += $c->offer_price;
+            } else {
+                //fixed
+                if ($c->offer_type == 'fixed') {
+                    $total_amount += ($c->price - $c->offer_price);
+                }
+                //%
+                elseif ($c->offer_type == 'percentage') {
+                    $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                }
+            }
 
             //for coupon discount total
             $coupon_discount = ($c->disamount > $c->offer_price) ? ($coupon_discount + $c->offer_price) : ($coupon_discount + $c->disamount);
@@ -143,12 +155,23 @@ class PaymentController extends Controller
 
 
         foreach ($carts as $cart) {
-            $cart_item  = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
+            $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
+
+
+            $total = 0;
+            if ($order_item->discount_type && $order_item->discount_type == 'fixed') {
+                $total = $order_item->price - $order_item->discount_price;
+            } elseif ($order_item->discount_type && $order_item->discount_type == 'percentage') {
+                $total = $order_item->price - (($order_item->discount_price / 100) * $order_item->price);
+            } else {
+                $total = $order_item->discount_price;
+            }
 
             $created_order = Order::create([
                 'title' => $cart_item->_title(),
                 'price' => $cart_item->price,
                 'discount_price' => $cart_item->discount_price,
+                'discount_type' => $cart_item->discount_type ?? null,
                 'user_id' => $auth->id,
                 'instructor_id' => $cart_item->_instructor(),
                 'course_id' => $cart->course_id ?? null,
@@ -203,14 +226,14 @@ class PaymentController extends Controller
 
             // Remove items from wishlists
             if ($created_order->course_id) {
-                Wishlist::where(['course_id' => $created_order->course_id,'user_id' => $auth->id])->delete();
+                Wishlist::where(['course_id' => $created_order->course_id, 'user_id' => $auth->id])->delete();
             } elseif ($created_order->bundle_id) {
-                Wishlist::where(['bundle_id' => $created_order->bundle_id,'user_id' => $auth->id])->delete();
+                Wishlist::where(['bundle_id' => $created_order->bundle_id, 'user_id' => $auth->id])->delete();
             } elseif ($created_order->meeting_id) {
-                Wishlist::where(['meeting_id' => $created_order->meeting_id,'user_id' => $auth->id])->delete();
+                Wishlist::where(['meeting_id' => $created_order->meeting_id, 'user_id' => $auth->id])->delete();
                 BBL::find($created_order->meeting_id)->increment('order_count', 1); // Increment numbers of participants has been enrolled after successfull order
             } elseif ($created_order->offline_session_id) {
-                Wishlist::where(['offline_session_id' => $created_order->offline_session_id,'user_id' => $auth->id])->delete();
+                Wishlist::where(['offline_session_id' => $created_order->offline_session_id, 'user_id' => $auth->id])->delete();
                 OfflineSession::find($created_order->offline_session_id)->increment('order_count', 1); // Increment numbers of participants has been enrolled after successfull order
             }
 
@@ -218,8 +241,9 @@ class PaymentController extends Controller
                 $courses = $created_order->course_id ? [$created_order->course_id] : ($created_order->chapter_id ? [$created_order->chapter->course_id] : $created_order->bundle_course_id);
                 foreach ($courses as $c) {
                     $p = \App\CourseProgress::where([
-                                'course_id' => $c,
-                                'user_id' => $auth->id])->first();
+                        'course_id' => $c,
+                        'user_id' => $auth->id
+                    ])->first();
                     if (!isset($p)) {
                         $chapters = CourseClass::select('id')->where('course_id', $c)->pluck('id');
                         \App\CourseProgress::create([
@@ -234,7 +258,7 @@ class PaymentController extends Controller
                 }
             }
 
-            if ($cart_item->installments && ($cart->installment == 1 )) {
+            if ($cart_item->installments && ($cart->installment == 1)) {
                 OrderInstallment::create([
                     'order_id' => $created_order->id,
                     'user_id' => $auth->id,
@@ -284,7 +308,7 @@ class PaymentController extends Controller
     {
         $auth = Auth::guard('api')->user();
 
-        $created_order =  null;
+        $created_order = null;
 
         $currency = Currency::where('default', '1')->first();
         $carts = Cart::where('user_id', $auth->id)->get();
@@ -296,7 +320,19 @@ class PaymentController extends Controller
 
         foreach ($carts as $c) {
             //cart item price i.e. offer_price
-            $total_amount = $total_amount + $c->offer_price;
+            // $total_amount = $total_amount + $c->offer_price;
+            if (is_null($c->offer_type) && $c->offer_price) {
+                $total_amount += $c->offer_price;
+            } else {
+                //fixed
+                if ($c->offer_type == 'fixed') {
+                    $total_amount += ($c->price - $c->offer_price);
+                }
+                //%
+                elseif ($c->offer_type == 'percentage') {
+                    $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                }
+            }
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {
@@ -337,7 +373,7 @@ class PaymentController extends Controller
         ]);
 
         foreach ($carts as $cart) {
-            $cart_item  = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
+            $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
 
             $created_order = Order::create([
                 'title' => $cart_item->_title(),
@@ -451,13 +487,13 @@ class PaymentController extends Controller
                         'amount' => $inst->amount,
                         'due_date' => $inst->due_date,
                         'installment_no' => $inst->sort,
-                        'payment_date' => $key < $totalInstallments ?  now() : null,
+                        'payment_date' => $key < $totalInstallments ? now() : null,
                         'status' => $key < $totalInstallments ? 'Paid' : null,
                     ]);
                 }
             }
 
-            $created_order->coupon_discount = $cart->installment == 0 ? ($cart->cartCoupon ? (($cart->cartCoupon->disamount  >= $cart->offer_price) ? $cart->offer_price : $cart->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
+            $created_order->coupon_discount = $cart->installment == 0 ? ($cart->cartCoupon ? (($cart->cartCoupon->disamount >= $cart->offer_price) ? $cart->offer_price : $cart->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
             $created_order->coupon_id = $cart->installment == 0 ? optional($cart->cartCoupon)->coupon_id : null;
             $created_order->transaction_id = $wallet_transaction->id;
             $created_order->status = 1;
@@ -510,23 +546,25 @@ class PaymentController extends Controller
 
         $request->validate([
             'type' => 'required|in:course,chapter,package,live-streaming,in-person-session',
-            'id' => ['required',
-                    Rule::exists($arr2[$key1], 'id')
+            'id' => [
+                'required',
+                Rule::exists($arr2[$key1], 'id')
                     ->where('discount_price', '0')
                     ->when($request->type == 'course' || $request->type == 'chapter' || $request->type == 'package', function ($q) {
                         $q->where('status', '1');
                     }),
-                    // ->when($request->type == 'live-streaming', function ($q) {
-                    //     $q->where('expire_date', '>=', date('Y-m-d'));
-                    // })
-                    // ->when($request->type == 'in-person-session', function ($q) {
-                    //     $q->where('expire_date', '>=', date('Y-m-d'));
-                    // }),
-                    Rule::unique('orders', $arr3[$key1])->where(function ($query) {
-                            return $query->where('user_id', auth()->id())
-                                        ->where('status', '<>', '0')
-                                        ->whereNull('deleted_at');
-                    })],
+                // ->when($request->type == 'live-streaming', function ($q) {
+                //     $q->where('expire_date', '>=', date('Y-m-d'));
+                // })
+                // ->when($request->type == 'in-person-session', function ($q) {
+                //     $q->where('expire_date', '>=', date('Y-m-d'));
+                // }),
+                Rule::unique('orders', $arr3[$key1])->where(function ($query) {
+                    return $query->where('user_id', auth()->id())
+                        ->where('status', '<>', '0')
+                        ->whereNull('deleted_at');
+                })
+            ],
 
         ], [
             'type.required' => __("Type is required"),
@@ -539,7 +577,7 @@ class PaymentController extends Controller
         $auth = auth()->user();
         $currency = Currency::where('default', '1')->first();
 
-        $orderItem  = $request->type == 'course' ? Course::find($request->id) : ($request->type == 'package' ? BundleCourse::find($request->id) : ($request->type == 'live-streaming' ? BBL::find($request->id) : ($request->type == 'chapter' ? CourseChapter::find($request->id) : OfflineSession::find($request->id))));
+        $orderItem = $request->type == 'course' ? Course::find($request->id) : ($request->type == 'package' ? BundleCourse::find($request->id) : ($request->type == 'live-streaming' ? BBL::find($request->id) : ($request->type == 'chapter' ? CourseChapter::find($request->id) : OfflineSession::find($request->id))));
 
         $today = date('Ymd');
         // This is being used as order trackID in orders table as order_id
@@ -661,9 +699,13 @@ class PaymentController extends Controller
     {
         $this->validate($request, [
             'payment_method' => 'required|In:wallet',
-            'instalment_id' => ['required', Rule::exists('order_payment_plan', 'id')//->where(function($q){
+            'instalment_id' => [
+                'required',
+                Rule::exists('order_payment_plan', 'id') //->where(function($q){
                 //$q->where([['due_date', '>=', date('Y-m-d')]]);})
-                , Rule::unique('order_payment_plan', 'id')->where('status', 'Paid')],
+                ,
+                Rule::unique('order_payment_plan', 'id')->where('status', 'Paid')
+            ],
         ], [
             "payment_method.required" => __("payment method not selected"),
             "payment_method.in" => __("payment method not valid"),
@@ -696,15 +738,15 @@ class PaymentController extends Controller
 
         /** Create wallet transcation history */
         $wallet_transaction = \App\WalletTransactions::create([
-                    'wallet_id' => $user->wallet->id,
-                    'user_id' => $user->id,
-                    'transaction_id' => $transaction_id,
-                    'payment_method' => $request->payment_method,
-                    'total_amount' => $inst->amount,
-                    'currency' => $currency->code,
-                    'currency_icon' => $currency->symbol,
-                    'type' => 'Debit',
-                    'detail' => __('Installment Paid'),
+            'wallet_id' => $user->wallet->id,
+            'user_id' => $user->id,
+            'transaction_id' => $transaction_id,
+            'payment_method' => $request->payment_method,
+            'total_amount' => $inst->amount,
+            'currency' => $currency->code,
+            'currency_icon' => $currency->symbol,
+            'type' => 'Debit',
+            'detail' => __('Installment Paid'),
         ]);
         if (($request->payment_method == 'wallet')) {
             $user_wallet = Wallet::where('user_id', $user->id)->first();
@@ -714,15 +756,15 @@ class PaymentController extends Controller
         }
 
         $orderInstallment = OrderInstallment::create([
-                    'order_id' => $inst->order_id,
-                    'user_id' => $user->id,
-                    'transaction_id' => $wallet_transaction->id,
-                    'payment_method' => $request->payment_method,
-                    'total_amount' => $inst->amount,
-                    'coupon_discount' => null,
-                    'coupon_id' => null,
-                    'currency' => $currency->code,
-                    'currency_icon' => $currency->symbol,
+            'order_id' => $inst->order_id,
+            'user_id' => $user->id,
+            'transaction_id' => $wallet_transaction->id,
+            'payment_method' => $request->payment_method,
+            'total_amount' => $inst->amount,
+            'coupon_discount' => null,
+            'coupon_id' => null,
+            'currency' => $currency->code,
+            'currency_icon' => $currency->symbol,
         ]);
         // $inst->payment_date = \Carbon\Carbon::now()->toDateTimeString();
         $inst->order_installment_id = $orderInstallment->id;
@@ -769,26 +811,26 @@ class PaymentController extends Controller
         $afterDiscount = 0;
 
         $orders = Order::query()
-                ->where('enroll_expire', '>=', date('Y-m-d'))
-                ->where(function($q) {
-                    $q->whereHas('courses', function($q) {
+            ->where('enroll_expire', '>=', date('Y-m-d'))
+            ->where(function ($q) {
+                $q->whereHas('courses', function ($q) {
+                    $q->active();
+                })
+                    ->OrWhereHas('bundle', function ($q) {
                         $q->active();
-                        })
-                        ->OrWhereHas('bundle', function($q) {
-                            $q->active();
                     });
-                })
-                ->where(['installments' => '1', 'user_id' => $user->id])
-                ->whereHas('payment_plan', function ($query) {
-                    $query->whereNull(['status', 'payment_date']);
-                })
-                ->with('payment_plan', function ($query) {
-                    $query->whereNull(['status', 'payment_date'])
+            })
+            ->where(['installments' => '1', 'user_id' => $user->id])
+            ->whereHas('payment_plan', function ($query) {
+                $query->whereNull(['status', 'payment_date']);
+            })
+            ->with('payment_plan', function ($query) {
+                $query->whereNull(['status', 'payment_date'])
                     ->with(['order', 'installmentCoupon']);
-                })
-                // ->with('item')
-                ->activeOrder()
-                ->get();
+            })
+            // ->with('item')
+            ->activeOrder()
+            ->get();
 
         foreach ($orders as $key => $order) {
             $pending = [];
@@ -866,8 +908,8 @@ class PaymentController extends Controller
         $data1 = [];
         $data2 = [];
 
-        $full_payments = Order::where([['user_id', $user->id],['installments', '0']])->activeOrder()->get();
-        $installment_payments = Order::where([['user_id', $user->id],['installments', '1']])->activeOrder()->get();
+        $full_payments = Order::where([['user_id', $user->id], ['installments', '0']])->activeOrder()->get();
+        $installment_payments = Order::where([['user_id', $user->id], ['installments', '1']])->activeOrder()->get();
 
         foreach ($full_payments as $b) {
             $data1[] = [
@@ -1058,25 +1100,25 @@ class PaymentController extends Controller
                 }
 
                 $created_order = Order::create([
-                            'course_id' => $course_id,
-                            'user_id' => $auth->id,
-                            'instructor_id' => $instructor_id,
-                            'order_id' => '#' . sprintf("%08d", intval($number) + 1),
-                            'transaction_id' => $transaction_id,
-                            'payment_method' => $request->payment_method,
-                            'total_amount' => $pay_amount,
-                            'coupon_discount' => $cpn_discount,
-                            'currency' => $currency->currency,
-                            'currency_icon' => $currency->icon,
-                            'duration' => $duration,
-                            'enroll_start' => $todayDate,
-                            'enroll_expire' => $expireDate,
-                            'bundle_id' => $bundle_id,
-                            'sale_id' => $saleId,
-                            'status' => $status,
-                            'proof' => $name,
-                            'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                ]);
+                    'course_id' => $course_id,
+                    'user_id' => $auth->id,
+                    'instructor_id' => $instructor_id,
+                    'order_id' => '#' . sprintf("%08d", intval($number) + 1),
+                    'transaction_id' => $transaction_id,
+                    'payment_method' => $request->payment_method,
+                    'total_amount' => $pay_amount,
+                    'coupon_discount' => $cpn_discount,
+                    'currency' => $currency->currency,
+                    'currency_icon' => $currency->icon,
+                    'duration' => $duration,
+                    'enroll_start' => $todayDate,
+                    'enroll_expire' => $expireDate,
+                    'bundle_id' => $bundle_id,
+                    'sale_id' => $saleId,
+                    'status' => $status,
+                    'proof' => $name,
+                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                ]);
 
                 if ($cart->type == 1) {
                     Cart::where('user_id', $auth->id)->where('bundle_id', $cart->bundle_id)->delete();
@@ -1092,17 +1134,17 @@ class PaymentController extends Controller
                         if ($cart->type == 0) {
                             if ($cart->courses->user->role == "instructor") {
                                 $created_payout = PendingPayout::create([
-                                            'user_id' => $cart->courses->user_id,
-                                            'course_id' => $cart->course_id,
-                                            'order_id' => $created_order->id,
-                                            'transaction_id' => $request->transaction_id,
-                                            'total_amount' => $pay_amount,
-                                            'currency' => $currency->currency,
-                                            'currency_icon' => $currency->icon,
-                                            'instructor_revenue' => $instructor_payout,
-                                            'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                            'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                                ]);
+                                    'user_id' => $cart->courses->user_id,
+                                    'course_id' => $cart->course_id,
+                                    'order_id' => $created_order->id,
+                                    'transaction_id' => $request->transaction_id,
+                                    'total_amount' => $pay_amount,
+                                    'currency' => $currency->currency,
+                                    'currency_icon' => $currency->icon,
+                                    'instructor_revenue' => $instructor_payout,
+                                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                ]);
                             }
                         }
                     }
@@ -1134,7 +1176,7 @@ class PaymentController extends Controller
                         if (!$enroll->isEmpty()) {
                             foreach ($enroll as $enrol) {
                                 $user = User::where('id', $enrol->user_id)->get();
-                            //    Notification::send($user, new UserEnroll($course));
+                                //    Notification::send($user, new UserEnroll($course));
                             }
                         }
                     }
@@ -1153,7 +1195,7 @@ class PaymentController extends Controller
     public function purchasehistory(Request $request)
     {
         $validator = Validator::make($request->all(), [
-                    'secret' => 'required',
+            'secret' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -1176,7 +1218,7 @@ class PaymentController extends Controller
     public function apikeys(Request $request)
     {
         $this->validate($request, [
-        'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ], [
             'secret.required' => __("secret key is missing"),
             'secret.exists' => __("secret key is invalid"),
@@ -1249,37 +1291,40 @@ class PaymentController extends Controller
 
         $bank_details = BankTransfer::first();
 
-        return response()->json(array(
-                    'stripekey' => $stripekey,
-                    'stripesecret' => $stripesecret,
-                    'paypal_client_id' => $paypal_client_id,
-                    'paypal_secret' => $paypal_secret,
-                    'paypal_mode' => $paypal_mode,
-                    'instamojo_api_key' => $instamojo_api_key,
-                    'instamojo_auth_token' => $instamojo_auth_token,
-                    'instamojo_url' => $instamojo_url,
-                    'razorpay_key' => $razorpay_key,
-                    'razorpay_secret' => $razorpay_secret,
-                    'paystack_public_key' => $paystack_public_key,
-                    'paystack_secret' => $paystack_secret,
-                    'paystack_pay_url' => $paystack_pay_url,
-                    'paystack_merchant_email' => $paystack_merchant_email,
-                    'paytm_enviroment' => $paytm_enviroment,
-                    'paytm_merchant_id' => $paytm_merchant_id,
-                    'paytm_merchant_key' => $paytm_merchant_key,
-                    'paytm_merchant_website' => $paytm_merchant_website,
-                    'paytm_channel' => $paytm_channel,
-                    'paytm_industry_type' => $paytm_industry_type,
-                    'bank_details' => $bank_details,
-                    'all_keys' => $all_keys
-                        ), 200);
+        return response()->json(
+            array(
+                'stripekey' => $stripekey,
+                'stripesecret' => $stripesecret,
+                'paypal_client_id' => $paypal_client_id,
+                'paypal_secret' => $paypal_secret,
+                'paypal_mode' => $paypal_mode,
+                'instamojo_api_key' => $instamojo_api_key,
+                'instamojo_auth_token' => $instamojo_auth_token,
+                'instamojo_url' => $instamojo_url,
+                'razorpay_key' => $razorpay_key,
+                'razorpay_secret' => $razorpay_secret,
+                'paystack_public_key' => $paystack_public_key,
+                'paystack_secret' => $paystack_secret,
+                'paystack_pay_url' => $paystack_pay_url,
+                'paystack_merchant_email' => $paystack_merchant_email,
+                'paytm_enviroment' => $paytm_enviroment,
+                'paytm_merchant_id' => $paytm_merchant_id,
+                'paytm_merchant_key' => $paytm_merchant_key,
+                'paytm_merchant_website' => $paytm_merchant_website,
+                'paytm_channel' => $paytm_channel,
+                'paytm_industry_type' => $paytm_industry_type,
+                'bank_details' => $bank_details,
+                'all_keys' => $all_keys
+            ),
+            200
+        );
     }
 
     public function giftusercheck(Request $request)
     {
         $validator = Validator::make($request->all(), [
-                    'secret' => 'required',
-                    'course_id' => 'required'
+            'secret' => 'required',
+            'course_id' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -1439,43 +1484,43 @@ class PaymentController extends Controller
         $instructor_id = $course->user_id;
 
         $created_order = Order::create([
-                    'course_id' => $course->id,
-                    'user_id' => $user->id,
-                    'instructor_id' => $instructor_id,
-                    'order_id' => '#' . sprintf("%08d", intval($number) + 1),
-                    'transaction_id' => $request->txn_id,
-                    'payment_method' => $pay_status,
-                    'total_amount' => $pay_amount,
-                    'coupon_discount' => $cpn_discount,
-                    'currency' => $currency->currency,
-                    'currency_icon' => $currency->icon,
-                    'duration' => $duration,
-                    'enroll_start' => $todayDate,
-                    'enroll_expire' => $expireDate,
-                    'instructor_revenue' => $instructor_payout,
-                    'bundle_id' => $bundle_id,
-                    'bundle_course_id' => $bundle_course_id,
-                    'sale_id' => $saleId,
-                    'status' => $pay_status,
-                    'proof' => $name,
-                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                        ]);
+            'course_id' => $course->id,
+            'user_id' => $user->id,
+            'instructor_id' => $instructor_id,
+            'order_id' => '#' . sprintf("%08d", intval($number) + 1),
+            'transaction_id' => $request->txn_id,
+            'payment_method' => $pay_status,
+            'total_amount' => $pay_amount,
+            'coupon_discount' => $cpn_discount,
+            'currency' => $currency->currency,
+            'currency_icon' => $currency->icon,
+            'duration' => $duration,
+            'enroll_start' => $todayDate,
+            'enroll_expire' => $expireDate,
+            'instructor_revenue' => $instructor_payout,
+            'bundle_id' => $bundle_id,
+            'bundle_course_id' => $bundle_course_id,
+            'sale_id' => $saleId,
+            'status' => $pay_status,
+            'proof' => $name,
+            'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+        ]);
 
         if ($instructor_payout != 0) {
             if ($created_order) {
                 if ($course->user->role == "instructor") {
                     $created_payout = PendingPayout::create([
-                                'user_id' => $course->user_id,
-                                'course_id' => $course->id,
-                                'order_id' => $created_order->id,
-                                'transaction_id' => uniqid(),
-                                'total_amount' => $pay_amount,
-                                'currency' => $currency->currency,
-                                'currency_icon' => $currency->icon,
-                                'instructor_revenue' => $instructor_payout,
-                                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                    ]);
+                        'user_id' => $course->user_id,
+                        'course_id' => $course->id,
+                        'order_id' => $created_order->id,
+                        'transaction_id' => uniqid(),
+                        'total_amount' => $pay_amount,
+                        'currency' => $currency->currency,
+                        'currency_icon' => $currency->icon,
+                        'instructor_revenue' => $instructor_payout,
+                        'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                        'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                    ]);
                 }
             }
         }
@@ -1486,8 +1531,8 @@ class PaymentController extends Controller
                     $recipients = $user->mobile;
 
                     $msg = 'Hey' . ' ' . $user->fname . ' ' .
-                            'You\'r successfully enrolled in ' . $course->title .
-                            'Thanks' . ' ' . config('app.name');
+                        'You\'r successfully enrolled in ' . $course->title .
+                        'Thanks' . ' ' . config('app.name');
 
                     TwilioMsg::sendMessage($msg, $recipients);
                 } catch (\Exception $e) {
@@ -1532,7 +1577,7 @@ class PaymentController extends Controller
 
             if ($user->id != null) {
                 $user = User::where('id', $user->id)->first();
-            //    Notification::send($user, new UserEnroll($course));
+                //    Notification::send($user, new UserEnroll($course));
             }
 
             $order_id = $created_order->order_id;
@@ -1540,7 +1585,7 @@ class PaymentController extends Controller
 
             if ($cor != null) {
                 $user = User::where('id', $cor->user->id)->first();
-            //    Notification::send($user, new AdminOrder($course, $order_id, $url));
+                //    Notification::send($user, new AdminOrder($course, $order_id, $url));
             }
         }
 
@@ -1713,26 +1758,26 @@ class PaymentController extends Controller
 
 
                 $created_order = Order::create([
-                            'course_id' => $course_id,
-                            'user_id' => $user->id,
-                            'instructor_id' => $instructor_id,
-                            'order_id' => '#' . sprintf("%08d", intval($number) + 1),
-                            'transaction_id' => $txn_id,
-                            'payment_method' => $payment_method,
-                            'total_amount' => $pay_amount,
-                            'coupon_discount' => $cpn_discount,
-                            'currency' => $currency->currency,
-                            'currency_icon' => $currency->icon,
-                            'duration' => $duration,
-                            'enroll_start' => $todayDate,
-                            'enroll_expire' => $expireDate,
-                            'instructor_revenue' => $instructor_payout,
-                            'bundle_id' => $bundle_id,
-                            'bundle_course_id' => $bundle_course_id,
-                            'sale_id' => null,
-                            'status' => 1,
-                            'proof' => null,
-                            'created_at' => now()
+                    'course_id' => $course_id,
+                    'user_id' => $user->id,
+                    'instructor_id' => $instructor_id,
+                    'order_id' => '#' . sprintf("%08d", intval($number) + 1),
+                    'transaction_id' => $txn_id,
+                    'payment_method' => $payment_method,
+                    'total_amount' => $pay_amount,
+                    'coupon_discount' => $cpn_discount,
+                    'currency' => $currency->currency,
+                    'currency_icon' => $currency->icon,
+                    'duration' => $duration,
+                    'enroll_start' => $todayDate,
+                    'enroll_expire' => $expireDate,
+                    'instructor_revenue' => $instructor_payout,
+                    'bundle_id' => $bundle_id,
+                    'bundle_course_id' => $bundle_course_id,
+                    'sale_id' => null,
+                    'status' => 1,
+                    'proof' => null,
+                    'created_at' => now()
                 ]);
 
                 Wishlist::where('user_id', $user->id)->where('course_id', $cart->course_id)->delete();
@@ -1744,17 +1789,17 @@ class PaymentController extends Controller
                         if ($cart->type == 0) {
                             if ($cart->courses->user->role == "instructor") {
                                 $created_payout = PendingPayout::create([
-                                            'user_id' => $cart->courses->user_id,
-                                            'course_id' => $cart->course_id,
-                                            'order_id' => $created_order->id,
-                                            'transaction_id' => $txn_id,
-                                            'total_amount' => $pay_amount,
-                                            'currency' => $currency->currency,
-                                            'currency_icon' => $currency->icon,
-                                            'instructor_revenue' => $instructor_payout,
-                                            'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                            'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                                ]);
+                                    'user_id' => $cart->courses->user_id,
+                                    'course_id' => $cart->course_id,
+                                    'order_id' => $created_order->id,
+                                    'transaction_id' => $txn_id,
+                                    'total_amount' => $pay_amount,
+                                    'currency' => $currency->currency,
+                                    'currency_icon' => $currency->icon,
+                                    'instructor_revenue' => $instructor_payout,
+                                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                ]);
                             }
                         }
                     }
@@ -1766,8 +1811,8 @@ class PaymentController extends Controller
                             $recipients = $user->mobile;
 
                             $msg = 'Hey' . ' ' . $user->fname . ' ' .
-                                    'You\'r successfully enrolled in ' . $cart->courses->title .
-                                    'Thanks' . ' ' . config('app.name');
+                                'You\'r successfully enrolled in ' . $cart->courses->title .
+                                'Thanks' . ' ' . config('app.name');
 
                             TwilioMsg::sendMessage($msg, $recipients);
                         } catch (\Exception $e) {
@@ -1806,18 +1851,18 @@ class PaymentController extends Controller
 
                         $enroll = Order::where('user_id', $user->id)->where('course_id', $cart->course_id)->first();
 
-                    //    if ($enroll != NULL) {
-                    //        $user = User::where('id', $enroll->user_id)->first();
-                    //        Notification::send($user, new UserEnroll($course));
-                    //    }
+                        //    if ($enroll != NULL) {
+                        //        $user = User::where('id', $enroll->user_id)->first();
+                        //        Notification::send($user, new UserEnroll($course));
+                        //    }
 
-                    //    $order_id = $created_order->order_id;
-                    //    $url = route('view.order', $created_order->id);
+                        //    $order_id = $created_order->order_id;
+                        //    $url = route('view.order', $created_order->id);
 
-                    //    if ($cor != NULL) {
-                    //        $user = User::where('id', $cor->user_id)->first();
-                    //        Notification::send($user, new AdminOrder($course, $order_id, $url));
-                    //    }
+                        //    if ($cor != NULL) {
+                        //        $user = User::where('id', $cor->user_id)->first();
+                        //        Notification::send($user, new AdminOrder($course, $order_id, $url));
+                        //    }
                     }
                 }
             }

@@ -10,8 +10,24 @@ class Cart extends Model
 {
     protected $table = 'carts';
 
-    protected $fillable = ['user_id', 'course_id', 'chapter_id', 'meeting_id', 'offline_session_id', 'category_id', 'price', 'offer_price', 'disamount', 'distype', 'bundle_id', 'type',
-                            'installment', 'total_installments', 'coupon_id' ];
+    protected $fillable = [
+        'user_id',
+        'course_id',
+        'chapter_id',
+        'meeting_id',
+        'offline_session_id',
+        'category_id',
+        'price',
+        'offer_price',
+        'disamount',
+        'distype',
+        'bundle_id',
+        'type',
+        'installment',
+        'total_installments',
+        'coupon_id',
+        'offer_type'
+    ];
 
     protected $casts = [
         'course_id' => 'integer',
@@ -43,7 +59,7 @@ class Cart extends Model
 
         foreach ($carts as $cart) {
             $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : ($cart->offline_session_id ? OfflineSession::find($cart->offline_session_id) : null))));
-            $coupon  = ($cart->installment == 0 && $cart->cartCoupon) ? Coupon::find($cart->cartCoupon->coupon_id) : null;
+            $coupon = ($cart->installment == 0 && $cart->cartCoupon) ? Coupon::find($cart->cartCoupon->coupon_id) : null;
 
             if ($cart->installment == 1 && $cart->cartCoupons->isNotEmpty()) {
                 foreach ($cart->cartCoupons as $cartCoupon) {
@@ -74,8 +90,8 @@ class Cart extends Model
             }
 
             if (
-                ($cart->meeting_id &&  $cart_item->setMaxParticipants ==  $cart_item->order_count) or
-                ($cart->offline_session_id &&  $cart_item->setMaxParticipants ==  $cart_item->order_count)
+                ($cart->meeting_id && $cart_item->setMaxParticipants == $cart_item->order_count) or
+                ($cart->offline_session_id && $cart_item->setMaxParticipants == $cart_item->order_count)
             ) {
                 CartCoupon::where(['user_id' => $auth_id, 'cart_id' => $cart->id])->delete();
                 $cart->delete();

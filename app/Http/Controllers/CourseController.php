@@ -160,10 +160,27 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if ($row->type == 1 && $row->discount_price != 0) {
-                        return __('Paid');
-                    } elseif ($row->type == 0 && $row->discount_price == 0) {
-                        return __('Free');
+
+                    if (is_null($row->discount_type)) {
+                        if ($row->discount_price != 0) {
+                            return __('Paid');
+                        } elseif ($row->discount_price == 0) {
+                            return __('Free');
+                        }
+                    } else {
+                        if ($row->discount_type == 'percentage') {
+                            if ($row->discount_price >= 100) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        } elseif ($row->discount_type == 'fixed') {
+                            if ($row->discount_price >= $row->price) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        }
                     }
                 })
                 ->editColumn('status', 'admin.course.datatables.status')
@@ -992,7 +1009,7 @@ class CourseController extends Controller
                 // if ($class->pdf == !NULL && @file_get_contents(public_path() . 'files/pdf/' . $class->pdf)) {
                 if (
                     $class->file != null &&
-                    ($class->type == 'pdf' ||  $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
+                    ($class->type == 'pdf' || $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
                     Storage::exists("/files/$class->type/" . $class->file)
                 ) {
                     $oldPathFile = Storage::path("/files/$class->type/" . $class->file);
@@ -1133,7 +1150,10 @@ class CourseController extends Controller
             'amount' => 'required|array|min:2|max:4',
             'amount.*' => 'required|numeric|min:1',
             'due_date' => [
-                'required', 'array', 'min:2', 'max:4',
+                'required',
+                'array',
+                'min:2',
+                'max:4',
                 function ($attribute, $value, $fail) {
                     for ($i = 1; $i < count($value); $i++) {
                         if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {

@@ -23,26 +23,29 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Validation\Rules\Password;
 
-class LoginController extends Controller {
+class LoginController extends Controller
+{
 
     use IssueTokenTrait;
 
-    public function login(Request $request) {
+    public function login(Request $request)
+    {
         $request->validate([
             'email' => 'required',
             'password' => 'required'
-        ],[
+        ], [
             'email.required' => __("Email is required"),
             'password.required' => __("Password is required"),
         ]);
 
-        
+
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . trim($request->email) . "' and `role` = 'user'))")->first();
-        $authUser = User::where('email',trim($request->email))->where('role', 'user')->orWhere( function($query) use($request) {
-            $query->where('mobile', trim($request->email))->where('role', 'user');
-        })->first();
+        $authUser = User::where('email', trim($request->email))
+            ->where('role', 'user')->orWhere(function ($query) use ($request) {
+                $query->where('mobile', trim($request->email))->where('role', 'user');
+            })->first();
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . Str::remove('+', trim($request->email)) . "' and `role` = 'user'))")->first();
-        
+
         if (isset($authUser) && $authUser->status == 0) {
             return response()->json(array("errors" => ["message" => [__('Blocked User')]]), 406);
         } else {
@@ -53,7 +56,7 @@ class LoginController extends Controller {
 
             if (isset($authUser)) {
                 $request->email = $authUser->email;
-                
+
                 if ($setting->verify_enable == 0) {
                     if (isset($request->role)) {
                         if ($authUser->role == 'instructor') {
@@ -63,11 +66,21 @@ class LoginController extends Controller {
                         }
                     } else {
                         $res = $this->issueToken($request, 'password');
+                        if ($res->status() != 400) {
+                            //revoke any access tokens for the same user
+                            $tokens = DB::table('oauth_access_tokens')->where('user_id', $authUser->id)
+                                ->where('revoked', 0)->orderBy('created_at', 'DESC')->get()->toArray();
+                            if (count($tokens) > 1) {
+                                for ($i = 1; $i < count($tokens); $i++) {
+                                    DB::table('oauth_access_tokens')->where('id', $tokens[$i]->id)->update([
+                                        'revoked' => 1
+                                    ]);
+                                }
+                            }
+                        }
                     }
-                
-                } 
-                
-                else {
+
+                } else {
                     if ($authUser->email_verified_at != NULL) {
                         if (isset($request->role)) {
                             if ($authUser->role == 'instructor') {
@@ -92,38 +105,39 @@ class LoginController extends Controller {
                 return response()->json(array("errors" => ["message" => [__("Invalid Login")]]), 400);
             } else {
 
-                if(isset($authUser) && $authUser->is_locked == 1){
+                if (isset($authUser) && $authUser->is_locked == 1) {
                     return response()->json(array("errors" => ["message" => [__('user_block_multi_device_login')]]), 406);
                 }
-                
-                if($request->fpjsid && $authUser->test_user == '0' && $authUser->is_allow_multiple_device == '0') { 
+
+                if ($request->fpjsid && $authUser->test_user == '0' && $authUser->is_allow_multiple_device == '0') {
                     $oauth = Token::where(['user_id' => $authUser->id, 'revoked' => 0])->orderBy('created_at', 'DESC')->first();
-                    
-                    $oauth->update(['fpjsid' => $request->fpjsid?? $oauth->fpjsid]);
-                    
-                    $token = Token::where(['revoked'=> 0,'user_id'=>$authUser->id])->whereDate('expires_at', '>=', now())->groupBy('user_id') ->havingRaw('count(DISTINCT fpjsid) > ?', [1])->first();
-                    
-                    if($token && $token->id){
+
+                    $oauth->update(['fpjsid' => $request->fpjsid ?? $oauth->fpjsid]);
+
+                    $token = Token::where(['revoked' => 0, 'user_id' => $authUser->id])->whereDate('expires_at', '>=', now())->groupBy('user_id')->havingRaw('count(DISTINCT fpjsid) > ?', [1])->first();
+
+                    if ($token && $token->id) {
 
                         $authUser->update(['is_locked' => 1]);
                         $authUser->increment('blocked_count');
 
                         Token::where('user_id', $authUser->id)->update(['revoked' => 1]);
-                        
+
                         return response()->json(array("errors" => ["message" => [__('user_block_multi_device_login')]]), 406);
                     }
                 }
-                
-                if($request->timezone){
+
+                if ($request->timezone) {
                     $authUser->update(['timezone' => $request->timezone]);
                 }
-                
+
                 return $res;
             }
         }
     }
 
-    public function fblogin(Request $request) {
+    public function fblogin(Request $request)
+    {
 
         $this->validate($request, [
             'email' => 'required',
@@ -152,19 +166,20 @@ class LoginController extends Controller {
             $verified = \Carbon\Carbon::now()->toDateTimeString();
 
             $user = User::create([
-                        'fname' => request('name'),
-                        'email' => request('email'),
-                        'password' => Hash::make($request->password != '' ? $request->password : 'password'),
-                        'facebook_id' => request('code'),
-                        'status' => '1',
-                        'email_verified_at' => $verified
+                'fname' => request('name'),
+                'email' => request('email'),
+                'password' => Hash::make($request->password != '' ? $request->password : 'password'),
+                'facebook_id' => request('code'),
+                'status' => '1',
+                'email_verified_at' => $verified
             ]);
 
             return $this->issueToken($request, 'password');
         }
     }
 
-    public function googlelogin(Request $request) {
+    public function googlelogin(Request $request)
+    {
 
 
         $this->validate($request, [
@@ -200,32 +215,34 @@ class LoginController extends Controller {
             $verified = \Carbon\Carbon::now()->toDateTimeString();
 
             $user = User::create([
-                        'fname' => request('name'),
-                        'email' => request('email'),
-                        'password' => Hash::make($request->password != '' ? $request->password : 'password'),
-                        'google_id' => request('uid'),
-                        'status' => '1',
-                        'email_verified_at' => $verified
+                'fname' => request('name'),
+                'email' => request('email'),
+                'password' => Hash::make($request->password != '' ? $request->password : 'password'),
+                'google_id' => request('uid'),
+                'status' => '1',
+                'email_verified_at' => $verified
             ]);
 
             return $response = $this->issueToken($request, 'password');
         }
     }
 
-    public function refresh(Request $request) {
+    public function refresh(Request $request)
+    {
         $this->validate($request, [
             'refresh_token' => 'required'
-                ], [
+        ], [
             'refresh_token.required' => __('Refresh Token Is Required')
         ]);
 
         return $this->issueToken($request, 'refresh_token');
     }
 
-    public function forgotApi(Request $request) {
+    public function forgotApi(Request $request)
+    {
         $this->validate($request, [
             'email' => 'required|exists:users,email'
-                ], [
+        ], [
             'email.required' => __("Email is required"),
             'email.exists' => __("Email not exists")
         ]);
@@ -240,8 +257,8 @@ class LoginController extends Controller {
                 $config = Setting::findOrFail(1);
                 $user->code = $code;
                 $user->save();
-                $Maildata = ['code' => $code, 'logo' => $config->logo, 'company' => $config->project_title,'from'=>$config->wel_email];
-                Mail::to($user->email)->send(new EmailForgotPassOTP($user,$Maildata));
+                $Maildata = ['code' => $code, 'logo' => $config->logo, 'company' => $config->project_title, 'from' => $config->wel_email];
+                Mail::to($user->email)->send(new EmailForgotPassOTP($user, $Maildata));
                 $data = [
                     'user_id' => $user->id,
                     'type' => 'password',
@@ -260,10 +277,11 @@ class LoginController extends Controller {
         }
     }
 
-    public function verifyApi(Request $request) {
+    public function verifyApi(Request $request)
+    {
         $this->validate($request, [
             'code' => ['required', Rule::exists('users', 'code')->where('email', $request->email)]
-                ], [
+        ], [
             'code.required' => __("Verification Code is required"),
             'code.exists' => __("Verification Code is invalid")
         ]);
@@ -281,19 +299,20 @@ class LoginController extends Controller {
         }
     }
 
-    public function resetApi(Request $request) {
+    public function resetApi(Request $request)
+    {
 
         $this->validate($request, [
             'code' => ['required', Rule::exists('users', 'code')->where('email', $request->email)],
             'password' => [
-                            'required',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
+                'required',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
             ],
             'email' => 'required|exists:users,email',
-                ], [
+        ], [
             'code.required' => __("Verification Code is required"),
             'code.exists' => __("Verification Code is invalid"),
             'password.required' => __('Password is Required'),
@@ -320,7 +339,8 @@ class LoginController extends Controller {
         return response()->json(__('Password reset successfully'), 200);
     }
 
-    public function logoutApi() {
+    public function logoutApi()
+    {
 
         $token = Auth::user()->token();
         $token->revoke();
@@ -328,11 +348,13 @@ class LoginController extends Controller {
         return response($response, 200);
     }
 
-    public function redirectToblizzard_sociallogin($provider) {
+    public function redirectToblizzard_sociallogin($provider)
+    {
         return Socialite::driver($provider)->stateless()->redirect();
     }
 
-    public function blizzard_sociallogin(Request $request, $provider) {
+    public function blizzard_sociallogin(Request $request, $provider)
+    {
 
         if (!$request->has('code') || $request->has('denied')) {
             return response()->json('Code not found !', 401);
@@ -357,8 +379,8 @@ class LoginController extends Controller {
         } else {
 
             $token = $authUser
-                            ->createToken(config('app.name') . ' Password Grant Client')
-                    ->accessToken;
+                ->createToken(config('app.name') . ' Password Grant Client')
+                ->accessToken;
 
             return response()->json(['accessToken' => $token], 200);
         }
@@ -366,7 +388,8 @@ class LoginController extends Controller {
         // return $token
     }
 
-    public function findOrCreateUser($user, $provider) {
+    public function findOrCreateUser($user, $provider)
+    {
         if ($user->email == Null) {
             $user->email = $user->id . '@facebook.com';
         }
@@ -400,12 +423,12 @@ class LoginController extends Controller {
         $setting = Setting::first();
 
         $auth_user = User::create([
-                    'fname' => $user->name,
-                    'email' => $user->email,
-                    'user_img' => $name,
-                    'email_verified_at' => $verified,
-                    'password' => Hash::make('password'),
-                    $providerField => $user->id,
+            'fname' => $user->name,
+            'email' => $user->email,
+            'user_img' => $name,
+            'email_verified_at' => $verified,
+            'password' => Hash::make('password'),
+            $providerField => $user->id,
         ]);
 
         if ($setting->w_email_enable == 1) {

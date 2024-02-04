@@ -36,20 +36,19 @@ class ManualEnrollmentController extends Controller
     public function index(Request $request)
     {
         $orders = Order::query()
-                        ->select('orders.id', 'title', 'orders.user_id', 'orders.instructor_id', 'orders.course_id', 'orders.chapter_id', 'orders.bundle_id', 'orders.meeting_id', 'orders.offline_session_id', 'orders.installments', 'orders.transaction_id', 'orders.total_amount', 'orders.paid_amount', 'orders.enroll_start', 'orders.enroll_expire', 'orders.created_at', 'orders.currency_icon', 'orders.coupon_id', 'orders.coupon_discount', 'orders.status')
-                        ->allActiveInactiveOrder()
-                        ->whereHas('user', function ($q) {
-                            $q->exceptTestUser();
-                        })
-                        ->with('user:id,fname,lname,email,mobile')
-                        ->with('instructor:id,fname,lname')
-                        ->with('transaction:id,payment_method,transaction_id,created_at')
-                        ->with('payment_plan:id,order_id,due_date,installment_no,payment_date,amount,status');
+            ->select('orders.id', 'title', 'orders.user_id', 'orders.instructor_id', 'orders.course_id', 'orders.chapter_id', 'orders.bundle_id', 'orders.meeting_id', 'orders.offline_session_id', 'orders.installments', 'orders.transaction_id', 'orders.total_amount', 'orders.paid_amount', 'orders.enroll_start', 'orders.enroll_expire', 'orders.created_at', 'orders.currency_icon', 'orders.coupon_id', 'orders.coupon_discount', 'orders.status')
+            ->allActiveInactiveOrder()
+            ->whereHas('user', function ($q) {
+                $q->exceptTestUser();
+            })
+            ->with('user:id,fname,lname,email,mobile')
+            ->with('instructor:id,fname,lname')
+            ->with('transaction:id,payment_method,transaction_id,created_at')
+            ->with('payment_plan:id,order_id,due_date,installment_no,payment_date,amount,status');
 
         if ($request->ajax()) {
             return Datatables::eloquent($orders)
                 ->addIndexColumn()
-
                 ->editColumn('student_detail', 'admin.invoice.datatables.student_detail')
                 ->editColumn('order_detail', 'admin.invoice.datatables.order_detail')
                 ->editColumn('payment_detail', 'admin.invoice.datatables.payment_detail')
@@ -74,12 +73,12 @@ class ManualEnrollmentController extends Controller
         $currency = Currency::where('default', 1)->first();
 
         $users = User::query()
-                        ->select('id', 'fname', 'lname', 'mobile')
-                        ->where('role', 'user')
-                        ->active()
-                        ->exceptTestUser()
-                        ->latest('id')
-                        ->get();
+            ->select('id', 'fname', 'lname', 'mobile')
+            ->where('role', 'user')
+            ->active()
+            ->exceptTestUser()
+            ->latest('id')
+            ->get();
 
         return view('admin.manual_enrollment.add', compact('currency', 'users', 'testUser'));
     }
@@ -89,40 +88,40 @@ class ManualEnrollmentController extends Controller
     {
         if ($request->type === 'course') {
             $items = Course::query()
-                            ->select('id', 'title', 'installment', 'total_installments', 'price', 'discount_price')
-                            ->whereDoesntHave('order', function ($query) {
-                                $query->where('user_id', request()->user_id);
-                            })
-                            ->active()
-                            ->latest('id')
-                            ->get();
+                ->select('id', 'title', 'installment', 'total_installments', 'price', 'discount_price', 'discount_type')
+                ->whereDoesntHave('order', function ($query) {
+                    $query->where('user_id', request()->user_id);
+                })
+                ->active()
+                ->latest('id')
+                ->get();
         } elseif ($request->type === 'package') {
             $items = BundleCourse::query()
-                                    ->select('id', 'title', 'installment', 'total_installments', 'price', 'discount_price')
-                                    ->whereDoesntHave('order', function ($query) {
-                                        $query->where('user_id', request()->user_id);
-                                    })
-                                    ->active()
-                                    ->latest('id')
-                                    ->get();
+                ->select('id', 'title', 'installment', 'total_installments', 'price', 'discount_price', 'discount_type')
+                ->whereDoesntHave('order', function ($query) {
+                    $query->where('user_id', request()->user_id);
+                })
+                ->active()
+                ->latest('id')
+                ->get();
         } elseif ($request->type === 'live-streaming') {
             $items = BBL::query()
-                            ->select('id', 'meetingname', 'price', 'discount_price')
-                            ->whereDoesntHave('orders', function ($query) {
-                                $query->where('user_id', request()->user_id);
-                            })
-                            ->active()
-                            ->latest('id')
-                            ->get();
+                ->select('id', 'meetingname', 'price', 'discount_price', 'discount_type')
+                ->whereDoesntHave('orders', function ($query) {
+                    $query->where('user_id', request()->user_id);
+                })
+                ->active()
+                ->latest('id')
+                ->get();
         } elseif ($request->type === 'in-person-session') {
             $items = OfflineSession::query()
-                                        ->select('id', 'title', 'price', 'discount_price')
-                                        ->whereDoesntHave('orders', function ($query) {
-                                            $query->where('user_id', request()->user_id);
-                                        })
-                                        ->active()
-                                        ->latest('id')
-                                        ->get();
+                ->select('id', 'title', 'price', 'discount_price')
+                ->whereDoesntHave('orders', function ($query) {
+                    $query->where('user_id', request()->user_id);
+                })
+                ->active()
+                ->latest('id')
+                ->get();
         }
 
         return response()->json($items, 200);
@@ -171,48 +170,60 @@ class ManualEnrollmentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' =>    ['required',
-                            Rule::exists('users', 'id')->where(function ($query) {
-                                return $query->where('role', 'user')
-                                            ->where('status', 1)
-                                            ->whereNull('deleted_at');
-                            })],
+            'user_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    return $query->where('role', 'user')
+                        ->where('status', 1)
+                        ->whereNull('deleted_at');
+                })
+            ],
             'type' => 'required',
-            'course_id' =>  ['required_if:type,course',
-                            Rule::exists('courses', 'id')->where('status', 1),
-                            Rule::unique('orders')->where(function ($query) use ($request) {
-                                    return $query->where('user_id', $request->user_id)
-                                                ->where('status', '<>', 0)
-                                                ->whereNull('deleted_at');
-                            })],
-            'chapter_id' => ['nullable',
-                            Rule::exists('course_chapters', 'id')->where('status', 1),
-                            Rule::unique('orders')->where(function ($query) use ($request) {
-                                return $query->where('user_id', $request->user_id)
-                                            ->where('status', '<>', 0)
-                                            ->whereNull('deleted_at');
-                            })],
-            'bundle_id' =>  ['required_if:type,package',
-                            Rule::exists('bundle_courses', 'id')->where('status', 1),
-                            Rule::unique('orders')->where(function ($query) use ($request) {
-                                return $query->where('user_id', $request->user_id)
-                                            ->where('status', '<>', 0)
-                                            ->whereNull('deleted_at');
-                            })],
-            'meeting_id' => ['required_if:type,live-streaming',
-                            Rule::exists('bigbluemeetings', 'id'),
-                            Rule::unique('orders')->where(function ($query) use ($request) {
-                                return $query->where('user_id', $request->user_id)
-                                            ->where('status', '<>', 0)
-                                            ->whereNull('deleted_at');
-                            })],
-            'offline_session_id' => ['required_if:type,in-person-session',
-                                    Rule::exists('offline_sessions', 'id'),
-                                    Rule::unique('orders')->where(function ($query) use ($request) {
-                                        return $query->where('user_id', $request->user_id)
-                                                    ->where('status', '<>', 0)
-                                                    ->whereNull('deleted_at');
-                                    })],
+            'course_id' => [
+                'required_if:type,course',
+                Rule::exists('courses', 'id')->where('status', 1),
+                Rule::unique('orders')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user_id)
+                        ->where('status', '<>', 0)
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'chapter_id' => [
+                'nullable',
+                Rule::exists('course_chapters', 'id')->where('status', 1),
+                Rule::unique('orders')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user_id)
+                        ->where('status', '<>', 0)
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'bundle_id' => [
+                'required_if:type,package',
+                Rule::exists('bundle_courses', 'id')->where('status', 1),
+                Rule::unique('orders')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user_id)
+                        ->where('status', '<>', 0)
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'meeting_id' => [
+                'required_if:type,live-streaming',
+                Rule::exists('bigbluemeetings', 'id'),
+                Rule::unique('orders')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user_id)
+                        ->where('status', '<>', 0)
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'offline_session_id' => [
+                'required_if:type,in-person-session',
+                Rule::exists('offline_sessions', 'id'),
+                Rule::unique('orders')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user_id)
+                        ->where('status', '<>', 0)
+                        ->whereNull('deleted_at');
+                })
+            ],
             'payment_type' => 'nullable|in:installments,full',
             'installment1' => 'required_if:payment_type,installments',
         ], [
@@ -270,7 +281,7 @@ class ManualEnrollmentController extends Controller
         }
 
         //Get Order item i.e. course, bundle, meeting OR session
-        $order_item  = $request->chapter_id ? CourseChapter::find($request->chapter_id) : ($request->course_id ? Course::find($request->course_id) : ($request->bundle_id ? BundleCourse::find($request->bundle_id) : ($request->meeting_id ? BBL::find($request->meeting_id) : ($request->offline_session_id ? OfflineSession::find($request->offline_session_id) : null ))));
+        $order_item = $request->chapter_id ? CourseChapter::find($request->chapter_id) : ($request->course_id ? Course::find($request->course_id) : ($request->bundle_id ? BundleCourse::find($request->bundle_id) : ($request->meeting_id ? BBL::find($request->meeting_id) : ($request->offline_session_id ? OfflineSession::find($request->offline_session_id) : null))));
 
         if ($request->payment_type === 'installments' && $order_item->installment == 0) {
             throw ValidationException::withMessages(['payment_type' => 'Installments have been removed']);
@@ -280,7 +291,7 @@ class ManualEnrollmentController extends Controller
             throw ValidationException::withMessages(['installment2' => 'Pay pending installment first, please']);
         }
 
-        $created_order =  null;
+        $created_order = null;
         $payment_method = 'Manual Enrollment';
         $pay_amount = 0;
 
@@ -288,11 +299,11 @@ class ManualEnrollmentController extends Controller
 
         //Get user cart for that item purchased
         $carts = Cart::where('user_id', $auth->id)->get();
-        $user_cart  = $request->chapter_id ? $carts->where('chapter_id', $request->chapter_id) : ($request->type === 'course' ? $carts->where('course_id', $request->course_id) : ($request->type === 'package' ? $carts->where('bundle_id', $request->bundle_id) : ($request->type === 'live-streaming' ? $carts->where('meeting_id', $request->meeting_id) : ($request->type === 'in-person-session' ? $carts->where('offline_session_id', $request->offline_session_id) : collect() ))));
+        $user_cart = $request->chapter_id ? $carts->where('chapter_id', $request->chapter_id) : ($request->type === 'course' ? $carts->where('course_id', $request->course_id) : ($request->type === 'package' ? $carts->where('bundle_id', $request->bundle_id) : ($request->type === 'live-streaming' ? $carts->where('meeting_id', $request->meeting_id) : ($request->type === 'in-person-session' ? $carts->where('offline_session_id', $request->offline_session_id) : collect()))));
 
         //Calculate paid amount in terms of full payment OR installments
         if ($request->payment_type === 'installments' && $request->installment1 && isset($order_item->installments)) {
-                $pay_amount = $order_item->installments[0]->amount;
+            $pay_amount = $order_item->installments[0]->amount;
             if ($request->installment2) {
                 $pay_amount += $order_item->installments[1]->amount;
             }
@@ -332,38 +343,48 @@ class ManualEnrollmentController extends Controller
             'detail' => Str::headline($request->type) . ' purchased',
         ]);
 
-            $created_order = Order::create([
-                'title' => $order_item->_title(),
-                'price' => $order_item->price,
-                'discount_price' => $order_item->discount_price,
-                'user_id' => $auth->id,
-                'instructor_id' => $order_item->_instructor(),
-                'course_id' => $request->chapter_id ? null : $request->course_id ?? null,
-                'chapter_id' => $request->chapter_id ?? null,
-                'bundle_id' => $request->bundle_id ?? null,
-                'meeting_id' => $request->meeting_id ?? null,
-                'bundle_course_id' => $request->bundle_id ? $order_item->course_id : null,
-                'offline_session_id' => $request->offline_session_id ?? null,
-                'order_id' => '#' . sprintf("%08d", intval($number) + 1),
-                'transaction_id' => $wallet_transaction->id,
-                'payment_method' => $payment_method,
-                'total_amount' => $request->payment_type == 'installments' ? $order_item->installments->sum('amount') : $order_item->discount_price,
-                'paid_amount' => $pay_amount,
-                'installments' => $request->payment_type === 'full' ? 0 : 1,
-                'total_installments' => $request->payment_type === 'installments' ? $order_item->total_installments : null,
-                'coupon_discount' => 0,
-                'coupon_id' => null,
-                'currency' => $currency->code,
-                'currency_icon' => $currency->symbol,
-                // 'duration' => $duration,
-                'enroll_start' => $order_item->_enrollstart(),
-                'enroll_expire' => $order_item->_enrollexpire(),
-                // 'instructor_revenue' => $instructor_payout,
-                'status' => 1,
-            ]);
+        $total = 0;
+        if ($order_item->discount_type && $order_item->discount_type == 'fixed') {
+            $total = $order_item->price - $order_item->discount_price;
+        } elseif ($order_item->discount_type && $order_item->discount_type == 'percentage') {
+            $total = $order_item->price - (($order_item->discount_price / 100) * $order_item->price);
+        } else {
+            $total = $order_item->discount_price;
+        }
+
+        $created_order = Order::create([
+            'title' => $order_item->_title(),
+            'price' => $order_item->price,
+            'discount_price' => $order_item->discount_price,
+            'discount_type' => $order_item->discount_type ?? null,
+            'user_id' => $auth->id,
+            'instructor_id' => $order_item->_instructor(),
+            'course_id' => $request->chapter_id ? null : $request->course_id ?? null,
+            'chapter_id' => $request->chapter_id ?? null,
+            'bundle_id' => $request->bundle_id ?? null,
+            'meeting_id' => $request->meeting_id ?? null,
+            'bundle_course_id' => $request->bundle_id ? $order_item->course_id : null,
+            'offline_session_id' => $request->offline_session_id ?? null,
+            'order_id' => '#' . sprintf("%08d", intval($number) + 1),
+            'transaction_id' => $wallet_transaction->id,
+            'payment_method' => $payment_method,
+            'total_amount' => $request->payment_type == 'installments' ? $order_item->installments->sum('amount') : $total,
+            'paid_amount' => $pay_amount,
+            'installments' => $request->payment_type === 'full' ? 0 : 1,
+            'total_installments' => $request->payment_type === 'installments' ? $order_item->total_installments : null,
+            'coupon_discount' => 0,
+            'coupon_id' => null,
+            'currency' => $currency->code,
+            'currency_icon' => $currency->symbol,
+            // 'duration' => $duration,
+            'enroll_start' => $order_item->_enrollstart(),
+            'enroll_expire' => $order_item->_enrollexpire(),
+            // 'instructor_revenue' => $instructor_payout,
+            'status' => 1,
+        ]);
 
 
-            // Remove items from wishlists
+        // Remove items from wishlists
         if ($created_order->course_id) {
             Wishlist::where(['course_id' => $created_order->course_id, 'user_id' => $auth->id])->delete();
         } elseif ($created_order->bundle_id) {
@@ -399,14 +420,14 @@ class ManualEnrollmentController extends Controller
                 $chapters = CourseClass::select('id')->where('course_id', $c)->pluck('id');
                 CourseProgress::firstOrCreate(
                     [
-                    'user_id' => $auth->id,
-                    'course_id' => $c,
+                        'user_id' => $auth->id,
+                        'course_id' => $c,
                     ],
                     [
-                    'progress' => 0,
-                    'mark_chapter_id' => [],
-                    'all_chapter_id' => $chapters,
-                    'status' => 1
+                        'progress' => 0,
+                        'mark_chapter_id' => [],
+                        'all_chapter_id' => $chapters,
+                        'status' => 1
                     ]
                 );
             }
@@ -443,7 +464,7 @@ class ManualEnrollmentController extends Controller
                     'amount' => $inst->amount,
                     'due_date' => $inst->due_date,
                     'installment_no' => $inst->sort,
-                    'payment_date' =>  $orderInstallment ? now() : null,
+                    'payment_date' => $orderInstallment ? now() : null,
                     'status' => $orderInstallment ? 'Paid' : null,
                 ]);
             }
@@ -499,7 +520,7 @@ class ManualEnrollmentController extends Controller
             throw ValidationException::withMessages(['id' => 'Pay the previous pending installment first, please']);
             // return back()->withErrors('Pay Pending installment first please');
         }
-        
+
         $payment_method = 'Manual Enrollment';
         $currency = Currency::where('default', '=', 1)->first();
 
@@ -515,27 +536,27 @@ class ManualEnrollmentController extends Controller
 
         /** Create wallet transcation history */
         $wallet_transaction = \App\WalletTransactions::create([
-                    'wallet_id' => $user->wallet->id,
-                    'user_id' => $user->id,
-                    'transaction_id' => $transaction_id,
-                    'payment_method' => $payment_method,
-                    'total_amount' => $inst->amount,
-                    'currency' => $currency->code,
-                    'currency_icon' => $currency->symbol,
-                    'type' => 'Debit',
-                    'detail' => __('Installment Paid'),
+            'wallet_id' => $user->wallet->id,
+            'user_id' => $user->id,
+            'transaction_id' => $transaction_id,
+            'payment_method' => $payment_method,
+            'total_amount' => $inst->amount,
+            'currency' => $currency->code,
+            'currency_icon' => $currency->symbol,
+            'type' => 'Debit',
+            'detail' => __('Installment Paid'),
         ]);
 
         $orderInstallment = OrderInstallment::create([
-                    'order_id' => $inst->order_id,
-                    'user_id' => $user->id,
-                    'transaction_id' => $wallet_transaction->id,
-                    'payment_method' => $payment_method,
-                    'total_amount' => $inst->amount,
-                    'coupon_discount' => 0,
-                    'coupon_id' => null,
-                    'currency' => $currency->code,
-                    'currency_icon' => $currency->symbol,
+            'order_id' => $inst->order_id,
+            'user_id' => $user->id,
+            'transaction_id' => $wallet_transaction->id,
+            'payment_method' => $payment_method,
+            'total_amount' => $inst->amount,
+            'coupon_discount' => 0,
+            'coupon_id' => null,
+            'currency' => $currency->code,
+            'currency_icon' => $currency->symbol,
         ]);
 
         $inst->order_installment_id = $orderInstallment->id;

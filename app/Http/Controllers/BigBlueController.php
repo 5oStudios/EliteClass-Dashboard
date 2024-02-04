@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Attandance;
 use App\Categories;
 use App\SubCategory;
+use App\CourseClass;
 use App\ChildCategory;
 use App\CourseChapter;
 use App\secondaryCategory;
@@ -55,16 +56,16 @@ class BigBlueController extends Controller
     {
         if (Auth::user()->hasRole('admin')) {
             $meetings = BBL::query()
-                            // where('is_ended', '!=', 1)
-                            // ->whereDate('start_time', '>=', Carbon::now())
-                            ->latest()
-                            ->with(['chapters']);
+                // where('is_ended', '!=', 1)
+                // ->whereDate('start_time', '>=', Carbon::now())
+                ->latest()
+                ->with(['chapters']);
         } else if (Auth::user()->hasRole('instructor')) {
             $meetings = BBL::query()
-                            ->where('instructor_id', Auth::id())
-                            // ->where('is_ended', '!=', 1)->whereDate('start_time', '>=', Carbon::now())
-                            ->latest()
-                            ->with(['chapters']);
+                ->where('instructor_id', Auth::id())
+                // ->where('is_ended', '!=', 1)->whereDate('start_time', '>=', Carbon::now())
+                ->latest()
+                ->with(['chapters']);
         }
 
         if ($request->ajax()) {
@@ -88,7 +89,7 @@ class BigBlueController extends Controller
                 ->rawColumns(['checkbox', 'image', 'meetingID', 'detail', 'action'])
                 ->make(true);
         }
-        
+
         return view('bbl.index');
     }
 
@@ -97,22 +98,22 @@ class BigBlueController extends Controller
     {
         if (Auth::user()->role == "admin") {
             $course = Course::query()
-                            ->active()
-                            ->get();
+                ->active()
+                ->get();
             $users = User::query()
-                            ->where('id', '!=', Auth::user()->id)
-                            ->where('role', '!=', 'user')
-                            ->active()
-                            ->get();
+                ->where('id', '!=', Auth::user()->id)
+                ->where('role', '!=', 'user')
+                ->active()
+                ->get();
         } else {
             $course = Course::query()
-                            ->where('user_id', Auth::user()->id)
-                            ->active()
-                            ->get();
+                ->where('user_id', Auth::user()->id)
+                ->active()
+                ->get();
             $users = User::query()
-                            ->where('id', Auth::user()->id)
-                            ->active()
-                            ->first();
+                ->where('id', Auth::user()->id)
+                ->active()
+                ->first();
         }
 
         $category = Categories::where('status', 1)->get();
@@ -127,10 +128,10 @@ class BigBlueController extends Controller
         if (Auth::user()->role == "admin") {
             $course = Course::all();
             $users = User::query()
-                            ->where('id', '!=', Auth::user()->id)
-                            ->where('role', '!=', 'user')
-                            ->active()
-                            ->get();
+                ->where('id', '!=', Auth::user()->id)
+                ->where('role', '!=', 'user')
+                ->active()
+                ->get();
         } else {
             $course = Course::where('user_id', Auth::user()->id)->get();
             $users = User::where('id', Auth::user()->id)->first();
@@ -147,6 +148,7 @@ class BigBlueController extends Controller
 
     public function store(Request $request)
     {
+
         $date = Carbon::createFromFormat('Y-m-d H:i:s', now(), 'UTC');
         $date->setTimezone(Auth::user()->timezone);
 
@@ -164,7 +166,8 @@ class BigBlueController extends Controller
             'expire_date' => 'required|date_format:Y-m-d|after_or_equal:' . date('Y-m-d', strtotime($request->start_time)),
             'duration' => 'required|digits_between:1,3',
             'price' => 'required|numeric|min:0',
-            'discount_price' => 'required|numeric|min:0',
+            'discount_price' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
         ], [
@@ -205,12 +208,11 @@ class BigBlueController extends Controller
             "welcomemsg.max" => __("Welcome messsage should not be more than 250 characters"),
         ]);
 
-        $newmeeting = new BBL();
         $input = $request->all();
 
         $allmeeting = BBL::query()
-                        ->active()
-                        ->get();
+            ->active()
+            ->get();
 
         foreach ($allmeeting as $key => $met) {
             if ($request->meetingid == $met->meetingid) {
@@ -231,7 +233,7 @@ class BigBlueController extends Controller
             $input['setMuteOnStart'] = 0;
         }
 
-        if (isset($request->allow_record)) {
+        if (isset($request->allow_record) && $request->allow_record == 'on') {
             $input['allow_record'] = 1;
         } else {
             $input['allow_record'] = 0;
@@ -282,7 +284,42 @@ class BigBlueController extends Controller
 
         $input['owner_id'] = Auth::user()->id;
 
-        $newmeeting->create($input);
+
+        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
+            $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
+
+        $newmeeting = BBL::create($input);
+
+        //create the meeting as a chapter in the course
+        if ($input['link_by'] == 'course') {
+
+            $chapter = CourseChapter::create([
+                'course_id' => $input['course_id'],
+                'chapter_name' => $request->meetingname,
+                'detail' => $request->detail,
+                'price' => $request->price,
+                'type' => 'live-streaming',
+                'type_id' => $newmeeting->id,
+                'discount_price' => $request->discount_price,
+                'user_id' => $request->instructor_id,
+                'position' => (CourseChapter::count() + 1),
+                'status' => 1
+            ]);
+
+            // $courseclass = new CourseClass();
+            // $courseclass->course_id = $input['course_id'];
+            // $courseclass->coursechapter_id = $chapter->id;
+            // $courseclass->title = $request->meetingname;
+            // $courseclass->status = 1;
+            // $courseclass->user_id = $request->instructor_id;
+            // $courseclass->position = (CourseClass::where('course_id', $input['course_id'])->count() + 1);
+            // $courseclass->type = 'Meeting';
+            // $courseclass->duration = $input['duration'];
+            // $courseclass->meeting_id = $input['meetingid'];
+            // $courseclass->save();
+        }
 
         return redirect()->route('bbl.all.meeting')->with('success', trans('flash.CreatedSuccessfully'));
     }
@@ -306,7 +343,8 @@ class BigBlueController extends Controller
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
             'price' => 'required|numeric|min:0',
-            'discount_price' => 'required|numeric|min:0',
+            'discount_price' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|string|in:fixed,percentage',
         ], [
             "main_category.required_without" => __("Country name is required"),
             "scnd_category_id.required_with" => __("Type of institute field is required"),
@@ -349,8 +387,8 @@ class BigBlueController extends Controller
         $input = $request->all();
 
         $streamingChapter = CourseChapter::where('course_id', $meeting->course_id)
-                                        ->where(['type' => 'live-streaming', 'type_id' => $meeting->id])
-                                        ->first();
+            ->where(['type' => 'live-streaming', 'type_id' => $meeting->id])
+            ->first();
 
         if ($meeting->course_id != $request->course_id && ($streamingChapter)) {
             return back()->with('warning', __("You can't unlink Live Streaming from the course because it's added in the Course Chapter"));
@@ -366,11 +404,12 @@ class BigBlueController extends Controller
             $input['setMuteOnStart'] = 0;
         }
 
-        if (isset($request->allow_record)) {
+        if (isset($request->allow_record) && $request->allow_record == 'on') {
             $input['allow_record'] = 1;
         } else {
             $input['allow_record'] = 0;
         }
+
 
         if ($request->setMaxParticipants == '') {
             $input['setMaxParticipants'] = '-1';
@@ -417,10 +456,15 @@ class BigBlueController extends Controller
         $input['start_time']->setTimezone('UTC');
 
         Cart::where(['meeting_id' => $id, 'installment' => '0'])
-                ->update([
-                    'price' => $request->price,
-                    'offer_price' => $request->discount_price,
-        ]);
+            ->update([
+                'price' => $request->price,
+                'offer_price' => $request->discount_price,
+            ]);
+
+        if (!isset($input['discount_price']) || $input['discount_price'] == 0) {
+            $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
 
         $meeting->update($input);
 
@@ -439,13 +483,13 @@ class BigBlueController extends Controller
         $meeting = BBL::findOrFail($meetingid);
 
         $enrolled = SessionEnrollment::query()
-                    ->where('meeting_id', $meetingid)
-                    ->whereHas('user', function ($query) {
-                        $query->exceptTestuser();
-                    })
-                    ->with('user:id,fname,lname,mobile,email')
-                    ->latest('id')
-                    ->get();
+            ->where('meeting_id', $meetingid)
+            ->whereHas('user', function ($query) {
+                $query->exceptTestuser();
+            })
+            ->with('user:id,fname,lname,mobile,email')
+            ->latest('id')
+            ->get();
 
         return view('bbl.enrolled.users', compact('meeting', 'enrolled'));
     }
@@ -544,7 +588,7 @@ class BigBlueController extends Controller
         $userid = Crypt::decrypt($request->user);
         $meetingid = Crypt::decrypt($request->meetingID);
 
-        Log::debug("BigblueMeeting Logout ==> \nDecrpytUserId: ${request->user}, userid: ${userid}\nDecryptMeetingId: ${request->meetingID}, meetingid: ${meetingid}");
+        Log::debug("BigblueMeeting Logout ==> \nDecrpytUserId: $request->user, userid: $userid\nDecryptMeetingId: $request->meetingID, meetingid: $meetingid");
 
         $findmeeting = BBL::where('meetingid', $meetingid)->first();
 
@@ -603,8 +647,8 @@ class BigBlueController extends Controller
         $findmeeting = BBL::where('meetingid', '=', $meetingid)->first();
 
         if (isset($findmeeting)) {
-                $findmeeting->reco_status = 2;
-                $findmeeting->save();
+            $findmeeting->reco_status = 2;
+            $findmeeting->save();
         }
     }
 
@@ -649,13 +693,13 @@ class BigBlueController extends Controller
 
                 if (!$courseAttandance) {
                     $attanded = Attandance::create([
-                                'user_id' => Auth::user()->id,
-                                'bbl_id' => $m->id,
-                                'instructor_id' => $m->instructor_id,
-                                'date' => $date->toDateString(),
-                                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                    ]);
+                        'user_id' => Auth::user()->id,
+                        'bbl_id' => $m->id,
+                        'instructor_id' => $m->instructor_id,
+                        'date' => $date->toDateString(),
+                        'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                        'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                    ]);
                 }
             }
 

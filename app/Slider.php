@@ -7,27 +7,27 @@ use Spatie\Translatable\HasTranslations;
 
 class Slider extends Model
 {
-	use HasTranslations;
-    
-    public $translatable = ['heading', 'sub_heading', 'search_text', 'detail'];
+  use HasTranslations;
 
-    /**
-     * Convert the model instance to an array.
-     *
-     * @return array
-     */
-    public function toArray()
-    {
-      $attributes = parent::toArray();
-      
-      foreach ($this->getTranslatableAttributes() as $name) {
-          $attributes[$name] = $this->getTranslation($name, app()->getLocale());
-      }
-      
-      return $attributes;
-    } 
+  public $translatable = ['heading', 'sub_heading', 'search_text', 'detail'];
 
-    protected $table = 'sliders';
+  /**
+   * Convert the model instance to an array.
+   *
+   * @return array
+   */
+  public function toArray()
+  {
+    $attributes = parent::toArray();
 
-    protected $fillable = ['heading', 'sub_heading', 'search_text', 'detail', 'status', 'image', 'position', 'left', 'search_enable'];
+    foreach ($this->getTranslatableAttributes() as $name) {
+      $attributes[$name] = $this->getTranslation($name, app()->getLocale());
+    }
+
+    return $attributes;
+  }
+
+  protected $table = 'sliders';
+
+  protected $fillable = ['heading', 'sub_heading', 'search_text', 'detail', 'status', 'image', 'position', 'left', 'search_enable', 'link'];
 }

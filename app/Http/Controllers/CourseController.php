@@ -160,8 +160,7 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-
-                    if (is_null($row->discount_type)) {
+                  if (is_null($row->discount_type)) {
                         if ($row->discount_price != 0) {
                             return __('Paid');
                         } elseif ($row->discount_price == 0) {
@@ -231,7 +230,9 @@ class CourseController extends Controller
             // 'course_tags' => 'required',
             'start_date' => 'required|date_format:Y-m-d|after_or_equal:' . date('Y-m-d'),
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
-            'price' => 'required_with:type|numeric',
+            'price' => 'required_with:type|numeric|min:0',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'required_if:installment,1|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),
@@ -314,6 +315,16 @@ class CourseController extends Controller
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
+        if (!isset($input['discount_price']) || !isset($input['discount_type']) || $input['discount_price'] == 0) {
+            // $input['discount_price'] = null;
+            $input['discount_type'] = null;
+        }
+
+        if ($input['installment'] == 1) {
+            $input['status'] = 0;
+        }
+
+        // dd($input, $request);
         Course::create($input);
 
         Session::flash('success', trans('flash.AddedSuccessfully'));
@@ -362,6 +373,8 @@ class CourseController extends Controller
             'start_date' => 'required|date_format:Y-m-d',
             'end_date' => 'required|date_format:Y-m-d|after:start_date',
             'price' => 'required_with:type|numeric',
+            'price_discount' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed,percentage',
             'total_installments' => 'sometimes|in:2,3,4',
         ], [
             "category_id.required" => __("Country name is required"),
@@ -1190,6 +1203,7 @@ class CourseController extends Controller
 
         $course->update([
             'installment_price' => $total,
+            'status' => 1,
             // 'total_installments' => 3,
         ]);
 

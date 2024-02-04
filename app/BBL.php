@@ -51,6 +51,7 @@ class BBL extends Model
         'ch_sub_category',
         'price',
         'discount_price',
+        'discount_type',
         'bigblue_url',
         'time_zone',
         'modpw',
@@ -104,18 +105,18 @@ class BBL extends Model
     {
         if ($this->course_id) {
             return User::select("users.*")
-            ->join("course_progress", 'course_progress.user_id', 'users.id')
-            ->join("oauth_access_tokens", 'oauth_access_tokens.user_id', 'users.id')
-            ->where('course_progress.course_id', $this->course_id)
-            ->whereNotNull('oauth_access_tokens.player_device_id')
-            ->get();
+                ->join("course_progress", 'course_progress.user_id', 'users.id')
+                ->join("oauth_access_tokens", 'oauth_access_tokens.user_id', 'users.id')
+                ->where('course_progress.course_id', $this->course_id)
+                ->whereNotNull('oauth_access_tokens.player_device_id')
+                ->get();
         } else {
             return User::select("users.*")
-            ->join("orders", 'user_id', 'users.id')
-            ->join("oauth_access_tokens", 'oauth_access_tokens.user_id', 'users.id')
-            ->where('orders.meeting_id', $this->id)
-            ->whereNotNull('oauth_access_tokens.player_device_id')
-            ->get();
+                ->join("orders", 'user_id', 'users.id')
+                ->join("oauth_access_tokens", 'oauth_access_tokens.user_id', 'users.id')
+                ->where('orders.meeting_id', $this->id)
+                ->whereNotNull('oauth_access_tokens.player_device_id')
+                ->get();
         }
     }
 

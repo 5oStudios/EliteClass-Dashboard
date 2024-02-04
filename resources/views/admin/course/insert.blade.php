@@ -271,22 +271,45 @@
                                     <div style="display: none;" id="pricebox">
                                         <label for="exampleInputSlug">{{ __('adminstaticword.Price') }}: <sup
                                                 class="redstar">*</sup></label>
-                                        <input type="number" step="0.001" min="0" required
-                                            oninput="javascript:offerPrice.value = this.value;" class="form-control"
+                                        <input type="number" step="1" min="0" required
+                                             class="form-control"
                                             name="price" id="priceMain"
                                             placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.Price') }}"
                                             value="{{ old('price') ?? 0 }}">
                                         <br>
-                                        <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup
-                                                class="redstar">*</sup><small class="text-muted"><i
-                                                    class="fa fa-question-circle"></i>
-                                                {{ __('Discounted price Zero(0) consider as free') }}
+                                        <label for="discount_type">{{ __('discount_type') }}</label>
+                                        <select name="discount_type" id="discount_type" class="form-control js-example-basic-single col-md-7 col-xs-12 mb-2">
+                                            <option value="none" selected disabled>
+                                                {{ __('frontstaticword.SelectanOption') }}
+                                            </option>
+                                            <option value="percentage">{{ __('percentage') }}</option>
+                                            <option value="fixed">{{ __('fixed') }}</option>
+                                        </select>
+
+                                        <br>
+
+                                        <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup class="redstar">*</sup>
+                                            <small class="text-muted"><i class="fa fa-question-circle"></i>
+                                                {{ __('Discounted price Zero(0) consider as no discount') }}
                                             </small>
                                         </label>
-                                        <input type="number" step="0.001" min="0" required
-                                            class="form-control" name="discount_price" id="offerPrice"
-                                            placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
-                                            value="{{ old('discount_price') ?? 0 }}">
+
+                                        <div class="input-group">
+                                            <input type="number" step="0.1" min="0" required class="form-control" name="discount_price" id="offerPrice"
+                                                placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
+                                                value="{{ old('discount_price') ?? 0 }}" />
+
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" id="prefix">
+                                                    @if(old('discount_type') == 'percentage')
+                                                        %
+                                                    @elseif(old('discount_type') == 'fixed')
+                                                        KWD
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
+                                            
                                     </div>
                                 </div>
                                 <br>
@@ -503,7 +526,6 @@
                     $('#pricebox').hide('fast');
                     $('#installment-box').show('fast');
                     $('#priceMain').val(0);
-                    $('#offerPrice').val(0);
                     $('#priceMain').attr('required', false);
                 }
             });
@@ -567,6 +589,25 @@
                     }
                 });
             });
+            function updatePrefix() {
+
+                var discountType = document.getElementById('discount_type').value;
+                var prefixElement = document.getElementById('prefix');
+                if (discountType === 'percentage') {
+                    prefixElement.textContent = '%';
+                } else if (discountType === 'fixed') {
+                    prefixElement.textContent = 'KWD';
+                } else {
+                    prefixElement.textContent = '';
+                }
+            };
+
+            // Add an event listener to the discount type select element
+            $('#discount_type').change(()=>{
+                updatePrefix()            })
+
+            // Initial call to set the prefix based on the default selected value
+            updatePrefix();
             $(function() {
                 var urlLike = '{{ url('admin/dropdown') }}';
                 $('#type_id').change(function() {

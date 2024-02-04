@@ -312,23 +312,49 @@
                             <div style="{{ $cor->type == 1 ? '' : 'display:none' }}" id="doabox">
                                 <label for="exampleInputSlug">{{ __('adminstaticword.Price') }}: <sup
                                         class="redstar">*</sup></label>
-                                <input step="0.001" type="text" inputmode="numeric" required
+                                <input step="1" type="text" inputmode="numeric" required
                                     pattern="[-+]?[0-9]*[.,]?[0-9]+" class="form-control" name="price"
                                     id="priceMain"
                                     placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.Price') }}"
                                     value="{{ $cor->price ?? 0 }}">
-                                <br>
-                                <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup
-                                        class="redstar">*</sup><small class="text-muted"><i
-                                            class="fa fa-question-circle"></i>
-                                        {{ __('Discounted price Zero(0) consider as free') }}
-                                    </small>
-                                </label>
-                                <input step="0.001" type="text" inputmode="numeric" required
-                                    pattern="[-+]?[0-9]*[.,]?[0-9]+" class="form-control" name="discount_price"
-                                    id="discount_price"
-                                    placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
-                                    value="{{ $cor->discount_price ?? 0 }}">
+                                    <br>
+                                        <label for="discount_type">{{ __('discount_type') }}</label>
+                                        <select name="discount_type" id="discount_type" class="form-control js-example-basic-single col-md-7 col-xs-12 mb-2">
+                                            <option value="none" disabled {{ ($cor->discount_type ?? null) == 'none' ? 'selected' : '' }}>
+                                                {{ __('frontstaticword.SelectanOption') }}
+                                            </option>
+                                            <option value="percentage" {{ ($cor->discount_type ?? null) == 'percentage' ? 'selected' : '' }}>
+                                                {{ __('percentage') }}
+                                            </option>
+                                            <option value="fixed" {{ ($cor->discount_type ?? null) == 'fixed' ? 'selected' : '' }}>
+                                                {{ __('fixed') }}
+                                            </option>
+                                        </select>
+
+
+                                        <br>
+
+                                        <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup class="redstar">*</sup>
+                                            <small class="text-muted"><i class="fa fa-question-circle"></i>
+                                                {{ __('Discounted price Zero(0) consider as no discount') }}
+                                            </small>
+                                        </label>
+
+                                        <div class="input-group">
+                                            <input type="number" step="0.1" min="0" required class="form-control" name="discount_price" id="offerPrice"
+                                                placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
+                                                value="{{ $cor->discount_price ?? 0 }}" />
+
+                                            <div class="input-group-append">
+                                                <span class="input-group-text" id="prefix">
+                                                    @if(old('discount_type') == 'percentage')
+                                                        %
+                                                    @elseif(old('discount_type') == 'fixed')
+                                                        KWD
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div> 
                             </div>
                         </div>
 
@@ -615,6 +641,25 @@
                 $('#document1').hide('fast');
             }
         });
+        function updatePrefix() {
+
+        var discountType = document.getElementById('discount_type').value;
+        var prefixElement = document.getElementById('prefix');
+        if (discountType === 'percentage') {
+            prefixElement.textContent = '%';
+        } else if (discountType === 'fixed') {
+            prefixElement.textContent = 'KWD';
+        } else {
+            prefixElement.textContent = '';
+        }
+        };
+
+        // Add an event listener to the discount type select element
+        $('#discount_type').change(()=>{
+        updatePrefix()            })
+
+        // Initial call to set the prefix based on the default selected value
+        updatePrefix();
         $(function() {
             var urlLike = '{{ url('type/categories') }}';
             $('#category_id').change(function() {

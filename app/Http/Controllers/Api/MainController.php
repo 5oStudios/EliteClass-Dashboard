@@ -18,6 +18,7 @@ use App\Answer;
 use App\Career;
 use App\Coupon;
 use App\Course;
+use App\Remark;
 use App\Slider;
 use App\Adsense;
 use App\Contact;
@@ -61,6 +62,8 @@ use App\CourseProgress;
 use App\OfflineSession;
 use App\PaymentGateway;
 use App\CoursesInBundle;
+use App\OrderInstallment;
+use App\OrderPaymentPlan;
 use App\SessionEnrollment;
 use Illuminate\Support\Str;
 use App\Helpers\Is_wishlist;
@@ -74,14 +77,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
 
-class MainController extends Controller {
+class MainController extends Controller
+{
 
-    public function home(Request $request) {
+    public function home(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
@@ -100,17 +105,17 @@ class MainController extends Controller {
             $sub_category_id = $user->sub_category;
             $child_sub_category = $user->ch_sub_category;
         }
-        
+
         // if ((!$category_id || !$scnd_category_id || !$sub_category_id || !$child_sub_category)) {
         //     return response()->json(array("errors"=>["message"=>['Category Not selected']]),403);
         // }
 
         $instructor = User::where(['role' => 'instructor', ['user_img', '<>', null]])
-                ->when($category_id, function ($q) use ($category_id) {
-                    $q->where('main_category', $category_id);
-                })
-                ->active()
-                ->paginate(10);
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('main_category', $category_id);
+            })
+            ->active()
+            ->paginate(10);
         $instructor->getCollection()->transform(function ($i) {
             return [
                 'id' => $i->id,
@@ -119,41 +124,41 @@ class MainController extends Controller {
             ];
         });
         $Course = Course::
-                select("courses.*")
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('category_id', $category_id);
-                })
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('subcategory_id', $sub_category_id);
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('childcategory_id', strval($child_sub_category));
+            select("courses.*")
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+            })
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('subcategory_id', $sub_category_id);
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('childcategory_id', strval($child_sub_category));
 
-                })
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(courses.price between $request->min_price and $request->max_price or courses.discount_price between $request->min_price and $request->max_price)");
-                 })
-                ->when($request->max_time, function ($q)use ($request) {
-                  $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
-                 })
-                ->when($request->rating, function ($q)use ($request) {
-                    $q->join('review_ratings', 'review_ratings.course_id', '=', 'courses.id')
+            })
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(courses.price between $request->min_price and $request->max_price or courses.discount_price between $request->min_price and $request->max_price)");
+            })
+            ->when($request->max_time, function ($q) use ($request) {
+                $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
+            })
+            ->when($request->rating, function ($q) use ($request) {
+                $q->join('review_ratings', 'review_ratings.course_id', '=', 'courses.id')
                     ->groupBy('review_ratings.course_id')
                     ->havingRaw('avg(avg_rating) >= ?', [$request->rating]);
-                })
-                ->active()
-                ->paginate(5);
-                // ->inRandomOrder()
-                // ->get();
+            })
+            ->active()
+            ->paginate(5);
+        // ->inRandomOrder()
+        // ->get();
 
-        $Course->getCollection()->transform(function ($b)use($user) {
+        $Course->getCollection()->transform(function ($b) use ($user) {
             return [
                 'id' => $b->id,
                 'title' => $b->title,
@@ -161,46 +166,49 @@ class MainController extends Controller {
                 'instructor' => $b->user->fname . ' ' . $b->user->lname,
                 'lessons' => $b->courseclass->count(),
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
+                'price' => $b->price,
+                'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 
         $packages = BundleCourse::select('bundle_courses.*')
-                ->join('courses_in_bundle', 'bundle_courses.id', '=', 'courses_in_bundle.bundle_id')
-                ->join('courses', 'courses.id', '=', 'courses_in_bundle.course_id')
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(bundle_courses.price between $request->min_price and $request->max_price or bundle_courses.discount_price between $request->min_price and $request->max_price)");
-                    // $q->whereBetween('bundle_courses.price', [$request->min_price, $request->max_price]);
-                    // $q->orWhereBetween('bundle_courses.discount_price', [$request->min_price, $request->max_price]);
-                })
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(bundle_courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(bundle_courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('courses.category_id', $category_id);
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('courses.scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('courses.subcategory_id', $sub_category_id);
-                    
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('courses.childcategory_id', strval($child_sub_category));
-                })
-                ->when($request->max_time, function ($q)use ($request) {
-                       $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
-                 })
-                ->active()
-                ->groupBy('bundle_courses.id')
-                ->paginate(5);
-                // ->inRandomOrder()
-                // ->get();
-                
-        $packages->getCollection()->transform(function ($b)use($user) {
+            ->join('courses_in_bundle', 'bundle_courses.id', '=', 'courses_in_bundle.bundle_id')
+            ->join('courses', 'courses.id', '=', 'courses_in_bundle.course_id')
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(bundle_courses.price between $request->min_price and $request->max_price or bundle_courses.discount_price between $request->min_price and $request->max_price)");
+                // $q->whereBetween('bundle_courses.price', [$request->min_price, $request->max_price]);
+                // $q->orWhereBetween('bundle_courses.discount_price', [$request->min_price, $request->max_price]);
+            })
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(bundle_courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(bundle_courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('courses.category_id', $category_id);
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('courses.scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('courses.subcategory_id', $sub_category_id);
+
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('courses.childcategory_id', strval($child_sub_category));
+            })
+            ->when($request->max_time, function ($q) use ($request) {
+                $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
+            })
+            ->active()
+            ->groupBy('bundle_courses.id')
+            ->paginate(5);
+        // ->inRandomOrder()
+        // ->get();
+
+        $packages->getCollection()->transform(function ($b) use ($user) {
             return [
                 'id' => $b->id,
                 'title' => $b->title,
@@ -209,41 +217,42 @@ class MainController extends Controller {
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
                 'price' => $b->price,
                 'discount_price' => $b->discount_price,
+                'discount_type' => $b->discount_type,
             ];
         });
 
         $bbl_meetings = BBL::query()
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('main_category', $category_id);
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('sub_category', $sub_category_id);
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('ch_sub_category', strval($child_sub_category));
-                })
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(price between $request->min_price and $request->max_price or discount_price between $request->min_price and $request->max_price)");
-                    // $q->whereBetween('price', [$request->min_price, $request->max_price]);
-                    // $q->orWhereBetween('discount_price', [$request->min_price, $request->max_price]);
-                })
-                // ->when($request->max_time, function ($q)use ($request) {
-                //    $q->whereBetween('duration', [$request->min_time, $request->max_time]);
-                // })
-                ->active()
-                ->latest('id')
-                ->paginate(5);
-                // ->inRandomOrder()
-                // ->get();
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('main_category', $category_id);
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('sub_category', $sub_category_id);
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('ch_sub_category', strval($child_sub_category));
+            })
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(price between $request->min_price and $request->max_price or discount_price between $request->min_price and $request->max_price)");
+                // $q->whereBetween('price', [$request->min_price, $request->max_price]);
+                // $q->orWhereBetween('discount_price', [$request->min_price, $request->max_price]);
+            })
+            // ->when($request->max_time, function ($q)use ($request) {
+            //    $q->whereBetween('duration', [$request->min_time, $request->max_time]);
+            // })
+            ->active()
+            ->latest('id')
+            ->paginate(5);
+        // ->inRandomOrder()
+        // ->get();
 
-        $bbl_meetings->getCollection()->transform(function ($m)use($user) {
+        $bbl_meetings->getCollection()->transform(function ($m) use ($user) {
             return [
                 'id' => $m->id,
                 'owner_id' => $m->owner_id,
@@ -261,30 +270,30 @@ class MainController extends Controller {
         });
 
         $offline_sessions = OfflineSession::query()
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('main_category', $category_id);
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('sub_category', $sub_category_id);
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('ch_sub_category', strval($child_sub_category));
-                })
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(price between $request->min_price and $request->max_price or discount_price between $request->min_price and $request->max_price)");
-                })
-                ->active()
-                ->latest('id')
-                ->paginate(5);
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('main_category', $category_id);
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('sub_category', $sub_category_id);
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('ch_sub_category', strval($child_sub_category));
+            })
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(price between $request->min_price and $request->max_price or discount_price between $request->min_price and $request->max_price)");
+            })
+            ->active()
+            ->latest('id')
+            ->paginate(5);
 
-        $offline_sessions->getCollection()->transform(function ($m)use($user) {
+        $offline_sessions->getCollection()->transform(function ($m) use ($user) {
             return [
                 'id' => $m->id,
                 'owner_id' => $m->owner_id,
@@ -304,22 +313,27 @@ class MainController extends Controller {
         foreach ($slid as $b) {
             $slider[] = [
                 'image' => url('/images/slider/' . $b->image),
+                'link' => $b->link
             ];
         }
 
-        return response()->json(array(
-                    'slider' => $slider,
-                    'instructors' => $instructor,
-                    'packages' => $packages,
-                    'courses' => $Course,
-                    'meetings' => $bbl_meetings,
-                    'sessions' => $offline_sessions,
-                    'cart_count' => $user ? $user->carts->count() : NULL,
-                    ), 200);
+        return response()->json(
+            array(
+                'slider' => $slider,
+                'instructors' => $instructor,
+                'packages' => $packages,
+                'courses' => $Course,
+                'meetings' => $bbl_meetings,
+                'sessions' => $offline_sessions,
+                'cart_count' => $user ? $user->carts->count() : NULL,
+            ),
+            200
+        );
     }
 
 
-    public function main() {
+    public function main()
+    {
         return response()->json(array('ok'), 200);
     }
 
@@ -334,12 +348,13 @@ class MainController extends Controller {
      * )
      */
 
-    public function course(Request $request) {
+    public function course(Request $request)
+    {
 
         $request->validate([
             'perPage' => 'nullable|max:100'
-        ],[
-            'perPage.max'=>__("Pagination should not be more than 100"),
+        ], [
+            'perPage.max' => __("Pagination should not be more than 100"),
         ]);
 
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
@@ -350,7 +365,7 @@ class MainController extends Controller {
         $scnd_category_id = $request->scnd_category_id;
         $sub_category_id = $request->sub_category;
         $child_sub_category = $request->ch_sub_category;
-        $perPage = $request->perPage?? 10;
+        $perPage = $request->perPage ?? 10;
 
         if ((!$category_id || !$scnd_category_id || !$sub_category_id || !$child_sub_category) && Auth::guard('api')->check()) {
             $user = Auth::guard('api')->user();
@@ -363,39 +378,39 @@ class MainController extends Controller {
         // if ((!$category_id || !$scnd_category_id || !$sub_category_id || !$child_sub_category)) {
         //     return response()->json(array("errors"=>["message"=>[__('Category Not selected')]]),422);
         // }
-        
+
         $courses = Course::
-                select("courses.*")
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('category_id', $category_id);
-                })
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('subcategory_id', $sub_category_id);
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('childcategory_id', strval($child_sub_category));
-                })
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(courses.price between $request->min_price and $request->max_price or courses.discount_price between $request->min_price and $request->max_price)");
-                  //  $q->orWhereBetween('courses.discount_price', [$request->min_price, $request->max_price]);
-                })
-                ->when($request->max_time, function ($q)use ($request) {
-                     $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
-                 })
-                ->when($request->rating, function ($q)use ($request) {
-                    $q->join('review_ratings', 'review_ratings.course_id', '=', 'courses.id')
+            select("courses.*")
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+            })
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('subcategory_id', $sub_category_id);
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('childcategory_id', strval($child_sub_category));
+            })
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(courses.price between $request->min_price and $request->max_price or courses.discount_price between $request->min_price and $request->max_price)");
+                //  $q->orWhereBetween('courses.discount_price', [$request->min_price, $request->max_price]);
+            })
+            ->when($request->max_time, function ($q) use ($request) {
+                $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
+            })
+            ->when($request->rating, function ($q) use ($request) {
+                $q->join('review_ratings', 'review_ratings.course_id', '=', 'courses.id')
                     ->groupBy('review_ratings.course_id')
                     ->havingRaw('avg(avg_rating) >= ?', [$request->rating]);
-                })
-                ->active()
-                ->paginate($perPage);
+            })
+            ->active()
+            ->paginate($perPage);
 
         $courses->getCollection()->transform(function ($b) use ($courses, $user) {
             $data = [
@@ -405,8 +420,8 @@ class MainController extends Controller {
                 'instructor' => $b->user->fname . ' ' . $b->user->lname,
                 'lessons' => $b->courseclass->count(),
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
             ];
             return $data;
         });
@@ -415,7 +430,8 @@ class MainController extends Controller {
     }
 
 
-    public function recentcourse(Request $request) {
+    public function recentcourse(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -474,10 +490,11 @@ class MainController extends Controller {
     }
 
 
-    public function featuredcourse(Request $request) {
+    public function featuredcourse(Request $request)
+    {
 
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
         $featured = Course::where('status', 1)->where('featured', 1)->with('include')->with('whatlearns')->with('review')->with('user')->get();
@@ -532,11 +549,12 @@ class MainController extends Controller {
     }
 
 
-    public function bundle(Request $request) {
+    public function bundle(Request $request)
+    {
         $request->validate([
             'perPage' => 'nullable|max:100'
-        ],[
-            'perPage.max'=>__("Pagination should not be more than 100"),
+        ], [
+            'perPage.max' => __("Pagination should not be more than 100"),
         ]);
 
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
@@ -547,7 +565,7 @@ class MainController extends Controller {
         $scnd_category_id = $request->scnd_category_id;
         $sub_category_id = $request->sub_category;
         $child_sub_category = $request->ch_sub_category;
-        $perPage = $request->perPage?? 10;
+        $perPage = $request->perPage ?? 10;
 
         if ((!$category_id || !$scnd_category_id || !$sub_category_id || !$child_sub_category) && $user) {
             $category_id = $user->main_category;
@@ -561,39 +579,39 @@ class MainController extends Controller {
         // }
 
         $bundles = BundleCourse::select('bundle_courses.*')
-                ->join('courses_in_bundle', 'bundle_courses.id', '=', 'courses_in_bundle.bundle_id')
-                ->join('courses', 'courses.id', '=', 'courses_in_bundle.course_id')
-                ->when($request->max_price, function ($q)use ($request) {
-                    $q->whereRaw("(bundle_courses.price between $request->min_price and $request->max_price or bundle_courses.discount_price between $request->min_price and $request->max_price)");
-                    // $q->whereBetween('bundle_courses.price', [$request->min_price, $request->max_price]);
-                    // $q->orWhereBetween('bundle_courses.discount_price', [$request->min_price, $request->max_price]);
-                })
-                ->when($seach_text, function ($q)use ($seach_text, $lang) {
-                    $q->where(DB::raw("LOWER(bundle_courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
-                        ->orWhere(DB::raw("LOWER(bundle_courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
-                })
-                ->when($seach_text, function ($q)use ($seach_text) {
-                    $q->where('bundle_courses.title', 'like', '%' . $seach_text . '%');
-                })
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('courses.category_id', $category_id);
-                })
-                ->when($scnd_category_id, function ($q)use ($scnd_category_id) {
-                    $q->where('courses.scnd_category_id', $scnd_category_id);
-                })
-                ->when($sub_category_id, function ($q)use ($sub_category_id) {
-                    $q->where('courses.subcategory_id', $sub_category_id);
-                })
-                ->when($child_sub_category, function ($q)use ($child_sub_category) {
-                    $q->whereJsonContains('courses.childcategory_id', strval($child_sub_category));
-                })
-                ->when($request->max_time, function ($q)use ($request) {
-                    $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
-                })
-                ->where('bundle_courses.status', '1')
-                ->where('bundle_courses.end_date','>=', date('Y-m-d'))
-                ->groupBy('bundle_courses.id')
-                ->paginate($perPage);
+            ->join('courses_in_bundle', 'bundle_courses.id', '=', 'courses_in_bundle.bundle_id')
+            ->join('courses', 'courses.id', '=', 'courses_in_bundle.course_id')
+            ->when($request->max_price, function ($q) use ($request) {
+                $q->whereRaw("(bundle_courses.price between $request->min_price and $request->max_price or bundle_courses.discount_price between $request->min_price and $request->max_price)");
+                // $q->whereBetween('bundle_courses.price', [$request->min_price, $request->max_price]);
+                // $q->orWhereBetween('bundle_courses.discount_price', [$request->min_price, $request->max_price]);
+            })
+            ->when($seach_text, function ($q) use ($seach_text, $lang) {
+                $q->where(DB::raw("LOWER(bundle_courses.title->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
+                    ->orWhere(DB::raw("LOWER(bundle_courses.title->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
+            })
+            ->when($seach_text, function ($q) use ($seach_text) {
+                $q->where('bundle_courses.title', 'like', '%' . $seach_text . '%');
+            })
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('courses.category_id', $category_id);
+            })
+            ->when($scnd_category_id, function ($q) use ($scnd_category_id) {
+                $q->where('courses.scnd_category_id', $scnd_category_id);
+            })
+            ->when($sub_category_id, function ($q) use ($sub_category_id) {
+                $q->where('courses.subcategory_id', $sub_category_id);
+            })
+            ->when($child_sub_category, function ($q) use ($child_sub_category) {
+                $q->whereJsonContains('courses.childcategory_id', strval($child_sub_category));
+            })
+            ->when($request->max_time, function ($q) use ($request) {
+                $q->whereBetween('courses.credit_hours', [$request->min_time, $request->max_time]);
+            })
+            ->where('bundle_courses.status', '1')
+            ->where('bundle_courses.end_date', '>=', date('Y-m-d'))
+            ->groupBy('bundle_courses.id')
+            ->paginate($perPage);
 
         $bundles->getCollection()->transform(function ($bundle) use ($bundles, $user) {
 
@@ -615,19 +633,20 @@ class MainController extends Controller {
     }
 
 
-    public function bundledetail(Request $request, $id) {
+    public function bundledetail(Request $request, $id)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key'
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $bundle = BundleCourse::active()->find($id);
 
-        if(!$bundle){
-            return response()->json(array("errors"=>["message"=>[__("Package not exist OR may have been disabled")]]), 422);
-            
+        if (!$bundle) {
+            return response()->json(array("errors" => ["message" => [__("Package not exist OR may have been disabled")]]), 422);
+
         }
 
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
@@ -642,7 +661,7 @@ class MainController extends Controller {
         //     $query->active();
         // })->paginate(5);
 
-        $courses_in_bundle = CoursesInBundle::where('bundle_id',$id)->paginate(5);
+        $courses_in_bundle = CoursesInBundle::where('bundle_id', $id)->paginate(5);
 
         $lg_user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
         $courses_in_bundle->getCollection()->transform(function ($course) use ($lg_user) {
@@ -654,17 +673,17 @@ class MainController extends Controller {
                 'lessons' => $b->courseclass->count(),
                 'instructor' => $b->instructor->fname . ' ' . $b->instructor->lname,
                 'in_wishlist' => $lg_user ? ($b->inwishlist($lg_user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
             ];
             return $courses;
         });
-        
+
 
         $data = [
             'id' => $bundle->id,
             'order_id' => $order ? $order->id : null,
-            'is_cart' => $user ? ($user->cartType('bundle',$bundle->id)->exists()? true : false) : false,
+            'is_cart' => $user ? ($user->cartType('bundle', $bundle->id)->exists() ? true : false) : false,
             'title' => $bundle->title,
             'short_detail' => $bundle->short_detail,
             'detail' => $bundle->detail,
@@ -673,8 +692,9 @@ class MainController extends Controller {
             'total_courses' => count($bundle->course_id),
             'price' => $bundle->price,
             'discount_price' => $bundle->discount_price,
-            'instalment_price' =>  $bundle->discount_price > 0 ? $bundle->_installments()->sum('amount')??0:null,
-            'instalments' =>  $bundle->discount_price > 0 ? $bundle->_installments():[],
+            'discount_type' => $bundle->discount_type,
+            'instalment_price' => $bundle->discount_price > 0 ? $bundle->_installments()->sum('amount') ?? 0 : null,
+            'instalments' => $bundle->discount_price > 0 ? $bundle->_installments() : [],
             'created_by' => $bundle->user->fname . ' ' . $bundle->user->lname,
             // 'last_updated' => date('jS F Y', strtotime($bundle->updated_at)),
             'last_updated' => $bundle->updated_at,
@@ -683,25 +703,26 @@ class MainController extends Controller {
 
         return response()->json($data, 200);
     }
-    
 
-    public function bundleCourses(Request $request, $id) {
+
+    public function bundleCourses(Request $request, $id)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $bundle = BundleCourse::active()->find($id);
-        
-        if(!$bundle){
-            return response()->json(array("errors"=>["message"=>[__("Package not exist OR may have been disabled")]]), 422);
-            
+
+        if (!$bundle) {
+            return response()->json(array("errors" => ["message" => [__("Package not exist OR may have been disabled")]]), 422);
+
         }
 
         $courses_in_bundle = [];
-        $courses_in_bundle = CoursesInBundle::where('bundle_id',$id)->paginate(10);
+        $courses_in_bundle = CoursesInBundle::where('bundle_id', $id)->paginate(10);
         $lg_user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
         $courses_in_bundle->getCollection()->transform(function ($course) use ($lg_user) {
             $b = $course->course;
@@ -712,8 +733,8 @@ class MainController extends Controller {
                 'lessons' => $b->courseclass->count(),
                 'instructor' => $b->instructor->fname . ' ' . $b->instructor->lname,
                 'in_wishlist' => $lg_user ? ($b->inwishlist($lg_user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
             ];
             return $courses;
         });
@@ -721,21 +742,23 @@ class MainController extends Controller {
     }
 
 
-    public function studentfaq(Request $request) {
+    public function studentfaq(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
-       
+
         $faq = FaqStudent::where('status', 1)->get();
         return response()->json(array('faq' => $faq), 200);
     }
 
 
-    public function instructorfaq(Request $request) {
+    public function instructorfaq(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
@@ -745,12 +768,13 @@ class MainController extends Controller {
     }
 
 
-    public function blog(Request $request) {
+    public function blog(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $blog = Blog::where('status', 1)->get();
@@ -778,7 +802,8 @@ class MainController extends Controller {
     }
 
 
-    public function blogdetail(Request $request) {
+    public function blogdetail(Request $request)
+    {
         $request->validate([
             'blog_id' => 'required',
             'secret' => 'required|exists:api_keys,secret_key',
@@ -790,7 +815,8 @@ class MainController extends Controller {
     }
 
 
-    public function recentblog(Request $request) {
+    public function recentblog(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -802,27 +828,28 @@ class MainController extends Controller {
     }
 
 
-    public function wishlistcourse(Request $request) {
+    public function wishlistcourse(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $user = Auth::guard('api')->user();
         $wishlists = Wishlist::query()
-                            ->where('user_id', $user->id)
-                            ->whereHas('courses')
-                            ->whereNotNull('course_id')
-                            ->latest()
-                            ->paginate(10);
+            ->where('user_id', $user->id)
+            ->whereHas('courses')
+            ->whereNotNull('course_id')
+            ->latest()
+            ->paginate(10);
 
-        $wishlists->getCollection()->transform(function ($w){
+        $wishlists->getCollection()->transform(function ($w) {
 
             $course = Course::with(['chapter', 'review'])
-                        ->findOrFail($w->course_id);
+                ->findOrFail($w->course_id);
 
             $data = [
                 'id' => $course->wishlist->id,
@@ -832,26 +859,27 @@ class MainController extends Controller {
                 'image' => url('/images/course/' . $course->preview_image),
                 'instructor' => $course->instructor->fname . ' ' . $course->instructor->lname,
                 'lessons' => $course->courseclass->count(),
-                'reviews_by' =>  round($course->review->avg('avg_rating'),2),
-                'total_rating' => $course->review->count()??0,
+                'reviews_by' => round($course->review->avg('avg_rating'), 2),
+                'total_rating' => $course->review->count() ?? 0,
             ];
             return $data;
         });
-        
+
         return response()->json($wishlists, 200);
 
     }
 
 
-    public function wishlistbundle() {
+    public function wishlistbundle()
+    {
 
         $user = Auth::guard('api')->user();
         $wishlists = Wishlist::query()
-                            ->where('user_id', $user->id)
-                            ->whereHas('bundle')
-                            ->whereNotNull('bundle_id')
-                            ->latest()
-                            ->paginate(10);
+            ->where('user_id', $user->id)
+            ->whereHas('bundle')
+            ->whereNotNull('bundle_id')
+            ->latest()
+            ->paginate(10);
 
         $wishlists->getCollection()->transform(function ($w) {
 
@@ -874,21 +902,22 @@ class MainController extends Controller {
     }
 
 
-    public function wishlistmeeting() {
+    public function wishlistmeeting()
+    {
 
         $user = Auth::guard('api')->user();
         $bbl_meetings = Wishlist::query()
-                                ->where('user_id', $user->id)
-                                ->whereHas('meeting')
-                                ->whereNotNull('meeting_id')
-                                ->latest()
-                                ->paginate(10);
+            ->where('user_id', $user->id)
+            ->whereHas('meeting')
+            ->whereNotNull('meeting_id')
+            ->latest()
+            ->paginate(10);
 
         $bbl_meetings->getCollection()->transform(function ($w) {
-            
+
             $meeting = BBL::findOrFail($w->meeting_id);
-            
-                return [
+
+            return [
                 'id' => $w->id,
                 'meeting_id' => $w->meeting_id,
                 'owner_id' => $meeting->owner_id,
@@ -909,15 +938,16 @@ class MainController extends Controller {
     }
 
 
-    public function wishlistsession() {
+    public function wishlistsession()
+    {
 
         $user = Auth::guard('api')->user();
         $offline_sessions = Wishlist::query()
-                                    ->where('user_id', $user->id)
-                                    ->whereHas('session')
-                                    ->whereNotNull('offline_session_id')
-                                    ->latest()
-                                    ->paginate(10);
+            ->where('user_id', $user->id)
+            ->whereHas('session')
+            ->whereNotNull('offline_session_id')
+            ->latest()
+            ->paginate(10);
 
         $offline_sessions->getCollection()->transform(function ($w) {
 
@@ -942,7 +972,8 @@ class MainController extends Controller {
     }
 
 
-    public function showwishlist() {
+    public function showwishlist()
+    {
 
         $user = Auth::guard('api')->user();
         $wishlist = Wishlist::where('user_id', $user->id)->get();
@@ -957,8 +988,8 @@ class MainController extends Controller {
         foreach ($wishlist as $w) {
             if ($w->course_id) {
                 $courses[] = Course::with('chapter')
-                        ->with('review')
-                        ->findOrFail($w->course_id);
+                    ->with('review')
+                    ->findOrFail($w->course_id);
             }
             if ($w->bundle_id) {
                 $bundles[] = BundleCourse::findOrFail($w->bundle_id);
@@ -971,7 +1002,7 @@ class MainController extends Controller {
         if (count($courses) > 0) {
 
             foreach ($courses as $course) {
-                $t = $course->review->count()??0;
+                $t = $course->review->count() ?? 0;
                 $l = $course->review->avg('learn');
                 $p = $course->review->avg('price');
                 $v = $course->review->avg('value');
@@ -1036,42 +1067,59 @@ class MainController extends Controller {
     }
 
 
-    public function addtowishlist(Request $request) {
+    public function addtowishlist(Request $request)
+    {
 
         $auth = $user = Auth::guard('api')->user();
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-            'bundle_id' => ['nullable', 'exists:bundle_courses,id', Rule::unique('orders')->where(function ($query) use($auth) {
-                return $query->where('user_id', $auth->id)
-                            ->where('status', '<>', '0')
-                            ->whereNull('deleted_at');
-            })],
-            'course_id' => ['nullable', 'exists:courses,id', Rule::unique('orders')->where(function ($query) use($auth) {
-                return $query->where('user_id', $auth->id)
-                            ->where('status', '<>', '0')
-                            ->whereNull('deleted_at');
-            })],
-            'meeting_id' => ['nullable', 'exists:bigbluemeetings,id', Rule::unique('orders')->where(function ($query) use($auth) {
-                return $query->where('user_id', $auth->id)
-                            ->where('status', '<>', '0')
-                            ->whereNull('deleted_at');
-            })],
-            'offline_session_id' => ['nullable', 'exists:offline_sessions,id', Rule::unique('orders')->where(function ($query) use($auth) {
-                return $query->where('user_id', $auth->id)
-                            ->where('status', '<>', '0')
-                            ->whereNull('deleted_at');
-            })],
-        ],[
-            "bundle_id.exists"=>__("Package not found"),
-            "bundle_id.unique"=>__("You already enrolled in this package"),
-            "course_id.exists"=>__("Course not found"),
-            "course_id.unique"=>__("You already enrolled in this course"),
-            "meeting_id.exists"=>__("Live streeaming not found"),
-            "meeting_id.unique"=>__("You already enrolled in this live streaming"),
-            "offline_session_id.exists"=>__("In-person session not found"),
-            "offline_session_id.unique"=>__("You already enrolled in this In-person session"),
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+            'bundle_id' => [
+                'nullable',
+                'exists:bundle_courses,id',
+                Rule::unique('orders')->where(function ($query) use ($auth) {
+                    return $query->where('user_id', $auth->id)
+                        ->where('status', '<>', '0')
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'course_id' => [
+                'nullable',
+                'exists:courses,id',
+                Rule::unique('orders')->where(function ($query) use ($auth) {
+                    return $query->where('user_id', $auth->id)
+                        ->where('status', '<>', '0')
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'meeting_id' => [
+                'nullable',
+                'exists:bigbluemeetings,id',
+                Rule::unique('orders')->where(function ($query) use ($auth) {
+                    return $query->where('user_id', $auth->id)
+                        ->where('status', '<>', '0')
+                        ->whereNull('deleted_at');
+                })
+            ],
+            'offline_session_id' => [
+                'nullable',
+                'exists:offline_sessions,id',
+                Rule::unique('orders')->where(function ($query) use ($auth) {
+                    return $query->where('user_id', $auth->id)
+                        ->where('status', '<>', '0')
+                        ->whereNull('deleted_at');
+                })
+            ],
+        ], [
+            "bundle_id.exists" => __("Package not found"),
+            "bundle_id.unique" => __("You already enrolled in this package"),
+            "course_id.exists" => __("Course not found"),
+            "course_id.unique" => __("You already enrolled in this course"),
+            "meeting_id.exists" => __("Live streeaming not found"),
+            "meeting_id.unique" => __("You already enrolled in this live streaming"),
+            "offline_session_id.exists" => __("In-person session not found"),
+            "offline_session_id.unique" => __("You already enrolled in this In-person session"),
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
 
@@ -1092,64 +1140,65 @@ class MainController extends Controller {
 
         if (!empty($wishlist)) {
 
-            return response()->json(array("errors"=>["message"=>[__("It's already in your saved list")]]), 422);
-            
+            return response()->json(array("errors" => ["message" => [__("It's already in your saved list")]]), 422);
+
         } else {
             if ($request->course_id) {
 
                 $wishlist = Wishlist::create([
-                            'course_id' => $request->course_id,
-                            'user_id' => $auth->id,
+                    'course_id' => $request->course_id,
+                    'user_id' => $auth->id,
                 ]);
                 return response()->json(__('Course is added to your saved list'), 200);
             } elseif ($request->bundle_id) {
 
                 $wishlist = Wishlist::create([
-                            'bundle_id' => $request->bundle_id,
-                            'user_id' => $auth->id,
+                    'bundle_id' => $request->bundle_id,
+                    'user_id' => $auth->id,
                 ]);
                 return response()->json(__('Package is added to your saved list'), 200);
             } elseif ($request->meeting_id) {
 
                 $wishlist = Wishlist::create([
-                            'meeting_id' => $request->meeting_id,
-                            'user_id' => $auth->id,
+                    'meeting_id' => $request->meeting_id,
+                    'user_id' => $auth->id,
                 ]);
                 return response()->json(__('Meeting is added to your saved list'), 200);
             } elseif ($request->offline_session_id) {
 
                 $wishlist = Wishlist::create([
-                            'offline_session_id' => $request->offline_session_id,
-                            'user_id' => $auth->id,
+                    'offline_session_id' => $request->offline_session_id,
+                    'user_id' => $auth->id,
                 ]);
                 return response()->json(__('In-person session is added to your saved list'), 200);
             }
-            
-            return response()->json(array("errors"=>["message"=>[__('Select something to Add in your saved list')]]), 422);
+
+            return response()->json(array("errors" => ["message" => [__('Select something to Add in your saved list')]]), 422);
         }
     }
 
 
-    public function removewishlist(Request $request) {
+    public function removewishlist(Request $request)
+    {
         $request->validate([
-            'course_id' => ['nullable',Rule::exists('wishlists')->where('user_id',Auth::id())],
-            'bundle_id' => ['nullable',Rule::exists('wishlists')->where('user_id',Auth::id())],
-            'meeting_id' => ['nullable',Rule::exists('wishlists')->where('user_id',Auth::id())],
-            'offline_session_id' => ['nullable',Rule::exists('wishlists')->where('user_id',Auth::id())],
-        ],[
-            "bundle_id.exists"=>__("bundle not found"),
-            "bundle_id.unique"=>__("you already enrolled in this bundle"),
-            "course_id.exists"=>__("course not found"),
-            "course_id.unique"=>__("you already enrolled in this course"),
-            "meeting_id.exists"=>__("meeting not found"),
-            "meeting_id.unique"=>__("you already enrolled in this meeting"),
-            "offline_session_id.exists"=>__("In-person session not found"),
-            "offline_session_id.unique"=>__("you already enrolled in this In-person session"),
-         ]);
+            'course_id' => ['nullable', Rule::exists('wishlists')->where('user_id', Auth::id())],
+            'bundle_id' => ['nullable', Rule::exists('wishlists')->where('user_id', Auth::id())],
+            'meeting_id' => ['nullable', Rule::exists('wishlists')->where('user_id', Auth::id())],
+            'offline_session_id' => ['nullable', Rule::exists('wishlists')->where('user_id', Auth::id())],
+        ], [
+            "bundle_id.exists" => __("bundle not found"),
+            "bundle_id.unique" => __("you already enrolled in this bundle"),
+            "course_id.exists" => __("course not found"),
+            "course_id.unique" => __("you already enrolled in this course"),
+            "meeting_id.exists" => __("meeting not found"),
+            "meeting_id.unique" => __("you already enrolled in this meeting"),
+            "offline_session_id.exists" => __("In-person session not found"),
+            "offline_session_id.unique" => __("you already enrolled in this In-person session"),
+        ]);
 
         $auth = Auth::guard('api')->user();
 
-         if ($request->course_id) {
+        if ($request->course_id) {
 
             Wishlist::where('course_id', $request->course_id)->where('user_id', $auth->id)->delete();
             return response()->json(__('course removed from saved'), 200);
@@ -1170,43 +1219,47 @@ class MainController extends Controller {
             return response()->json(__('In-person session removed from saved'), 200);
 
         } else {
-            return response()->json(array("errors"=>["message"=>[__('error')]]), 401);
+            return response()->json(array("errors" => ["message" => [__('error')]]), 401);
         }
     }
 
 
-    public function addtocartCourse(Request $request) {
+    public function addtocartCourse(Request $request)
+    {
         $request->validate([
-            'course_id' => ['required',
-                            Rule::exists('courses','id')->where(function ($query) {
-                                return $query->where('discount_price', '<>', '0')
-                                            ->where('end_date', '>=', date('Y-m-d'))
-                                            ->where('status', '1');
-                            })],
+            'course_id' => [
+                'required',
+                Rule::exists('courses', 'id')->where(function ($query) {
+                    return $query
+                        ->where('price', '<>', '0')
+                        ->where('end_date', '>=', date('Y-m-d'))
+                        ->where('status', '1');
+                })
+            ],
             'payment_type' => 'nullable|in:installments,full',
-            'installments'=>'required_if:payment_type,installments|array',
-        ],[
-            "course_id.required"=>__("Course ID is required"),
-            "course_id.exists"=>__("Course not exist OR may have been disabled"),
-            "payment_type"=>__("Payment type is invalid"),
-            "installments.required_if"=>__("Installments not selected"),
-            "installments.array"=>__("Installments invalid"),
+            'installments' => 'required_if:payment_type,installments|array',
+        ], [
+            "course_id.required" => __("Course ID is required"),
+            "course_id.exists" => __("Course not exist OR may have been disabled"),
+            "payment_type" => __("Payment type is invalid"),
+            "installments.required_if" => __("Installments not selected"),
+            "installments.array" => __("Installments invalid"),
         ]);
 
         $auth = Auth::guard('api')->user();
-        
+
         $course = Course::find($request->course_id);
         $cart = Cart::where('course_id', $course->id)->where('user_id', $auth->id)->first();
-            
+
         if (isset($request->payment_type) && $request->payment_type == 'installments' && isset($request->installments) && $course->installment && $course->installments) {
-            $due_inst = $course->installments->where('due_date','<',date('Y-m-d'))->pluck('id')->toArray();
+            $due_inst = $course->installments->where('due_date', '<', date('Y-m-d'))->pluck('id')->toArray();
             $inst = $course->installments->pluck('id')->toArray();
-            if(count($request->installments) < count($due_inst)){
-                return response()->json(array("errors"=>["message"=>[__("Pay all due installments")]]), 422);
+            if (count($request->installments) < count($due_inst)) {
+                return response()->json(array("errors" => ["message" => [__("Pay all due installments")]]), 422);
             }
             foreach ($request->installments as $in) {
                 if (!in_array($in, $inst)) {
-                    return response()->json(array("errors"=>["message"=>[__("Selected Installment has been removed or invalid")]]), 422);
+                    return response()->json(array("errors" => ["message" => [__("Selected Installment has been removed or invalid")]]), 422);
                 }
             }
             $price_total = $course->installments->sum('amount');
@@ -1221,7 +1274,7 @@ class MainController extends Controller {
 
             // return all carts
             return $this->showcart();
-        
+
         } else if (isset($request->payment_type) && $request->payment_type == 'full') {
 
             $cart->update([
@@ -1236,26 +1289,25 @@ class MainController extends Controller {
         }
 
         // Get chapters in cart of this course
-        $cartchapters = Cart::select('chapter_id')->where('user_id',$auth->id)->whereNotNull('chapter_id')->pluck('chapter_id')->toArray();
+        $cartchapters = Cart::select('chapter_id')->where('user_id', $auth->id)->whereNotNull('chapter_id')->pluck('chapter_id')->toArray();
 
         // Delete chapters in cart that is a part of this course
-        foreach($cartchapters as $u){
-            if(in_array($u, $course->chapter()->pluck('id')->toArray())){
-                Cart::where('chapter_id',$u)->delete();
+        foreach ($cartchapters as $u) {
+            if (in_array($u, $course->chapter()->pluck('id')->toArray())) {
+                Cart::where('chapter_id', $u)->delete();
             }
         }
-        
+
         $order = Order::where('user_id', $auth->id)->where('course_id', $course->id)->activeOrder()->first();
 
         if (isset($order)) {
-            return response()->json(array("errors"=>["message"=>[__("You already purchased this course")]]), 422);
+            return response()->json(array("errors" => ["message" => [__("You already purchased this course")]]), 422);
 
-        }
-        else {
-            
+        } else {
+
             $order2 = Order::where('user_id', $auth->id)->where('course_id', $course->id)->inActiveOrder()->first();
-            if(isset($order2)){
-                return response()->json(array("errors"=>["message"=>[__("You already purchased this course but Admin has disabled your enrollment")]]), 422);
+            if (isset($order2)) {
+                return response()->json(array("errors" => ["message" => [__("You already purchased this course but Admin has disabled your enrollment")]]), 422);
 
             }
 
@@ -1270,6 +1322,7 @@ class MainController extends Controller {
                     'category_id' => $course->category_id,
                     'price' => $course->price,
                     'offer_price' => $course->discount_price,
+                    'offer_type' => $course->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -1277,9 +1330,9 @@ class MainController extends Controller {
                 ]);
 
                 // course detail and overview data
-                $coursecontroller = New CourseController;
+                $coursecontroller = new CourseController;
 
-                $resp =  [
+                $resp = [
                     'coursechapters' => $coursecontroller->getAllchaptersWithLessons($request),
                     'overview' => $this->detailPage($request),
                 ];
@@ -1289,17 +1342,20 @@ class MainController extends Controller {
         }
     }
 
-    
-    public function addtocartChapter(Request $request) {
+
+    public function addtocartChapter(Request $request)
+    {
         $request->validate([
-            'chapter_id' => ['required',
-                            Rule::exists('course_chapters','id')->where(function ($query) {
-                                return $query->where('discount_price', '<>', '0')
-                                            ->where('status', '1');
-                            })],
-        ],[
-            "chapter_id.required"=>__("Chapter ID is required"),
-            "chapter_id.exists"=>__("Chapter not exist OR may have been disabled"),
+            'chapter_id' => [
+                'required',
+                Rule::exists('course_chapters', 'id')->where(function ($query) {
+                    return $query->where('discount_price', '<>', '0')
+                        ->where('status', '1');
+                })
+            ],
+        ], [
+            "chapter_id.required" => __("Chapter ID is required"),
+            "chapter_id.exists" => __("Chapter not exist OR may have been disabled"),
         ]);
 
         $auth = Auth::guard('api')->user();
@@ -1311,18 +1367,17 @@ class MainController extends Controller {
 
 
         if (isset($order)) {
-            return response()->json(array("errors"=>["message"=>[__("You already purchased this chapter")]]), 422);
+            return response()->json(array("errors" => ["message" => [__("You already purchased this chapter")]]), 422);
 
-        }
-        else {
+        } else {
             $order2 = Order::where('user_id', $auth->id)->where('chapter_id', $chapter->id)->inActiveOrder()->first();
-            if(isset($order2)){
-                return response()->json(array("errors"=>["message"=>[__("You already purchased this chapter but Admin has disabled your enrollment")]]), 422);
+            if (isset($order2)) {
+                return response()->json(array("errors" => ["message" => [__("You already purchased this chapter but Admin has disabled your enrollment")]]), 422);
 
             }
 
             if (!empty($cart)) {
-                return response()->json(array("errors"=>["message"=>[__("Chapter is already in cart")]]), 422);
+                return response()->json(array("errors" => ["message" => [__("Chapter is already in cart")]]), 422);
 
             } else {
                 $cart = Cart::create([
@@ -1340,36 +1395,40 @@ class MainController extends Controller {
 
                 $request->merge(['course_id' => $chapter->course_id]);
 
-                $coursecontroller = New CourseController;
+                $coursecontroller = new CourseController;
 
-                $resp =  [
+                $resp = [
                     'coursechapters' => $coursecontroller->getAllchaptersWithLessons($request),
                     'overview' => $this->detailPage($request),
                 ];
-                
+
                 return response()->json($resp, 200);
             }
         }
     }
 
 
-    public function addtocartBundle(Request $request) {
+    public function addtocartBundle(Request $request)
+    {
 
         $request->validate([
-            'bundle_id' =>  ['required',
-                            Rule::exists('bundle_courses','id')->where(function ($query) {
-                                return $query->where('discount_price', '<>', '0')
-                                            ->where('end_date', '>=', date('Y-m-d'))
-                                            ->where('status', '1');
-                            })],
+            'bundle_id' => [
+                'required',
+                Rule::exists('bundle_courses', 'id')->where(function ($query) {
+                    return $query
+                        ->where('price', '<>', '0')
+                        ->where('end_date', '>=', date('Y-m-d'))
+                        ->where('status', '1');
+                })
+            ],
             'payment_type' => 'nullable|in:installments,full',
-            'installments'=>'required_if:payment_type,installments|array',
-        ],[
-            "bundle_id.required"=>__("Package ID is required"),
-            "bundle_id.exists"=>__("Package not found"),
-            "payment_type"=>__("Payment type is invalid"),
-            "installments.required_if"=>__("Installments not selected"),
-            "installments.array"=>__("Installments invalid"),
+            'installments' => 'required_if:payment_type,installments|array',
+        ], [
+            "bundle_id.required" => __("Package ID is required"),
+            "bundle_id.exists" => __("Package not found"),
+            "payment_type" => __("Payment type is invalid"),
+            "installments.required_if" => __("Installments not selected"),
+            "installments.array" => __("Installments invalid"),
         ]);
 
         $auth = Auth::guard('api')->user();
@@ -1377,21 +1436,21 @@ class MainController extends Controller {
         $bundle = BundleCourse::find($request->bundle_id);
 
         $cart = Cart::where('bundle_id', $bundle->id)->where('user_id', $auth->id)->first();
-            
+
         if (isset($request->payment_type) && $request->payment_type == 'installments' && isset($request->installments) && $bundle->installment && $bundle->installments) {
-            $due_inst = $bundle->installments->where('due_date','<',date('Y-m-d'))->pluck('id')->toArray();
+            $due_inst = $bundle->installments->where('due_date', '<', date('Y-m-d'))->pluck('id')->toArray();
             $inst = $bundle->installments->pluck('id')->toArray();
-            if(count($request->installments) < count($due_inst)){
-                return response()->json(array("errors"=>["message"=>[__("Pay all due installments")]]), 422);
+            if (count($request->installments) < count($due_inst)) {
+                return response()->json(array("errors" => ["message" => [__("Pay all due installments")]]), 422);
             }
             foreach ($request->installments as $in) {
                 if (!in_array($in, $inst)) {
-                    return response()->json(array("errors"=>["message"=>[__("Selected Installment has been removed or invalid")]]), 422);
+                    return response()->json(array("errors" => ["message" => [__("Selected Installment has been removed or invalid")]]), 422);
                 }
             }
             $price_total = $bundle->installments->sum('amount');
             $pay_amount = $bundle->installments->whereIn('id', $request->installments)->sum('amount');
-            
+
             $cart->update([
                 'price' => $price_total,
                 'offer_price' => $pay_amount,
@@ -1401,7 +1460,7 @@ class MainController extends Controller {
 
             // return all carts
             return $this->showcart();
-        
+
         } else if (isset($request->payment_type) && $request->payment_type == 'full') {
 
             $cart->update([
@@ -1418,12 +1477,12 @@ class MainController extends Controller {
         $order = Order::where('user_id', $auth->id)->where('bundle_id', $bundle->id)->activeOrder()->first();
 
         if (isset($order)) {
-            return response()->json(array("errors"=>["message"=>[__("You already purchased this package")]]), 422);
+            return response()->json(array("errors" => ["message" => [__("You already purchased this package")]]), 422);
 
         } else {
             $order2 = Order::where('user_id', $auth->id)->where('bundle_id', $bundle->id)->inActiveOrder()->first();
-            if(isset($order2)){
-                return response()->json(array("errors"=>["message"=>[__("You already purchased this package but Admin has disabled your enrollment")]]), 422);
+            if (isset($order2)) {
+                return response()->json(array("errors" => ["message" => [__("You already purchased this package but Admin has disabled your enrollment")]]), 422);
 
             }
 
@@ -1439,6 +1498,7 @@ class MainController extends Controller {
                     'category_id' => $bundle->category_id,
                     'price' => $bundle->price,
                     'offer_price' => $bundle->discount_price,
+                    'offer_type' => $bundle->discount_type,
                     'coupon_id' => NULL,
                     'disamount' => 0,
                     'installment' => 0,
@@ -1450,25 +1510,28 @@ class MainController extends Controller {
         }
     }
 
-    public function addtocartMeeting(Request $request) {
+    public function addtocartMeeting(Request $request)
+    {
 
         $request->validate([
-            'meeting_id' => ['required',
-                            Rule::exists('bigbluemeetings','id')->where(function ($query) {
-                                return $query->where('discount_price', '<>', '0')
-                                            ->where('expire_date', '>=', date('Y-m-d'));
-                            })],
-                            
-        ],[
-            "meeting_id.required"=>__("Live streaming ID is required"),
-            "meeting_id.exists"=>__("Live streaming not found"),
+            'meeting_id' => [
+                'required',
+                Rule::exists('bigbluemeetings', 'id')->where(function ($query) {
+                    return $query->where('discount_price', '<>', '0')
+                        ->where('expire_date', '>=', date('Y-m-d'));
+                })
+            ],
+
+        ], [
+            "meeting_id.required" => __("Live streaming ID is required"),
+            "meeting_id.exists" => __("Live streaming not found"),
         ]);
-        
-        $meetings = BBL::where('id',$request->meeting_id)->whereColumn('order_count', '<', 'setMaxParticipants')->get();
-        
-        
-        if($meetings->isNotEmpty()){
-            
+
+        $meetings = BBL::where('id', $request->meeting_id)->whereColumn('order_count', '<', 'setMaxParticipants')->get();
+
+
+        if ($meetings->isNotEmpty()) {
+
             $auth = Auth::guard('api')->user();
             $bbl_meeting = BBL::find($request->meeting_id);
 
@@ -1477,17 +1540,17 @@ class MainController extends Controller {
             $cart = Cart::where('meeting_id', $bbl_meeting->id)->where('user_id', $auth->id)->first();
 
             if (isset($order)) {
-                return response()->json(array("errors"=>["message"=>[__("You already purchased this live streaming")]]), 422);
+                return response()->json(array("errors" => ["message" => [__("You already purchased this live streaming")]]), 422);
 
             } else {
                 $order2 = Order::where('user_id', $auth->id)->where('meeting_id', $bbl_meeting->id)->inActiveOrder()->first();
-                if(isset($order2)){
-                    return response()->json(array("errors"=>["message"=>[__("You already purchased this live streaming but Admin has disabled your enrollment")]]), 422);
+                if (isset($order2)) {
+                    return response()->json(array("errors" => ["message" => [__("You already purchased this live streaming but Admin has disabled your enrollment")]]), 422);
 
                 }
 
                 if (!empty($cart)) {
-                    return response()->json(array("errors"=>["message"=>[__("Live streaming is already in cart")]]), 422);
+                    return response()->json(array("errors" => ["message" => [__("Live streaming is already in cart")]]), 422);
 
                 } else {
 
@@ -1507,49 +1570,52 @@ class MainController extends Controller {
                 }
             }
 
-        }else{
-            return response()->json(['errors'=>['message'=>['Live streaming seats not available anymore']]], 422);
+        } else {
+            return response()->json(['errors' => ['message' => ['Live streaming seats not available anymore']]], 422);
         }
     }
 
 
-    public function addtocartOfflineSession(Request $request) {
+    public function addtocartOfflineSession(Request $request)
+    {
 
         $request->validate([
-            'offline_session_id' => ['required',
-                                    Rule::exists('offline_sessions','id')->where(function ($query) {
-                                        return $query->where('discount_price', '<>', '0')
-                                            ->where('expire_date', '>=', date('Y-m-d'))
-                                            ->where('is_ended', '<>', '1');
-                                    })],
-        ],[
-            "offline_session_id.required"=>__("In-person session ID is required"),
-            "offline_session_id.exists"=>__("In-person session not found"),
+            'offline_session_id' => [
+                'required',
+                Rule::exists('offline_sessions', 'id')->where(function ($query) {
+                    return $query->where('discount_price', '<>', '0')
+                        ->where('expire_date', '>=', date('Y-m-d'))
+                        ->where('is_ended', '<>', '1');
+                })
+            ],
+        ], [
+            "offline_session_id.required" => __("In-person session ID is required"),
+            "offline_session_id.exists" => __("In-person session not found"),
         ]);
 
-        $sessions = OfflineSession::where('id',$request->offline_session_id)->whereColumn('order_count', '<', 'setMaxParticipants')->get();
-        
-        if($sessions->isNotEmpty()){
-            
+        $sessions = OfflineSession::where('id', $request->offline_session_id)->whereColumn('order_count', '<', 'setMaxParticipants')->get();
+
+        if ($sessions->isNotEmpty()) {
+
             $auth = Auth::guard('api')->user();
             $offline_session = OfflineSession::find($request->offline_session_id);
-    
+
             $order = Order::where('user_id', $auth->id)->where('offline_session_id', $offline_session->id)->activeOrder()->first();
-    
+
             $cart = Cart::where('offline_session_id', $offline_session->id)->where('user_id', $auth->id)->first();
-    
+
             if (isset($order)) {
-                return response()->json(array("errors"=>["message"=>[__("You already purchased this In-person session")]]), 422);
+                return response()->json(array("errors" => ["message" => [__("You already purchased this In-person session")]]), 422);
 
             } else {
                 $order2 = Order::where('user_id', $auth->id)->where('offline_session_id', $offline_session->id)->inActiveOrder()->first();
-                if(isset($order2)){
-                    return response()->json(array("errors"=>["message"=>[__("You already purchased this in-person session but Admin has disabled your enrollment")]]), 422);
+                if (isset($order2)) {
+                    return response()->json(array("errors" => ["message" => [__("You already purchased this in-person session but Admin has disabled your enrollment")]]), 422);
 
                 }
 
                 if (!empty($cart)) {
-                    return response()->json(array("errors"=>["message"=>[__("In-person session is already in cart")]]), 422);
+                    return response()->json(array("errors" => ["message" => [__("In-person session is already in cart")]]), 422);
 
                 } else {
 
@@ -1569,33 +1635,34 @@ class MainController extends Controller {
                 }
             }
 
-        }else{
-            return response()->json(['errors'=>['message'=>['In-person session seats not available anymore']]], 422);
+        } else {
+            return response()->json(['errors' => ['message' => ['In-person session seats not available anymore']]], 422);
         }
     }
 
 
-    public function removecart(Request $request) {
-        
+    public function removecart(Request $request)
+    {
+
         $request->validate([
             'id' => 'nullable|exists:carts,id',
-            'course_id' => ['nullable',Rule::exists('carts')->where('user_id',auth()->id())],
-            'chapter_id' => ['nullable',Rule::exists('carts')->where('user_id',auth()->id())],
-            'bundle_id' => ['nullable',Rule::exists('carts')->where('user_id',auth()->id())],
-            'meeting_id' => ['nullable',Rule::exists('carts')->where('user_id',auth()->id())],
-            'offline_session_id' => ['nullable',Rule::exists('carts')->where('user_id',auth()->id())],
-        ],[
-            "id.exists"=>__("Cart ID is invalid"),
-            "course_id.exists"=>__("Course not found"),
-            "chapter_id.exists"=>__("Chapter not found"),
-            "bundle_id.exists"=>__("Package not found"),
-            "meeting_id.exists"=>__("Live streaming not found"),
-            "offline_session_id.exists"=>__("In-person session not found"),
-         ]);
+            'course_id' => ['nullable', Rule::exists('carts')->where('user_id', auth()->id())],
+            'chapter_id' => ['nullable', Rule::exists('carts')->where('user_id', auth()->id())],
+            'bundle_id' => ['nullable', Rule::exists('carts')->where('user_id', auth()->id())],
+            'meeting_id' => ['nullable', Rule::exists('carts')->where('user_id', auth()->id())],
+            'offline_session_id' => ['nullable', Rule::exists('carts')->where('user_id', auth()->id())],
+        ], [
+            "id.exists" => __("Cart ID is invalid"),
+            "course_id.exists" => __("Course not found"),
+            "chapter_id.exists" => __("Chapter not found"),
+            "bundle_id.exists" => __("Package not found"),
+            "meeting_id.exists" => __("Live streaming not found"),
+            "offline_session_id.exists" => __("In-person session not found"),
+        ]);
 
-         
+
         if ($request->id) {
-             
+
             $cart = Cart::find($request->id);
             $cart->delete();
             CartCoupon::where('cart_id', $request->id)->delete();
@@ -1608,7 +1675,7 @@ class MainController extends Controller {
 
         // This is being used in items detail screen to removed item from cart list
         if ($request->chapter_id) {
-            
+
             $userCarts = Cart::where('chapter_id', $request->chapter_id)->where('user_id', $auth->id)->get();
             foreach ($userCarts as $cart) {
                 CartCoupon::where('cart_id', $cart->id)->delete();
@@ -1621,13 +1688,13 @@ class MainController extends Controller {
             $request->merge(['course_id' => $chapter->course_id]);
 
             // course detail and overview data
-            $coursecontroller = New CourseController;
+            $coursecontroller = new CourseController;
 
-            $resp =  [
+            $resp = [
                 'coursechapters' => $coursecontroller->getAllchaptersWithLessons($request),
                 'overview' => $this->detailPage($request),
             ];
-            
+
             return response()->json($resp, 200);
 
         } elseif ($request->course_id) {
@@ -1639,17 +1706,17 @@ class MainController extends Controller {
             $userCarts->each->delete();
 
             // course detail and overview data
-            $coursecontroller = New CourseController;
+            $coursecontroller = new CourseController;
 
-            $resp =  [
+            $resp = [
                 'coursechapters' => $coursecontroller->getAllchaptersWithLessons($request),
                 'overview' => $this->detailPage($request),
             ];
-            
+
             return response()->json($resp, 200);
 
-        }  elseif ($request->bundle_id) {
-            
+        } elseif ($request->bundle_id) {
+
             $userCarts = Cart::where('bundle_id', $request->bundle_id)->where('user_id', $auth->id)->get();
             foreach ($userCarts as $cart) {
                 CartCoupon::where('cart_id', $cart->id)->delete();
@@ -1659,7 +1726,7 @@ class MainController extends Controller {
             return response()->json(__('Package removed from cart'), 200);
 
         } elseif ($request->meeting_id) {
-            
+
             $userCarts = Cart::where('meeting_id', $request->meeting_id)->where('user_id', $auth->id)->get();
             foreach ($userCarts as $cart) {
                 CartCoupon::where('cart_id', $cart->id)->delete();
@@ -1669,7 +1736,7 @@ class MainController extends Controller {
             return response()->json(__('Live streaming removed from cart'), 200);
 
         } elseif ($request->offline_session_id) {
-            
+
             $userCarts = Cart::where('offline_session_id', $request->offline_session_id)->where('user_id', $auth->id)->get();
             foreach ($userCarts as $cart) {
                 CartCoupon::where('cart_id', $cart->id)->delete();
@@ -1680,12 +1747,12 @@ class MainController extends Controller {
 
         } else {
             return response()->json(array('error'), 401);
-            
+
         }
     }
 
 
-    public function showcart($is_applied = null) 
+    public function showcart($is_applied = null)
     {
         $data = [];
         $msg = [];
@@ -1715,21 +1782,21 @@ class MainController extends Controller {
                 'offlinesession',
             ])
             ->get();
-    
+
         $data = [];
         $total_amount = 0;
         $cpn_discount = 0;
         $cart_total = 0;
-        
+
         foreach ($carts as $c) {
 
             $cart_item = $c->course_id ? Course::find($c->course_id) : ($c->bundle_id ? BundleCourse::find($c->bundle_id) : ($c->meeting_id ? BBL::find($c->meeting_id) : ($c->chapter_id ? CourseChapter::find($c->chapter_id) : ($c->offline_session_id ? OfflineSession::find($c->offline_session_id) : NULL))));
             $cart_type = $c->course_id ? 'course' : ($c->bundle_id ? 'package' : ($c->meeting_id ? 'meeting' : ($c->chapter_id ? 'chapter' : ($c->offline_session_id ? 'offline_session' : NULL))));
 
-            $installments = $c->course_id ? ($c->course->installment? $c->course->installments->take($cart_item->total_installments) : []) : ($c->bundle_id ? ($c->bundle->installment ? $c->bundle->installments->take($cart_item->total_installments) : []) : []);
- 
+            $installments = $c->course_id ? ($c->course->installment ? $c->course->installments->take($cart_item->total_installments) : []) : ($c->bundle_id ? ($c->bundle->installment ? $c->bundle->installments->take($cart_item->total_installments) : []) : []);
+
             if (isset($installments)) {
-                
+
                 $arr = [];
                 $count = 0;
                 $installmentCount = $c->total_installments ? count($c->total_installments) : 0;
@@ -1762,12 +1829,14 @@ class MainController extends Controller {
                 'type_id' => $cart_item->id,
                 'title' => $cart_item->_title(),
                 'price' => $c->offer_price,
+                'discountType' => $c->offer_type,
+                'originalPrice' => $c->price,
                 'coupon' => $c->cartCoupon ? $c->cartCoupon->coupon->code : NULL,
                 'coupon_id' => $c->cartCoupon ? $c->cartCoupon->coupon_id : NULL,
                 'cart_coupon_id' => $c->cartCoupon ? $c->cartCoupon->id : NULL,
                 'payment_type' => $c->installment == 1 ? 'installments' : 'full',
                 'installments' => $count == $cart_item->total_installments ? [] : $arr,
-                'total_installments' => $c->total_installments?? [],
+                'total_installments' => $c->total_installments ?? [],
             ];
         }
 
@@ -1777,12 +1846,30 @@ class MainController extends Controller {
 
         foreach ($carts as $c) {
             //cart price after offer
-            $total_amount = $total_amount + $c->offer_price;
+            if ($c->installment == 1) {
+                $total_amount = $total_amount + $c->offer_price;
+            } else {
+
+                if (is_null($c->offer_type) && $c->offer_price == 0) {
+                    $total_amount += $c->price;
+                } elseif (is_null($c->offer_type) && $c->offer_price) {
+                    $total_amount += $c->offer_price;
+                } else {
+                    //fixed
+                    if ($c->offer_type == 'fixed') {
+                        $total_amount += ($c->price - $c->offer_price);
+                    }
+                    //%
+                    elseif ($c->offer_type == 'percentage') {
+                        $total_amount += ($c->price - (($c->offer_price / 100) * $c->price));
+                    }
+                }
+            }
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {
                 $cpn_discount = ($c->cartCoupon->disamount > $c->offer_price) ? ($cpn_discount + $c->offer_price) : ($cpn_discount + $c->cartCoupon->disamount);
-            
+
             } elseif ($c->installment == 1) {
                 foreach ($c->cartCoupons as $cartCoupon) {
                     if (in_array($cartCoupon->installment_id, $c->total_installments)) {
@@ -1803,30 +1890,31 @@ class MainController extends Controller {
         $visa_master = $payments->where('payment_method', 'VISA/MASTER')->pluck('charges')->first();
         $knet = $payments->where('payment_method', 'KNET')->pluck('charges')->first();
 
-        if($cart_total == 0){
+        if ($cart_total == 0) {
             $knet = 0;
             $visa_master = 0;
         }
 
         return response()->json([
-                    'cart' => $data,
-                    'price_total' => $total_amount,
+            'cart' => $data,
+            'price_total' => $total_amount,
 
-                    'knet' => $knet,
-                    'knet_total' => round(($cart_total + $knet), 3),
-                    'visa_master' => round((($visa_master/100) * $cart_total),3),
-                    'visa_master_total' => round($cart_total + (($visa_master/100) * $cart_total),3),
+            'knet' => $knet,
+            'knet_total' => round(($cart_total + $knet), 3),
+            'visa_master' => round((($visa_master / 100) * $cart_total), 3),
+            'visa_master_total' => round($cart_total + (($visa_master / 100) * $cart_total), 3),
 
-                    'cpn_discount' => ($total_amount - $cart_total) > 0 ? round($total_amount - $cart_total, 3) : 0,
-                    'after_discount' => round($cart_total, 3),
-                    'is_applied' => $is_applied,
-                    'message' => $msg ?? NULL, 
-                    'show_message' => $msg ? true : false,
+            'cpn_discount' => ($total_amount - $cart_total) > 0 ? round($total_amount - $cart_total, 3) : 0,
+            'after_discount' => round($cart_total, 3),
+            'is_applied' => $is_applied,
+            'message' => $msg ?? NULL,
+            'show_message' => $msg ? true : false,
         ], 200);
     }
 
 
-    public function removeallcart() {
+    public function removeallcart()
+    {
 
         $auth = Auth::guard('api')->user();
 
@@ -1840,7 +1928,8 @@ class MainController extends Controller {
     }
 
 
-    public function removebundlecart(Request $request) {
+    public function removebundlecart(Request $request)
+    {
         $request->validate([
             'bundle_id' => 'required',
             'secret' => 'required|exists:api_keys,secret_key',
@@ -1858,35 +1947,38 @@ class MainController extends Controller {
     }
 
 
-    public function detailpage(Request $request) {
+    public function detailpage(Request $request)
+    {
 
-        if($request->is_bundle === true || $request->is_bundle === 'true'){
+        if ($request->is_bundle === true || $request->is_bundle === 'true') {
             $request->validate([
                 'course_id' => 'required'
-            ],[
-                "course_id.required"=>__("Course not selected"),
+            ], [
+                "course_id.required" => __("Course not selected"),
             ]);
 
-            $exist = BundleCourse::whereJsonContains('course_id', strval($request->course_id))->where('status', '1')->where('end_date','>=', date('Y-m-d'))->exists();
-            
-            if(!$exist){
-                return response()->json(array("errors"=>["message"=>[__("Course not exist OR may have been disabled")]]), 422);
+            $exist = BundleCourse::whereJsonContains('course_id', strval($request->course_id))->where('status', '1')->where('end_date', '>=', date('Y-m-d'))->exists();
+
+            if (!$exist) {
+                return response()->json(array("errors" => ["message" => [__("Course not exist OR may have been disabled")]]), 422);
             }
-            
+
         } else {
             $request->validate([
-                'course_id' => ['required',
-                                Rule::exists('courses','id')->where(function ($query) {
-                                    return $query->where('status', '1')
-                                                ->where('end_date','>=', date('Y-m-d'))
-                                                ->whereNull('deleted_at');
-                                })],
-            ],[
-                "course_id.required"=>__("Course not selected"),
-                "course_id.exists"=>__("Course not exist OR may have been disabled"),
+                'course_id' => [
+                    'required',
+                    Rule::exists('courses', 'id')->where(function ($query) {
+                        return $query->where('status', '1')
+                            ->where('end_date', '>=', date('Y-m-d'))
+                            ->whereNull('deleted_at');
+                    })
+                ],
+            ], [
+                "course_id.required" => __("Course not selected"),
+                "course_id.exists" => __("Course not exist OR may have been disabled"),
             ]);
         }
-        
+
         $course = Course::find($request->course_id);
 
         $orders = [];
@@ -1900,12 +1992,12 @@ class MainController extends Controller {
 
             foreach ($course->chapter as $chapter) {
                 $chapter_order = $orders->where('chapter_id', $chapter->id);
-    
-                if($chapter_order->isNotEmpty()){
+
+                if ($chapter_order->isNotEmpty()) {
                     $is_chapter_purchased = true;
                 }
             }
-        
+
             $f_order = $orders->where('course_id', $request->course_id);
             if ($orders && count($f_order) < 1) {
                 foreach ($orders as $o) {
@@ -1917,9 +2009,9 @@ class MainController extends Controller {
             }
 
             // Check any chapter of course is added to cart
-            $usercart = Cart::select('chapter_id')->where('user_id',$user->id)->whereNotNull('chapter_id')->pluck('chapter_id')->toArray();
-            foreach($usercart as $chapter_id){
-                if(in_array($chapter_id, $course->chapter()->pluck('id')->toArray())){
+            $usercart = Cart::select('chapter_id')->where('user_id', $user->id)->whereNotNull('chapter_id')->pluck('chapter_id')->toArray();
+            foreach ($usercart as $chapter_id) {
+                if (in_array($chapter_id, $course->chapter()->pluck('id')->toArray())) {
                     $is_chapter_carted = true;
                 }
             }
@@ -1931,17 +2023,18 @@ class MainController extends Controller {
             'title' => $course->title,
             'image' => url('/images/course/' . $course->preview_image),
             'detail' => $course->detail,
-            'duration' => $course->courseclass ? $course->class_duration()??0 : 0,
+            'duration' => $course->courseclass ? $course->class_duration() ?? 0 : 0,
             'start_date' => $course->start_date,
             'end_date' => $course->end_date,
             'in_wishlist' => $user ? ($course->inwishlist($user->id) ? true : false) : false,
-            'is_chapter_carted' => $is_chapter_carted?? false,
-            'is_chapter_purchased' => $is_chapter_purchased?? false,
-            'is_cart' => $user ? ($user->cartType('course',$course->id)->exists()? true : false) : false,
-            // 'price' => $course->price ?? 0,
+            'is_chapter_carted' => $is_chapter_carted ?? false,
+            'is_chapter_purchased' => $is_chapter_purchased ?? false,
+            'is_cart' => $user ? ($user->cartType('course', $course->id)->exists() ? true : false) : false,
+            'price' => $course->price,
             'discount_price' => $course->discount_price,
-            'instalment_price' => $course->discount_price > 0 ? $course->_installments()->sum('amount')?? 0:null,
-            'instalments' => $course->discount_price > 0 ? $course->_installments():[],
+            'discount_type' => $course->discount_type,
+            'instalment_price' => $course->discount_price > 0 ? $course->_installments()->sum('amount') ?? 0 : null,
+            'instalments' => $course->discount_price > 0 ? $course->_installments() : [],
             'course_tags' => $course->course_tags
         ];
 
@@ -1954,17 +2047,17 @@ class MainController extends Controller {
             ];
         }
 
-        $reviewszz = ReviewRating::where('course_id', $request->course_id)->where('status', '1')->orderBy('id','desc')->paginate(5);
-        $reviews_by_user = $user ? (ReviewRating::where('course_id', $request->course_id)->where('user_id', $user->id)->first() ? true:false):false;
+        $reviewszz = ReviewRating::where('course_id', $request->course_id)->where('status', '1')->orderBy('id', 'desc')->paginate(5);
+        $reviews_by_user = $user ? (ReviewRating::where('course_id', $request->course_id)->where('user_id', $user->id)->first() ? true : false) : false;
         if ($reviewszz) {
-            $reviewszz->getCollection()->transform(function ($review){
+            $reviewszz->getCollection()->transform(function ($review) {
                 $data = [
                     'id' => $review->id,
                     'user_id' => $review->user_id,
                     'name' => $review->user->fname . ' ' . $review->user->lname,
                     'image' => url('images/user_img/' . $review->user->user_img),
                     'review' => $review->review,
-                    'total_rating' => round($review->avg_rating,2),
+                    'total_rating' => round($review->avg_rating, 2),
                     // 'created_at' => date('d-M-Y',strtotime($review->created_at)),
                     'created_at' => $review->created_at,
                 ];
@@ -1974,42 +2067,44 @@ class MainController extends Controller {
 
         $student_enrolled = Order::where('course_id', $request->course_id)->activeOrder()->count();
 
-        $resp =  [
-                'course' => $courseDetail,
-                'instructor' => [
-                    'id' => $course->teacher->id,
-                    'name' => $course->teacher->fname . ' ' . $course->teacher->lname,
-                    'image' => url('/images/user_img/' . $course->teacher->user_img),
-                    'short_info' => $course->teacher->short_info
-                ],
-                'whatlearns' => $whatlearns,
-                'reviews' => $reviewszz ?? null,
-                'reviews_added' => $reviews_by_user,
-                'total_learn' => round($course->review->avg('learn'),2)??0,
-                'total_price' => round($course->review->avg('price'),2)??0,
-                'total_value' => round($course->review->avg('value'),2)??0,
-                'duration' => $course->class_duration(),
-                'total_rating' =>$course->review->count()??0,
-                'avg_rating' => round($course->review->avg('avg_rating'),2)??0,
-                'student_enrolled' => $student_enrolled ?? 0,
+        $resp = [
+            'course' => $courseDetail,
+            'instructor' => [
+                'id' => $course->teacher->id,
+                'name' => $course->teacher->fname . ' ' . $course->teacher->lname,
+                'image' => url('/images/user_img/' . $course->teacher->user_img),
+                'short_info' => $course->teacher->short_info
+            ],
+            'whatlearns' => $whatlearns,
+            'reviews' => $reviewszz ?? null,
+            'reviews_added' => $reviews_by_user,
+            'total_learn' => round($course->review->avg('learn'), 2) ?? 0,
+            'total_price' => round($course->review->avg('price'), 2) ?? 0,
+            'total_value' => round($course->review->avg('value'), 2) ?? 0,
+            'duration' => $course->class_duration(),
+            'total_rating' => $course->review->count() ?? 0,
+            'avg_rating' => round($course->review->avg('avg_rating'), 2) ?? 0,
+            'student_enrolled' => $student_enrolled ?? 0,
         ];
 
         return response()->json($resp, 200);
     }
 
 
-    public function pages(Request $request) {
+    public function pages(Request $request)
+    {
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ]);
         return response()->json(['pages' => Page::get()], 200);
     }
 
 
-    public function allnotification(Request $request) {
+    public function allnotification(Request $request)
+    {
 
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
         $user = Auth::guard('api')->user();
@@ -2018,15 +2113,16 @@ class MainController extends Controller {
             return response()->json(array('notifications' => $notifications), 200);
         } else {
             return response()->json(array('notifications' => []), 200);
-            return response()->json(array("errors"=>["message"=>['error']]), 401);
+            return response()->json(array("errors" => ["message" => ['error']]), 401);
         }
     }
 
 
-    public function notificationread(Request $request, $id) {
+    public function notificationread(Request $request, $id)
+    {
 
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
         $userunreadnotification = Auth::guard('api')->user()->unreadNotifications->findOrFail($id);
@@ -2040,9 +2136,10 @@ class MainController extends Controller {
     }
 
 
-    public function readallnotification(Request $request) {
+    public function readallnotification(Request $request)
+    {
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
+            'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
         $notifications = auth()->User()->unreadNotifications()->count();
@@ -2062,16 +2159,17 @@ class MainController extends Controller {
     }
 
 
-    public function allinstructor(Request $request) {
+    public function allinstructor(Request $request)
+    {
         $request->validate([
-                    'secret' => 'required|exists:api_keys,secret_key',
-                    'category_id' => 'nullable|exists:categories,id',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
-            'category_id.exists'=>__("Category Not selected"),
+            'secret' => 'required|exists:api_keys,secret_key',
+            'category_id' => 'nullable|exists:categories,id',
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
+            'category_id.exists' => __("Category Not selected"),
         ]);
-        
+
         $category_id = $request->category_id;
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
 
@@ -2079,15 +2177,15 @@ class MainController extends Controller {
             $category_id = $user->main_category;
         }
 
-        if ((!$category_id )) {
-            return response()->json(array("errors"=>["message"=>[__("Category Not selected")]]),422);
+        if ((!$category_id)) {
+            return response()->json(array("errors" => ["message" => [__("Category Not selected")]]), 422);
         }
-        
+
         $users = User::where(['role' => 'instructor', 'status' => 1])
-                ->when($category_id, function ($q)use ($category_id) {
-                    $q->where('main_category', $category_id);
-                })
-                ->paginate(10);
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('main_category', $category_id);
+            })
+            ->paginate(10);
 
         $users->getCollection()->transform(function ($user) {
             $userr = [
@@ -2103,15 +2201,16 @@ class MainController extends Controller {
     }
 
 
-    public function instructorprofile(Request $request) {
+    public function instructorprofile(Request $request)
+    {
         $request->validate([
             'instructor_id' => ['required', Rule::exists('users', 'id')->where('status', '1')],
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
-            'instructor_id.required'=>__("Instructor Not Exists"),
-            'instructor_id.exists'=>__("Instructor not exist"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
+            'instructor_id.required' => __("Instructor Not Exists"),
+            'instructor_id.exists' => __("Instructor not exist"),
         ]);
 
         $user = User::withTrashed()->find($request->instructor_id);
@@ -2140,34 +2239,35 @@ class MainController extends Controller {
                 'image' => url('/images/course/' . $b->preview_image),
                 'lessons' => $b->courseclass->count(),
                 'in_wishlist' => $lg_user ? ($b->inwishlist($lg_user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
             ];
             return $course;
         });
 
         // if ($user) {
-                return response()->json(array('user' => $user, 'courses' => $courses), 200);
+        return response()->json(array('user' => $user, 'courses' => $courses), 200);
         // } else {
         //     return response()->json(array('error'), 401);
         // }
     }
 
 
-    public function instructorCourses(Request $request) {
+    public function instructorCourses(Request $request)
+    {
         $request->validate([
             'instructor_id' => 'required|exists:courses,user_id',
-        ],[
-            'instructor_id.required'=>__("Instructor Not Exists"),
-            'instructor_id.exists'=>__("Instructor Not Exists"),
+        ], [
+            'instructor_id.required' => __("Instructor Not Exists"),
+            'instructor_id.exists' => __("Instructor Not Exists"),
         ]);
 
         $user = Auth::guard('api')->check() ? Auth::guard('api')->user() : null;
-        $courses = Course::where('user_id', $request->instructor_id)->where('status',1)->where('courses.end_date','>=', date('Y-m-d'))->latest()->paginate(10);
+        $courses = Course::where('user_id', $request->instructor_id)->where('status', 1)->where('courses.end_date', '>=', date('Y-m-d'))->latest()->paginate(10);
 
-        
+
         $courses->getCollection()->transform(function ($b) use ($user) {
-            
+
             $course = [
                 'id' => $b->id,
                 'title' => $b->title,
@@ -2175,50 +2275,53 @@ class MainController extends Controller {
                 'image' => url('/images/course/' . $b->preview_image),
                 'lessons' => $b->courseclass->count(),
                 'in_wishlist' => $user ? ($b->inwishlist($user->id) ? true : false) : false,
-                'rating' => round($b->review->avg('avg_rating'),2),
-                'reviews_by' => $b->review->count()??0,
+                'rating' => round($b->review->avg('avg_rating'), 2),
+                'reviews_by' => $b->review->count() ?? 0,
             ];
             return $course;
         });
 
         // if ($user) {
-                return response()->json( $courses, 200);
+        return response()->json($courses, 200);
         // } else {
         //     return response()->json(array('error'), 401);
         // }
     }
 
 
-    public function review(Request $request) {
+    public function review(Request $request)
+    {
         $request->validate([
-            'course_id' => ['required',
-                            Rule::exists('courses','id')->where(function ($query) {
-                                return $query->where('status', '1')
-                                            ->where('end_date','>=', date('Y-m-d'));
-                            })],
+            'course_id' => [
+                'required',
+                Rule::exists('courses', 'id')->where(function ($query) {
+                    return $query->where('status', '1')
+                        ->where('end_date', '>=', date('Y-m-d'));
+                })
+            ],
             'secret' => 'required|exists:api_keys,secret_key',
             'sort_by' => 'required|In:date,rating',
             'sort_order' => 'required|In:ascending,descending',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
-            'course_id.required'=>__("course not selecte"),
-            "course_id.exists"=>__("Course not exist OR may have been disabled"),
-            'sort_by.required'=>__("Filetr not selected"),
-            'sort_by.exists'=>__("Filetr not selected"),
-            'sort_order.required'=>__("Filetr not selected"),
-            'sort_order.exists'=>__("Filetr not selected"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
+            'course_id.required' => __("course not selecte"),
+            "course_id.exists" => __("Course not exist OR may have been disabled"),
+            'sort_by.required' => __("Filetr not selected"),
+            'sort_by.exists' => __("Filetr not selected"),
+            'sort_order.required' => __("Filetr not selected"),
+            'sort_order.exists' => __("Filetr not selected"),
         ]);
-        
-        $sort_by = $request->sort_by == 'rating'?'avg_rating':'created_at';
-        $sort_order = $request->sort_order == 'ascending'?'asc':'desc';
+
+        $sort_by = $request->sort_by == 'rating' ? 'avg_rating' : 'created_at';
+        $sort_order = $request->sort_order == 'ascending' ? 'asc' : 'desc';
         $review = ReviewRating::
-                where('course_id', $request->course_id)
-                ->where('status', '1')
-                ->orderBy($sort_by,$sort_order)
-                ->paginate(5);
+            where('course_id', $request->course_id)
+            ->where('status', '1')
+            ->orderBy($sort_by, $sort_order)
+            ->paginate(5);
         if ($review) {
-            $review->getCollection()->transform(function ($review){
+            $review->getCollection()->transform(function ($review) {
                 $data = [
                     'id' => $review->id,
                     'user_id' => $review->user_id,
@@ -2226,17 +2329,18 @@ class MainController extends Controller {
                     'image' => $review->user->user_img ? url('images/user_img/' . $review->user->user_img) : NULL,
                     'review' => $review->review,
                     'total_rating' => $review->avg_rating,
-                    'created_at' => date('d-M-Y',strtotime($review->created_at)),
+                    'created_at' => date('d-M-Y', strtotime($review->created_at)),
                 ];
                 return $data;
             });
         }
         return response()->json(array('review' => $review), 200);
-       
+
     }
 
 
-    public function duration(Request $request) {
+    public function duration(Request $request)
+    {
         $request->validate([
             'chapter_id' => 'required',
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2260,7 +2364,8 @@ class MainController extends Controller {
     }
 
 
-    public function apikeys(Request $request) {
+    public function apikeys(Request $request)
+    {
 
         $key = DB::table('api_keys')->first();
 
@@ -2272,43 +2377,59 @@ class MainController extends Controller {
     }
 
 
-    public function coursedetail(Request $request) {
+    public function coursedetail(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
-        
+
         $course = Course::where('status', 1)
-                        ->with(['include' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with(['whatlearns' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with(['related' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with('review')
-                        ->with(['language' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with('user')
-                        ->with(['order' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with(['chapter' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with(['courseclass' => function ($query) {
-                                $query->where('status', 1);
-                            }])
-                        ->with('policy')->get();
+            ->with([
+                'include' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with([
+                'whatlearns' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with([
+                'related' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with('review')
+            ->with([
+                'language' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with('user')
+            ->with([
+                'order' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with([
+                'chapter' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with([
+                'courseclass' => function ($query) {
+                    $query->where('status', 1);
+                }
+            ])
+            ->with('policy')->get();
 
         return response()->json(array('course' => $course), 200);
     }
 
 
-    public function showcoupon(Request $request) {
+    public function showcoupon(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2320,7 +2441,8 @@ class MainController extends Controller {
     }
 
 
-    public function becomeaninstructor(Request $request) {
+    public function becomeaninstructor(Request $request)
+    {
 
         $request->validate([
             'fname' => 'required',
@@ -2335,7 +2457,7 @@ class MainController extends Controller {
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
-        
+
         $auth = Auth::guard('api')->user();
 
         $users = Instructor::where('user_id', $auth->id)->get();
@@ -2360,17 +2482,17 @@ class MainController extends Controller {
             $input = $request->all();
 
             $instructor = Instructor::create([
-                        'user_id' => $auth->id,
-                        'fname' => isset($input['fname']) ? $input['fname'] : $auth->fname,
-                        'lname' => isset($input['lname']) ? $input['lname'] : $auth->lname,
-                        'email' => $input['email'],
-                        'mobile' => isset($input['mobile']) ?  trim($input['mobile']) : $auth->mobile,
-                        'age' => isset($input['age']) ? $input['age'] : $auth->age,
-                        'image' => isset($input['image']) ? $input['image'] : $auth->image,
-                        'file' => $input['file'],
-                        'detail' => isset($input['detail']) ? $input['detail'] : $auth->detail,
-                        'gender' => isset($input['gender']) ? $input['gender'] : $auth->gender,
-                        'status' => '0',
+                'user_id' => $auth->id,
+                'fname' => isset($input['fname']) ? $input['fname'] : $auth->fname,
+                'lname' => isset($input['lname']) ? $input['lname'] : $auth->lname,
+                'email' => $input['email'],
+                'mobile' => isset($input['mobile']) ? trim($input['mobile']) : $auth->mobile,
+                'age' => isset($input['age']) ? $input['age'] : $auth->age,
+                'image' => isset($input['image']) ? $input['image'] : $auth->image,
+                'file' => $input['file'],
+                'detail' => isset($input['detail']) ? $input['detail'] : $auth->detail,
+                'gender' => isset($input['gender']) ? $input['gender'] : $auth->gender,
+                'status' => '0',
             ]);
 
             return response()->json(array('instructor' => $instructor), 200);
@@ -2378,13 +2500,14 @@ class MainController extends Controller {
     }
 
 
-    public function aboutus(Request $request) {
+    public function aboutus(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-           'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $about = About::all()->toArray();
@@ -2392,7 +2515,8 @@ class MainController extends Controller {
     }
 
 
-    public function contactus(Request $request) {
+    public function contactus(Request $request)
+    {
 
         $request->validate([
             'fname' => 'required',
@@ -2402,28 +2526,32 @@ class MainController extends Controller {
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
 
-        $created_contact = Contact::create([
-                    'fname' => $request->fname,
-                    'email' => $request->email,
-                    'mobile' =>  trim($request->mobile),
-                    'message' => $request->message,
-                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                        ]
+        $created_contact = Contact::create(
+            [
+                'fname' => $request->fname,
+                'email' => $request->email,
+                'mobile' => trim($request->mobile),
+                'message' => $request->message,
+                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+            ]
         );
 
         return response()->json(array('contact' => $created_contact), 200);
     }
 
 
-    public function courseprogress(Request $request) {
+    public function courseprogress(Request $request)
+    {
 
         $request->validate([
-            'course_id' => ['required',
-                            Rule::exists('courses','id')->where(function ($query) {
-                                return $query->where('status', '1')
-                                            ->where('end_date','>=', date('Y-m-d'));
-                            })],
+            'course_id' => [
+                'required',
+                Rule::exists('courses', 'id')->where(function ($query) {
+                    return $query->where('status', '1')
+                        ->where('end_date', '>=', date('Y-m-d'));
+                })
+            ],
         ]);
 
         $auth = Auth::guard('api')->user();
@@ -2436,17 +2564,20 @@ class MainController extends Controller {
     }
 
 
-    public function courseprogressupdate(Request $request) {
+    public function courseprogressupdate(Request $request)
+    {
 
         $request->validate([
-            'class_id' =>   ['required',
-                            Rule::exists('course_classes','id')->where(function ($query) {
-                                return $query->where('status', '1')
-                                            ->whereNull('deleted_at');
-                            })],
-        ],[
-            'class_id.required'=>__("Class not selected"),
-            'class_id.exists'=>__("Class not exist OR may have been disabled"),
+            'class_id' => [
+                'required',
+                Rule::exists('course_classes', 'id')->where(function ($query) {
+                    return $query->where('status', '1')
+                        ->whereNull('deleted_at');
+                })
+            ],
+        ], [
+            'class_id.required' => __("Class not selected"),
+            'class_id.exists' => __("Class not exist OR may have been disabled"),
         ]);
 
         $class = CourseClass::find($request->class_id);
@@ -2459,16 +2590,16 @@ class MainController extends Controller {
         if (isset($progress)) {
             $course_return = $progress->mark_chapter_id;
             if (!in_array($request->class_id, $course_return)) {
-                array_push($course_return,$request->class_id);
+                array_push($course_return, $request->class_id);
             }
-            
+
             $read_count = 0;
-            $chapters = CourseClass::select('id','status')->where('course_id', $course->id)->get();
+            $chapters = CourseClass::select('id', 'status')->where('course_id', $course->id)->get();
             $total_count = count($chapters->where('status', '1'));
 
-            foreach($course_return as $read_lesson){  
+            foreach ($course_return as $read_lesson) {
                 $lesson = CourseClass::where('status', '1')->find($read_lesson);
-                if($lesson){
+                if ($lesson) {
                     $read_count++;
                 }
             }
@@ -2477,41 +2608,42 @@ class MainController extends Controller {
             $progres = ($read_count / $total_count) * 100;
 
             CourseProgress::where('course_id', $course->id)->where('user_id', '=', $auth->id)
-                    ->update([
-                        'progress' => $progres,
-                        'mark_chapter_id' => $course_return,
-                        'all_chapter_id' => $chapters->pluck('id'),
-                        'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-            ]);
-            
+                ->update([
+                    'progress' => $progres,
+                    'mark_chapter_id' => $course_return,
+                    'all_chapter_id' => $chapters->pluck('id'),
+                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                ]);
+
             return response()->json('Updated sucessfully !', 200);
 
         } else {
-            $chapter = CourseClass::select('id','status')->where('course_id', $course->id)->get();
-                $total_count = count($chapter->where('status', '1'));
-                $read_count = count([$request->class_id]);
-                $progres = ($read_count / $total_count) * 100;
-                $created_progress = CourseProgress::create([
-                        'course_id' => $course->id,
-                        'user_id' => $auth->id,
-                        'progress' => $progres,
-                        'mark_chapter_id' => [$request->class_id],
-                        'all_chapter_id' => $chapter->pluck('id'),
-                        'status' => '1'
-                ]);
+            $chapter = CourseClass::select('id', 'status')->where('course_id', $course->id)->get();
+            $total_count = count($chapter->where('status', '1'));
+            $read_count = count([$request->class_id]);
+            $progres = ($read_count / $total_count) * 100;
+            $created_progress = CourseProgress::create([
+                'course_id' => $course->id,
+                'user_id' => $auth->id,
+                'progress' => $progres,
+                'mark_chapter_id' => [$request->class_id],
+                'all_chapter_id' => $chapter->pluck('id'),
+                'status' => '1'
+            ]);
 
             return response()->json(array('created_progress' => $created_progress), 200);
         }
     }
 
 
-    public function terms(Request $request) {
+    public function terms(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $terms_policy = Terms::first();
@@ -2519,14 +2651,15 @@ class MainController extends Controller {
         return response()->json(array('terms' => $terms_policy->terms), 200);
     }
 
-    
-    public function policy(Request $request) {
+
+    public function policy(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $terms_policy = Terms::first();
@@ -2534,14 +2667,15 @@ class MainController extends Controller {
         return response()->json(array('policy' => $terms_policy->policy), 200);
     }
 
-    
-    public function about_us(Request $request) {
+
+    public function about_us(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-            'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
         ]);
 
         $terms_policy = Terms::first();
@@ -2550,7 +2684,8 @@ class MainController extends Controller {
     }
 
 
-    public function career(Request $request) {
+    public function career(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2562,7 +2697,8 @@ class MainController extends Controller {
     }
 
 
-    public function zoom(Request $request) {
+    public function zoom(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2574,7 +2710,8 @@ class MainController extends Controller {
     }
 
 
-    public function bigblue(Request $request) {
+    public function bigblue(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2586,7 +2723,8 @@ class MainController extends Controller {
     }
 
 
-    public function coursereport(Request $request) {
+    public function coursereport(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
             'course_id' => 'required',
@@ -2597,20 +2735,22 @@ class MainController extends Controller {
 
         $auth = Auth::guard('api')->user();
         $course = Course::where('id', $request->course_id)->first();
-        $created_report = CourseReport::create([
-                    'course_id' => $course->id,
-                    'user_id' => $auth->id,
-                    'title' => $course->title,
-                    'email' => $auth->email,
-                    'detail' => $request->detail,
-                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                        ]
+        $created_report = CourseReport::create(
+            [
+                'course_id' => $course->id,
+                'user_id' => $auth->id,
+                'title' => $course->title,
+                'email' => $auth->email,
+                'detail' => $request->detail,
+                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+            ]
         );
         return response()->json(array('message' => 'Course reported!', 'status' => 'success'), 200);
     }
 
 
-    public function coursecontent(Request $request, $id) {
+    public function coursecontent(Request $request, $id)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2619,15 +2759,15 @@ class MainController extends Controller {
         $result = Course::where('id', '=', $id)->where('status', 1)->first();
 
         if (!$result) {
-            return response()->json(array("errors"=>["message"=>['404 | Course not found !']]),404);
+            return response()->json(array("errors" => ["message" => ['404 | Course not found !']]), 404);
         }
 
         $order = Order::where('course_id', $result->id)->activeOrder()->get();
 
         $chapters = CourseChapter::where('course_id', $result->id)
-                ->where('status', 1)
-                ->with('courseclass')
-                ->get();
+            ->where('status', 1)
+            ->with('courseclass')
+            ->get();
 
         $classes = CourseClass::where('course_id', $result->id)->where('status', 1)->get();
 
@@ -2913,7 +3053,8 @@ class MainController extends Controller {
     }
 
 
-    public function assignment(Request $request) {
+    public function assignment(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
             'course_id' => 'required',
@@ -2929,22 +3070,24 @@ class MainController extends Controller {
             $file->move('files/assignment', $name);
             $input['assignment'] = $name;
         }
-        $assignment = Assignment::create([
-                    'user_id' => $auth->id,
-                    'instructor_id' => $course->user_id,
-                    'course_id' => $course->id,
-                    'chapter_id' => $request->chapter_id,
-                    'title' => $request->title,
-                    'assignment' => $name,
-                    'type' => 0,
-                        ]
+        $assignment = Assignment::create(
+            [
+                'user_id' => $auth->id,
+                'instructor_id' => $course->user_id,
+                'course_id' => $course->id,
+                'chapter_id' => $request->chapter_id,
+                'title' => $request->title,
+                'assignment' => $name,
+                'type' => 0,
+            ]
         );
 
         return response()->json(array('message' => 'Assignment submitted successfully', 'status' => "success"), 200);
     }
 
 
-    public function appointment(Request $request) {
+    public function appointment(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -2956,15 +3099,16 @@ class MainController extends Controller {
 
         $course = Course::where('id', $request->course_id)->first();
 
-        $appointment = Appointment::create([
-                    'user_id' => $auth->id,
-                    'instructor_id' => $course->user_id,
-                    'course_id' => $course->id,
-                    'title' => $request->title,
-                    'detail' => $request->detail,
-                    'accept' => '0',
-                    'start_time' => \Carbon\Carbon::now()->toDateTimeString(),
-                        ]
+        $appointment = Appointment::create(
+            [
+                'user_id' => $auth->id,
+                'instructor_id' => $course->user_id,
+                'course_id' => $course->id,
+                'title' => $request->title,
+                'detail' => $request->detail,
+                'accept' => '0',
+                'start_time' => \Carbon\Carbon::now()->toDateTimeString(),
+            ]
         );
 
         $users = User::where('id', $course->user_id)->first();
@@ -2987,7 +3131,8 @@ class MainController extends Controller {
     }
 
 
-    public function appointmentdelete(Request $request, $id) {
+    public function appointmentdelete(Request $request, $id)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -3000,78 +3145,99 @@ class MainController extends Controller {
 
 
     // it returns quiz report as well
-    public function quiz(Request $request, $id) {
+    public function quiz(Request $request, $id)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
-        ],[
-           'secret.required'=>__("secret key is missing"),
-            'secret.exists'=>__("secret key is invalid"),
-            ]);
+        ], [
+            'secret.required' => __("secret key is missing"),
+            'secret.exists' => __("secret key is invalid"),
+        ]);
 
         $auth = Auth::guard('api')->user();
         $quiz = QuizTopic::findOrFail($id);
-        if($quiz){
+        if ($quiz) {
             $questions = Quiz::where('topic_id', $id)->count();
-            $last_attempt = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->orderBy('attempt','desc')->first();
-             $grade = NULL;
-                $mark = null;
-                if($last_attempt){
-                
-                $answer = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->where('attempt',$last_attempt->attempt)->get();
+            $last_attempt = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->orderBy('attempt', 'desc')->first();
+            $grade = NULL;
+            $mark = null;
+            $fullyMarked = true;
+            if ($last_attempt) {
+
+                $answer = QuizAnswer::where('topic_id', $id)->where('user_id', $auth->id)->where('attempt', $last_attempt->attempt)->get();
                 $mark = 0;
-               
-                    foreach ($answer as $ans) {
-                            $mark+=(strtolower($ans->answer) == strtolower($ans->user_answer))?1:0;
+
+                foreach ($answer as $ans) {
+
+                    if (is_null($ans->grade) && is_null($ans->type)) {
+                        $mark += (strtolower($ans->answer) == strtolower($ans->user_answer)) ? 1 : 0;
+                    } elseif (is_null($ans->grade) && !is_null($ans->type)) {
+                        $fullyMarked = false;
+                    } else {
+                        $mark += $ans->grade;
                     }
-                    $grade = round(($mark / $questions) * 100, 2);
+
                 }
-                $data = [
-                    'id' => $quiz->id,
-                    'course_id' => $quiz->course_id,
-                    'title' => $quiz->title,
-                    'passing_percent_age' => $quiz->p_percent . '%',
-                    'description' => $quiz->description,
-                    'questions' => $questions,
-                    'per_quiz_mark' => $quiz->per_q_mark,
-                    'total_marks' => ($quiz->per_q_mark * $questions),
-                    'timer' => $quiz->timer,
-                    'reattempt' => $quiz->quiz_again?true:false,
-                    'grade' => $grade,
-                    'earned_marks' => $grade ? ($mark * $quiz->per_q_mark):null
-                ];
-                return response()->json($data, 200);
-            
+                $grade = round(($mark / $questions) * 100, 2);
+            }
+
+            $remark = Remark::where('topic_id', $id)->where('student_id', $auth->id)->first();
+
+
+            $data = [
+                'id' => $quiz->id,
+                'course_id' => $quiz->course_id,
+                'title' => $quiz->title,
+                'passing_percent_age' => $quiz->p_percent . '%',
+                'description' => $quiz->description,
+                'questions' => $questions,
+                'per_quiz_mark' => $quiz->per_q_mark,
+                'total_marks' => ($quiz->per_q_mark * $questions),
+                'timer' => $quiz->timer,
+                'reattempt' => $quiz->quiz_again ? true : false,
+                'grade' => $grade,
+                'earned_marks' => $grade ? ($mark * $quiz->per_q_mark) : null,
+                'fullyMarked' => $fullyMarked,
+                'remark' => $remark
+            ];
+
+
+            return response()->json($data, 200);
+
             // else{
             //     return response()->json(['error'=>["msg"=>['not attempt already']]],400);
             // }
-        }else{
-            return response()->json(['error'=>["msg"=>['Quiz not exist']]],400);
+        } else {
+            return response()->json(['error' => ["msg" => ['Quiz not exist']]], 400);
         }
 
     }
 
 
-    public function quizstart($id) {
+    public function quizstart($id)
+    {
 
         $auth = Auth::guard('api')->user();
 
         $topic = QuizTopic::find($id);
 
-        if($topic){
+        if ($topic) {
             $que = Quiz::where('topic_id', $topic->id)->get();
             $que_count = Quiz::where('topic_id', $topic->id)->count();
             $questions = [];
             foreach ($que as $q) {
 
-                $questions [] = [
+                $questions[] = [
                     "id" => $q->id,
                     "question" => $q->question,
                     "question_video_link" => $q->question_video_link,
-                    "question_img" => url('/images/quiz/' . $q->question_img),
+                    "question_img" => $q->question_img,
                     "a" => $q->a,
                     "b" => $q->b,
                     "c" => $q->c,
                     "d" => $q->d,
+                    'type' => $q->type,
+                    'audio' => $q->audio,
                 ];
             }
 
@@ -3086,67 +3252,83 @@ class MainController extends Controller {
                 'total_marks' => ($topic->per_q_mark * count($questions ?? [])),
                 'title' => $topic->title,
                 'is_complete' => $topic->userquizanswer($auth->id) ? true : false,
-                'quiz_again' => $topic->quiz_again?true:false,
+                'quiz_again' => $topic->quiz_again ? true : false,
                 'questions' => $questions,
             ];
 
             return response()->json($data, 200);
 
-        }else{
-            return response()->json(array("errors"=>["message"=>[__("Quiz not exist anynmore")]]), 400);
+        } else {
+            return response()->json(array("errors" => ["message" => [__("Quiz not exist anynmore")]]), 400);
         }
     }
 
 
-    public function quizsubmit(Request $request) {
+    public function quizsubmit(Request $request)
+    {
         $request->validate([
-            'course_id' => ['required',
-                            Rule::exists('courses','id')->where(function ($query) {
-                                return $query->where('status', '1')
-                                            ->where('end_date','>=', date('Y-m-d'));
-                            })],
+            'course_id' => [
+                'required',
+                Rule::exists('courses', 'id')->where(function ($query) {
+                    return $query->where('status', '1')
+                        ->where('end_date', '>=', date('Y-m-d'));
+                })
+            ],
             'topic_id' => 'required|exists:quiz_topics,id',
             'question_id' => 'required|array',
             'answer' => 'required|array'
-        ],[
-           'course_id.required'=>__("course not selected"),
-            "course_id.exists"=>__("course not found"),
-           'topic_id.required'=>__("Topic not selected"),
-            "topic_id.exists"=>__("Topic not found"),
-           'question_id.required'=>__("Questions not found for submit answer"),
-            "question_id.array"=>__("Questions must be in array"),
-           'answer.required'=>__("Answer can not be empty"),
-            "answer.array"=>__("Answer must be in array"),
+        ], [
+            'course_id.required' => __("course not selected"),
+            "course_id.exists" => __("course not found"),
+            'topic_id.required' => __("Topic not selected"),
+            "topic_id.exists" => __("Topic not found"),
+            'question_id.required' => __("Questions not found for submit answer"),
+            "question_id.array" => __("Questions must be in array"),
+            'answer.required' => __("Answer can not be empty"),
+            "answer.array" => __("Answer must be in array"),
         ]);
 
         $auth = Auth::guard('api')->user();
         $course = Course::find($request->course_id);
         $topics = QuizTopic::find($request->topic_id);
         $unique_question = array_unique($request->question_id);
-        $quiz_already = QuizAnswer::where('user_id', $auth->id)->where('topic_id', $topics->id)->orderBy('id','desc')->first();
+        $quiz_already = QuizAnswer::where('user_id', $auth->id)->where('topic_id', $topics->id)->orderBy('id', 'desc')->first();
         $mark = 0;
         $correct = 0;
         $total = $topics->quizquestion->count() * $topics->per_q_mark;
         $result = [];
         if ($topics->type == null) {
             if ($quiz_already == null || $topics->quiz_again) {
+
                 for ($i = 0; $i < count($request->answer); $i++) {
+
                     $q = Quiz::find($unique_question[$i]);
+
+                    $grade = null;
+
+                    if ($q->type == 'mcq' || $q->type == 'image' || $q->type == null) {
+                        $grade = strtolower($request->answer[$i]) == strtolower($q->answer) ? 1 : 0;
+                    }
+
                     $answers[] = [
                         'user_id' => Auth::guard('api')->user()->id,
                         'user_answer' => strtolower($request->answer[$i]),
                         'question_id' => $q->id,
                         'course_id' => $topics->course_id,
                         'topic_id' => $topics->id,
-                        'attempt' => ($quiz_already && $quiz_already->attempt)?($quiz_already->attempt+1):1,
+                        'attempt' => ($quiz_already && $quiz_already->attempt) ? ($quiz_already->attempt + 1) : 1,
                         'answer' => strtolower($q->answer),
                         'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                        'type' => $q->type,
+                        'grade' => $grade
                     ];
+
                     $mark += strtolower($request->answer[$i]) == strtolower($q->answer) ? 1 : 0;
 
                     $result[] = [
                         'question_id' => $q->id,
-                        'correct' => strtolower($request->answer[$i]) == strtolower($q->answer) ? true : false
+                        'correct' => strtolower($request->answer[$i]) == strtolower($q->answer) ? true : false,
+                        'grade' => $grade
                     ];
                 }
                 $correct = $mark * $topics->per_q_mark;
@@ -3179,49 +3361,54 @@ class MainController extends Controller {
         //         QuizAnswer::insert($answers);
         //     }
         // }
-        return response()->json(array(
-                    'message' => 'Quiz Submitted',
-                    'status' => 'success',
-                    'result' => count($result) ? $result : null,
-                    'total_marks' => $total,
-                    'passing_percent_age' => $topics->p_percent . '%',
-                    'quiz_again' => $topics->quiz_again ? true : false,
-                    'earned_marks' => count($result) ? $correct : null,
-                    'grade_in_percent' => count($result) ? round((($correct / $total) * 100), 2) . '%' : null
-                        ), 200);
+        return response()->json(
+            array(
+                'message' => 'Quiz Submitted',
+                'status' => 'success',
+                'result' => count($result) ? $result : null,
+                'total_marks' => $total,
+                'passing_percent_age' => $topics->p_percent . '%',
+                'quiz_again' => $topics->quiz_again ? true : false,
+                'earned_marks' => count($result) ? $correct : null,
+                'grade_in_percent' => count($result) ? round((($correct / $total) * 100), 2) . '%' : null
+            ),
+            200
+        );
     }
 
-
-    public function userreview(Request $request) {
+    public function userreview(Request $request)
+    {
 
         $request->validate([
-            'course_id' => ['required',
-                            Rule::exists('courses','id')->where(function ($query) {
-                                return $query->where('status', '1')
-                                            ->where('end_date','>=', date('Y-m-d'));
-                            })],
+            'course_id' => [
+                'required',
+                Rule::exists('courses', 'id')->where(function ($query) {
+                    return $query->where('status', '1')
+                        ->where('end_date', '>=', date('Y-m-d'));
+                })
+            ],
             'learn' => 'required|min:1|max:5',
             'price' => 'required|min:1|max:5',
             'value' => 'required|min:1|max:5',
             'review' => 'required|min:1|max:300',
-        ],[
-            "course_id.required"=>__("course not found"),
-            "course_id.exists"=>__("Course not exist OR may heve been disabled"),
-            "learn.required"=>__("select all rating types minimum 1"),
-            "learn.min"=>__("minimum rating can be one"),
-            "learn.max"=>__("maximum rating can be five"),
-            "price.required"=>__("select all rating types minimum 1"),
-            "price.min"=>__("minimum rating can be one"),
-            "price.max"=>__("maximum rating can be five"),
-            "value.required"=>__("select all rating types minimum 1"),
-            "value.min"=>__("minimum rating can be one"),
-            "value.max"=>__("maximum rating can be five"),
-            "review.required"=>__("add your reviews as text please"),
-            "review.min"=>__("minimum review length can be 1 digit"),
-            "review.max"=>__("maximum review length can be 300"),
+        ], [
+            "course_id.required" => __("course not found"),
+            "course_id.exists" => __("Course not exist OR may heve been disabled"),
+            "learn.required" => __("select all rating types minimum 1"),
+            "learn.min" => __("minimum rating can be one"),
+            "learn.max" => __("maximum rating can be five"),
+            "price.required" => __("select all rating types minimum 1"),
+            "price.min" => __("minimum rating can be one"),
+            "price.max" => __("maximum rating can be five"),
+            "value.required" => __("select all rating types minimum 1"),
+            "value.min" => __("minimum rating can be one"),
+            "value.max" => __("maximum rating can be five"),
+            "review.required" => __("add your reviews as text please"),
+            "review.min" => __("minimum review length can be 1 digit"),
+            "review.max" => __("maximum review length can be 300"),
         ]);
-        
-        
+
+
         $auth = Auth::guard('api')->user();
 
         $f_order = [];
@@ -3235,46 +3422,47 @@ class MainController extends Controller {
                 }
             }
         }
-        
+
         $course = Course::find($request->course_id);
         $review = ReviewRating::where('user_id', Auth::guard('api')->User()->id)->where('course_id', $course->id)->first();
 
         foreach ($course->chapter as $chapter) {
             $chapter_order = $orders->where('chapter_id', $chapter->id)->toArray();
-            if($chapter_order){
+            if ($chapter_order) {
                 break;
             }
         }
 
         if (count($f_order) || $chapter_order) {
             if (!empty($review)) {
-                return response()->json(array("errors"=>["message"=>['Already Reviewed !']]), 422);
+                return response()->json(array("errors" => ["message" => ['Already Reviewed !']]), 422);
             } else {
 
                 $input = $request->all();
 
                 $review = ReviewRating::create([
-                            'user_id' => $auth->id,
-                            'course_id' => $input['course_id'],
-                            'learn' => $input['learn'],
-                            'price' => $input['price'],
-                            'value' => $input['value'],
-                            'avg_rating' => ((($input['learn'] ?? 0) + ($input['value'] ?? 0) + ($input['price'] ?? 0)) / 3),
-                            'review' => $input['review'],
-                            'approved' => '1',
-                            'status' => '1',
+                    'user_id' => $auth->id,
+                    'course_id' => $input['course_id'],
+                    'learn' => $input['learn'],
+                    'price' => $input['price'],
+                    'value' => $input['value'],
+                    'avg_rating' => ((($input['learn'] ?? 0) + ($input['value'] ?? 0) + ($input['price'] ?? 0)) / 3),
+                    'review' => $input['review'],
+                    'approved' => '1',
+                    'status' => '1',
                 ]);
 
                 return response()->json($review, 200);
             }
         } else {
 
-            return response()->json(array("errors"=>["message"=>['Please Purchase course !']]), 422);
+            return response()->json(array("errors" => ["message" => ['Please Purchase course !']]), 422);
         }
     }
 
 
-    public function paginationcourse(Request $request) {
+    public function paginationcourse(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -3292,11 +3480,12 @@ class MainController extends Controller {
     }
 
 
-    public function categoryPage(Request $request, $id, $name) {
+    public function categoryPage(Request $request, $id, $name)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
-       
+
         $category = Categories::where('status', '1')->where('id', $id)->first();
 
         if (!$category) {
@@ -3386,11 +3575,12 @@ class MainController extends Controller {
     }
 
 
-    public function subcategoryPage(Request $request, $id, $name) {
+    public function subcategoryPage(Request $request, $id, $name)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
-     
+
         $category = SubCategory::where('id', $id)->first();
         if (!$category) {
             return response()->json(['Invalid Category !']);
@@ -3455,11 +3645,12 @@ class MainController extends Controller {
     }
 
 
-    public function childcategoryPage(Request $request, $id, $name) {
+    public function childcategoryPage(Request $request, $id, $name)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
         ]);
-       
+
         $category = ChildCategory::where('id', $id)->first();
         if (!$category) {
             return response()->json(['Invalid Category !']);
@@ -3521,9 +3712,10 @@ class MainController extends Controller {
         );
         return response()->json($result, 200);
     }
-    
 
-    public function deleteAssignment(Request $request) {
+
+    public function deleteAssignment(Request $request)
+    {
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
             'assignment_id' => 'required',
@@ -3537,7 +3729,8 @@ class MainController extends Controller {
     }
 
 
-    public function requestCheck(Request $request) {
+    public function requestCheck(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -3550,17 +3743,18 @@ class MainController extends Controller {
         if ($alreadyRequest != null) {
 
             return response()->json([
-                        "message" => "Already Requested",
+                "message" => "Already Requested",
             ]);
         }
 
         return response()->json([
-                    "message" => "Please Request to became an instructor",
+            "message" => "Please Request to became an instructor",
         ]);
     }
 
 
-    public function cancelRequest(Request $request) {
+    public function cancelRequest(Request $request)
+    {
 
         $request->validate([
             'secret' => 'required|exists:api_keys,secret_key',
@@ -3573,17 +3767,18 @@ class MainController extends Controller {
             $instructor->delete();
 
             return response()->json([
-                        "message" => "records deleted",
+                "message" => "records deleted",
             ]);
         } else {
             return response()->json([
-                        "message" => "Instructor not found",
-                            ], 404);
+                "message" => "Instructor not found",
+            ], 404);
         }
     }
 
 
-    public function watchcourse($id) {
+    public function watchcourse($id)
+    {
         if (Auth::guard('api')->check()) {
 
             $order = Order::where('status', '1')->where('user_id', Auth::guard('api')->User()->id)->where('course_id', $id)->where('status', '1')->first();
@@ -3605,15 +3800,16 @@ class MainController extends Controller {
                     $courseAttandance = Attandance::where('course_id', '=', $id)->where('user_id', Auth::guard('api')->User()->id)->where('date', '=', $date->toDateString())->first();
 
                     if (!$courseAttandance) {
-                        $attanded = Attandance::create([
-                                    'user_id' => Auth::guard('api')->user()->id,
-                                    'course_id' => $id,
-                                    'instructor_id' => $courses->user_id,
-                                    'date' => $date->toDateString(),
-                                    'order_id' => $id,
-                                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                        ]
+                        $attanded = Attandance::create(
+                            [
+                                'user_id' => Auth::guard('api')->user()->id,
+                                'course_id' => $id,
+                                'instructor_id' => $courses->user_id,
+                                'date' => $date->toDateString(),
+                                'order_id' => $id,
+                                'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                            ]
                         );
                     }
                 }
@@ -3645,14 +3841,15 @@ class MainController extends Controller {
 
                         if (!$coursewatch) {
 
-                            $watching = WatchCourse::create([
-                                        'user_id' => Auth::guard('api')->user()->id,
-                                        'course_id' => $id,
-                                        'start_time' => \Carbon\Carbon::now()->toDateTimeString(),
-                                        'active' => '1',
-                                        'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                        'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
-                                            ]
+                            $watching = WatchCourse::create(
+                                [
+                                    'user_id' => Auth::guard('api')->user()->id,
+                                    'course_id' => $id,
+                                    'start_time' => \Carbon\Carbon::now()->toDateTimeString(),
+                                    'active' => '1',
+                                    'created_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                                ]
                             );
 
                             return view('watch', compact('courses'));
@@ -3682,7 +3879,8 @@ class MainController extends Controller {
     }
 
 
-    public function reviewlike(Request $request, $id) {
+    public function reviewlike(Request $request, $id)
+    {
 
         $user = Auth::user();
 
@@ -3692,74 +3890,77 @@ class MainController extends Controller {
             if (isset($help)) {
 
                 ReviewHelpful::where('id', $help->id)
-                        ->update([
-                            'review_like' => '1',
-                            'review_dislike' => '0',
-                ]);
+                    ->update([
+                        'review_like' => '1',
+                        'review_dislike' => '0',
+                    ]);
             } else {
 
-                $created_review = ReviewHelpful::create([
-                            'course_id' => $request->course_id,
-                            'user_id' => $user->id,
-                            'review_id' => $id,
-                            'helpful' => 'yes',
-                            'review_like' => '1',
-                                ]
+                $created_review = ReviewHelpful::create(
+                    [
+                        'course_id' => $request->course_id,
+                        'user_id' => $user->id,
+                        'review_id' => $id,
+                        'helpful' => 'yes',
+                        'review_like' => '1',
+                    ]
                 );
 
                 ReviewHelpful::where('id', $created_review->id)
-                        ->update([
-                            'review_dislike' => '0',
-                ]);
+                    ->update([
+                        'review_dislike' => '0',
+                    ]);
             }
         } elseif ($request->review_dislike == '1') {
 
             if (isset($help)) {
 
                 ReviewHelpful::where('id', $help->id)
-                        ->update([
-                            'review_dislike' => '1',
-                            'review_like' => '0',
-                ]);
+                    ->update([
+                        'review_dislike' => '1',
+                        'review_like' => '0',
+                    ]);
             } else {
 
-                $created_review = ReviewHelpful::create([
-                            'course_id' => $request->course_id,
-                            'user_id' => $user->id,
-                            'review_id' => $id,
-                            'helpful' => 'yes',
-                            'review_dislike' => '1',
-                                ]
+                $created_review = ReviewHelpful::create(
+                    [
+                        'course_id' => $request->course_id,
+                        'user_id' => $user->id,
+                        'review_id' => $id,
+                        'helpful' => 'yes',
+                        'review_dislike' => '1',
+                    ]
                 );
 
                 ReviewHelpful::where('id', $created_review->id)
-                        ->update([
-                            'review_like' => '0',
-                ]);
+                    ->update([
+                        'review_like' => '0',
+                    ]);
             }
         } elseif ($help->review_like == '1') {
             ReviewHelpful::where('id', $help->id)
-                    ->update([
-                        'review_like' => '0',
-            ]);
+                ->update([
+                    'review_like' => '0',
+                ]);
         } elseif ($help->review_dislike == '1') {
             ReviewHelpful::where('id', $help->id)
-                    ->update([
-                        'review_dislike' => '0',
-            ]);
+                ->update([
+                    'review_dislike' => '0',
+                ]);
         }
 
         return response()->json(array('message' => 'Updated Successfully', 'status' => 'success'), 200);
     }
 
 
-    public function getcategoryCourse($catid) {
+    public function getcategoryCourse($catid)
+    {
 
         $cat = Categories::whereHas('courses')
-                ->whereHas('courses.user')
-                ->where('status', '1')
-                ->with(['courses.instructor'])
-                ->find($catid);
+            ->whereHas('courses.user')
+            ->where('status', '1')
+            ->with(['courses.instructor'])
+            ->find($catid);
 
         if (isset($cat)) {
             foreach ($cat->courses as $course) {
@@ -3789,13 +3990,84 @@ class MainController extends Controller {
             $category_slider1['course'] = $category_slider_courses;
 
             return response()->json([
-                        'course' => $category_slider_courses,
+                'course' => $category_slider_courses,
             ]);
         } else {
             return response()->json([
-                        'course' => null,
-                        'msg' => 'No courses or category found !',
+                'course' => null,
+                'msg' => 'No courses or category found !',
             ]);
         }
+    }
+
+    public function overdue($userId)
+    {
+        $result = [];
+
+        $user = User::findOrFail($userId);
+        // $user = Auth::user();
+        // dd($user);
+
+        //go to order installments and filter by user id
+        $orderInstallemts = OrderInstallment::where('user_id', $user->id)->get()->toArray();
+        // dd($orderInstallemts);
+
+        for ($i = 0; $i < count($orderInstallemts); $i++) {
+            //get order Id
+            //Order payment plane and filter by order id and status = null
+            $orderPaymentPlane = OrderPaymentPlan::Where('order_id', $orderInstallemts[$i]['order_id'])
+                ->where('status', null)
+                ->where('due_date', '<=', now()->addDays(2))
+                ->get()->toArray();
+            // dd($orderPaymentPlane);
+
+            if (count($orderPaymentPlane) > 0) {
+                $order = Order::where('id', $orderInstallemts[$i]['order_id'])
+                    ->with('courses', 'bundle')
+                    ->with([
+                        'payment_plan' => function ($query) {
+                            $query->where('due_date', '<=', now()->addDays(2))->where('status', null);
+                        }
+                    ])
+                    ->get()->toArray();
+
+                // dd($order);
+                $result[] = $order;
+            }
+        }
+
+        $response = [];
+
+        for ($i = 0; $i < count($result); $i++) {
+            for ($j = 0; $j < count($result[$i]); $j++) {
+                // dd($result[$i][$j]);
+
+                if ($result[$i][$j]['courses']['id']) {
+                    $id = $result[$i][$j]['courses']['id'];
+                    $name = $result[$i][$j]['courses']['title'];
+                    $type = 'course';
+                    $image = url($result[$i][$j]['courses']['preview_image']);
+                } else {
+                    $id = $result[$i][$j]['bundle']['id'];
+                    $name = $result[$i][$j]['bundle']['title'];
+                    $type = 'bundle';
+                    $image = url($result[$i][$j]['bundle']['preview_image']);
+                }
+
+                for ($k = 0; $k < count($result[$i][$j]['payment_plan']); $k++) {
+                    $data = [
+                        'typeId' => $id,
+                        'name' => $name,
+                        'type' => $type,
+                        'image' => $image,
+                        'installmentId' => $result[$i][$j]['payment_plan'][$k]['id'],
+                        'dueDate' => $result[$i][$j]['payment_plan'][$k]['due_date'],
+                        'amount' => $result[$i][$j]['payment_plan'][$k]['amount']
+                    ];
+                    $response[] = $data;
+                }
+            }
+        }
+        return response()->json($response);
     }
 }

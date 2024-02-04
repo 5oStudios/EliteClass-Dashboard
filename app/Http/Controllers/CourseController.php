@@ -160,10 +160,26 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if ($row->price == $row->discount_price && (is_null($row->discount_type) || !is_null($row->discount_type))) {
-                        return __('Free');
+                  if (is_null($row->discount_type)) {
+                        if ($row->discount_price != 0) {
+                            return __('Paid');
+                        } elseif ($row->discount_price == 0) {
+                            return __('Free');
+                        }
                     } else {
-                        return __('Paid');
+                        if ($row->discount_type == 'percentage') {
+                            if ($row->discount_price >= 100) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        } elseif ($row->discount_type == 'fixed') {
+                            if ($row->discount_price >= $row->price) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        }
                     }
                 })
                 ->editColumn('status', 'admin.course.datatables.status')

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\QuestionnaireController;
 use App\Http\Controllers\Api\VerificationController;
 
 /*
@@ -17,6 +18,10 @@ use App\Http\Controllers\Api\VerificationController;
  */
 
 // Route::get('/test/{userId}', 'Api\MainController@overdue');
+
+
+Route::post('/lol', [QuestionnaireController::class, 'store']);
+Route::get('/lol2/{id}', [QuestionnaireController::class, 'index']);
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);

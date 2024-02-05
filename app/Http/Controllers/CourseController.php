@@ -160,7 +160,7 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                  if (is_null($row->discount_type)) {
+                    if (is_null($row->discount_type)) {
                         if ($row->discount_price != 0) {
                             return __('Paid');
                         } elseif ($row->discount_price == 0) {
@@ -831,6 +831,10 @@ class CourseController extends Controller
             })
             ->activeOrder()
             ->exists();
+
+
+        //return questionnaire here
+
 
         // $papers = PreviousPaper::where('course_id', '=', $id)->get();
         // $countries = Allcountry::get();

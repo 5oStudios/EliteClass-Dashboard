@@ -20,8 +20,11 @@ use App\Http\Controllers\Api\VerificationController;
 // Route::get('/test/{userId}', 'Api\MainController@overdue');
 
 
-Route::post('/lol', [QuestionnaireController::class, 'store']);
-Route::get('/lol2/{id}', [QuestionnaireController::class, 'index']);
+Route::get('/questionnaires', [QuestionnaireController::class, 'index']);
+Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
+Route::get('/questionnaires/{id}', [QuestionnaireController::class, 'show']);
+Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
+Route::get('/questionnaires/user/all', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);
@@ -401,6 +404,9 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
       Route::get('courseclass/file/{id}/url', 'Api\CourseController@previewFileURL')->name('file.url');
     });
     Route::post('courseclass/file/permission', 'Api\CourseController@allowFileDownloadOrPrint');
+
+    /*answer the question */
+    Route::post('/questionnaires/{id}/answer', [QuestionnaireController::class, 'answer']);
 
   });
 

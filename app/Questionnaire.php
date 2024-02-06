@@ -17,7 +17,7 @@ class Questionnaire extends Model
         'title',
     ];
 
-    public function questionBond(): HasMany
+    public function questionBonds(): HasMany
     {
         return $this->hasMany(QuestionnaireQuestionBond::class);
     }

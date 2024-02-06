@@ -17,8 +17,8 @@ class CreateTableQuestionnairesCourses extends Migration
             Schema::create('questionnaires_courses', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('questionnaire_id');
-                $table->unsignedBigInteger('course_id');
-                $table->dateTime('appointment');
+                $table->unsignedInteger('course_id');
+                $table->date('appointment');
                 $table->timestamps();
 
                 $table->foreign('questionnaire_id')->references('id')->on('questionnaires')->constrained();

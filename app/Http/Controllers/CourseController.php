@@ -45,6 +45,7 @@ use App\OfflineSession;
 use App\CoursesInBundle;
 use App\secondaryCategory;
 use App\SessionEnrollment;
+use App\QuestionnaireCourse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -55,12 +56,12 @@ use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Artesaos\SEOTools\Facades\SEOMeta;
 use Artesaos\SEOTools\Facades\SEOTools;
-use Artesaos\SEOTools\Facades\OpenGraph;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Artesaos\SEOTools\Facades\OpenGraph;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
@@ -832,6 +833,7 @@ class CourseController extends Controller
             ->activeOrder()
             ->exists();
 
+        $questionnaires = QuestionnaireCourse::where('course_id', $id)->with('questionnaire:id,title')->get(['course_id', 'questionnaire_id', 'appointment']);
 
         //return questionnaire here
 
@@ -840,7 +842,7 @@ class CourseController extends Controller
         // $countries = Allcountry::get();
 
         // return view('admin.course.show', compact('installments', 'cor', 'course', 'courseinclude', 'whatlearns', 'coursechapters', 'coursechapter', 'relatedcourse', 'courseclass', 'announsments', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'appointment', 'papers', 'users', 'countries'));
-        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists'));
+        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires'));
     }
 
     public function duplicate(Request $request, $id)

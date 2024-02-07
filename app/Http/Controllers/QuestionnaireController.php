@@ -81,13 +81,15 @@ class QuestionnaireController extends Controller
             'id' => $questionnaire['id'],
             'course_id' => $questionnaire['course_id'],
             'course_title' => $questionnaire['course']['title'],
-            'questionnaire_id' => $questionnaire['questionnaire_id'],
+            // 'questionnaire_id' => $questionnaire['questionnaire_id'],
             'questionnaire_title' => $questionnaire['questionnaire']['title'],
             'questionnaire_appointment' => $questionnaire['appointment'],
             'questions' => $questions,
         ];
 
-        return $result;
+        $questionnaire = $result;
+
+        return view('admin.course.questionnaire.questionnaire', $questionnaire);
     }
 
     public function edit($id)

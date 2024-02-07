@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Http\Controllers\QuestionnaireController;
 
 /*
 |--------------------------------------------------------------------------
@@ -361,6 +362,9 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
             Route::get('/blocked-users', 'UserController@blockedUsers')->name('blocked.users');
 
             Route::middleware(['is_admin'])->group(function () {
+
+                Route::get('admin/questionnaires/{id}', [QuestionnaireController::class, 'show']);
+
 
                 Route::get('getsecretkey', 'GenerateApiController@getkey')->name('get.api.key');
                 Route::post('createkey', 'GenerateApiController@createKey')->name('apikey.create');

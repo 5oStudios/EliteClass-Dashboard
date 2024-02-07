@@ -106,6 +106,7 @@
                       @canany(['quiz-topic.edit', 'quiz-topic.view'])
                         <a class="nav-link  mb-2" id="v-pills-QuizTopic-tab" data-toggle="pill" href="#v-pills-QuizTopic" role="tab" aria-controls="v-pills-QuizTopic" aria-selected="false"><i class="feather icon-log-out mr-2"></i>{{ __('adminstaticword.QuizTopic') }}</a>
                       @endcan
+                      <a class="nav-link  mb-2" id="v-pills-Questionnaire-tab" data-toggle="pill" href="#v-pills-Questionnaire" role="tab" aria-controls="v-pills-Questionnaire" aria-selected="false"><i class="feather icon-help-circle mr-2"></i>{{ __('adminstaticword.Questionnaire') }}</a>
 
                       {{-- @if($gsetting->appointment_enable == 1)
                       <a class="nav-link" id="v-pills-Appointment-tab3" data-toggle="pill" href="#v-pills-Appointment" role="tab"
@@ -196,6 +197,10 @@
           <div class="tab-pane fade" id="v-pills-QuizTopic" role="tabpanel" aria-labelledby="v-pills-QuizTopic-tab">
             @include('admin.course.quiztopic.index')
           </div>
+          <div class="tab-pane fade" id="v-pills-Questionnaire" role="tabpanel" aria-labelledby="v-pills-QuizTopic-tab">
+            @include('admin.course.questionnaire.index')
+          </div>
+          
 
           {{-- <div class="tab-pane fade" id="v-pills-Appointment" role="tabpanel" aria-labelledby="v-pills-Appointment-tab3">
             @include('admin.course.appointment.index')

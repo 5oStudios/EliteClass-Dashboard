@@ -15,12 +15,27 @@ class QuestionnaireController extends Controller
 {
     public function index()
     {
-        $questionnaires = QuestionnaireCourse::with('course:id,title')->with('questionnaire:id,title')->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->paginate();
+        $questionnaires = QuestionnaireCourse::with('course:id,title')
+            ->with('questionnaire:id,title')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->paginate();
+
+        // $questionnaires = QuestionnaireCourse::where('course_id', 1119)->with('questionnaire:id,title')->get(['id', 'course_id', 'questionnaire_id', 'appointment']);
+        // $questionnaires = $questionnaires->map(function ($item) {
+        //     return [
+        //         'id' => $item->id,
+        //         'appointment' => $item->appointment,
+        //         'questionnaire_title' => $item->questionnaire->title,
+        //         'course_id' => $item->course_id,
+        //         'questionnaire_id' => $item->questionnaire->id
+        //     ];
+        // });
         return $questionnaires;
     }
 
     public function store(Request $request)
     {
+
+        dd($request->all());
         $request->validate([
             'appointment' => 'required|date_format:Y-m-d',
             'course_id' => 'required|integer|exists:courses,id',
@@ -50,7 +65,7 @@ class QuestionnaireController extends Controller
             'appointment' => $request->appointment
         ]);
 
-        return ['msg' => "created successfully"];
+        return back();
     }
 
     public function show($id)
@@ -96,8 +111,31 @@ class QuestionnaireController extends Controller
     {
     }
 
-    public function update($id)
+    public function update(Request $request, $id)
     {
+        // $request->validate([
+        //     'appointment' => 'required|date_format:Y-m-d',
+        //     'course_id' => 'required|integer|exists:courses,id',
+        //     'title' => 'required|string|max:250',
+        //     'questions' => 'required|array|min:1',
+        //     'questions.*' => 'required|string|max:250',
+        // ]);
+
+        $questionnaire = QuestionnaireCourse::where('id', $id)->exists();
+        if (!$questionnaire) {
+            return response()->json([
+                "message" => "No questionnaire with this id"
+            ], 404);
+        }
+
+        $questionnaire = QuestionnaireCourse::where('id', $id)
+            ->with('course:id,title')
+            ->with('questionnaire.questionBonds.question')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
+            ->first()->toArray();
+
+        dd($questionnaire);
+
     }
 
     public function destroy($id)

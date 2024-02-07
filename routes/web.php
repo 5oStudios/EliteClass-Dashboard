@@ -364,6 +364,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
             Route::middleware(['is_admin'])->group(function () {
 
                 Route::get('admin/questionnaires/{id}', [QuestionnaireController::class, 'show']);
+                Route::post('admin/questionnaires', [QuestionnaireController::class, 'store']);
 
 
                 Route::get('getsecretkey', 'GenerateApiController@getkey')->name('get.api.key');

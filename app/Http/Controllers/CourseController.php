@@ -840,10 +840,10 @@ class CourseController extends Controller
                 'id' => $item->id,
                 'appointment' => $item->appointment,
                 'questionnaire_title' => $item->questionnaire->title,
+                'course_id' => $item->course_id,
+                'questionnaire_id' => $item->questionnaire->id
             ];
         });
-
-
 
         // $papers = PreviousPaper::where('course_id', '=', $id)->get();
         // $countries = Allcountry::get();

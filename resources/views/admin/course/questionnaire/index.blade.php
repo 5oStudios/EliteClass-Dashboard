@@ -13,6 +13,7 @@
                 <a data-toggle="modal" data-target="#questionnaire_topic" href="#" class="btn btn-primary-rgba"><i
                         class="feather icon-plus "></i>{{ __('Add Quesionnaire') }} </a>
             </div>
+            {{$questionnaires}}
             <div class="card-body">
                 <div class="table-responsive">
                     <table id="" class="displaytable table table-striped table-bordered w-100">
@@ -23,16 +24,16 @@
                                 <th>{{ __('adminstaticword.Date') }}</th>
                                 <th>{{ __('adminstaticword.Action') }}</th>
                         </thead>
-                        <?php
-/* <tbody>
+                        
+ <tbody>
                             <?php $i = 0; ?>
-                            @foreach($topics as $topic)
+                            @foreach($questionnaires as $questionnaire)
                             <tr>
                                 <?php $i++; ?>
                                
-                                <td>{{$topic->title}}</td>
+                                <td>{{$questionnaire['questionnaire_title']}}</td>
                                 
-                                <td>{{($topic->appointment )}}</td>
+                                <td>{{($questionnaire['appointment'] )}}</td>
                                 
                                 <td>
                                     <div class="dropdown">
@@ -40,11 +41,9 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
-                                            @can('Quesionnaire.edit')
                                                 <a class="dropdown-item" href="{{url('admin/Quesionnairetopic/'.$topic->id)}}"><i
                                                         class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
-                                            @endcan
-                                            @can('Quesionnaire.view')
+                                            <!-- @can('Quesionnaire.view')
                                                 @if(auth()->user()->role == 'admin')
                                                     <a class="dropdown-item" href="{{route('questions.show', $topic->id)}}"><i
                                                         class="feather icon-file-plus mr-2"></i>{{ __('Add Questions') }}</a>
@@ -63,10 +62,10 @@
                                                 <a class="dropdown-item btn btn-link" data-toggle="modal" data-target="#deleteq{{ $topic->id}}">
                                                     <i class="feather icon-delete mr-2"></i>{{ __("Delete") }}</a>
                                                 </a>
-                                            @endcan
+                                            @endcan -->
                                         </div>
                                     </div>
-                                    <div class="modal fade bd-example-modal-sm" id="deleteq{{$topic->id}}" tabindex="-1" role="dialog"
+                                    <div class="modal fade bd-example-modal-sm" id="deleteq{{$questionnaire['id']}}" tabindex="-1" role="dialog"
                                          aria-hidden="true">
                                         <div class="modal-dialog modal-sm">
                                             <div class="modal-content">
@@ -78,10 +77,10 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <h4>{{ __('Are You Sure ?')}}</h4>
-                                                    <p>{{ __('Do you really want to delete')}} <b>{{$topic->title}}</b>? {{ __('This process cannot be undone.')}}</p>
+                                                    <p>{{ __('Do you really want to delete')}} <b>{{$questionnaire['questionnaire_title']}}</b>? {{ __('This process cannot be undone.')}}</p>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$topic->id)}}" class="pull-right">
+                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$questionnaire['id'])}}" class="pull-right">
                                                         {{csrf_field()}}
                                                         {{method_field("DELETE")}}
                                                         <button type="reset" class="btn btn-secondary" data-dismiss="modal">{{ __('No') }}</button>
@@ -97,8 +96,8 @@
                             </tr>
                             @endforeach
 
-                        </tbody>*/
-?>
+                        </tbody>
+
                     </table>
                 </div>
             </div>

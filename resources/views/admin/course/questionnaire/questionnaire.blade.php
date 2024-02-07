@@ -1,3 +1,24 @@
+@extends('admin.layouts.master')
+@section('title','Edit Quiztopic')
+@section('maincontent')
+@component('components.breadcumb',['thirdactive' => 'active'])
+@slot('heading')
+{{ __('Home') }}
+@endslot
+@slot('menu1')
+{{ __('Admin') }}
+@endslot
+@slot('menu2')
+{{ __(' Edit Questionnaire') }}
+@endslot
+@slot('button')
+<div class="col-md-5 col-lg-5">
+<a href="{{ url('course/create/'. $questionnaire['course_id']) }}" class="float-right btn btn-primary-rgba"><i class="feather icon-arrow-left mr-2"></i>{{ __('Back') }}</a>
+</div>
+@endslot
+@endcomponent
+
+<div class="contentbar">
 <div class="row">
     <div class="col-lg-12">
         @if ($errors->any())  
@@ -9,31 +30,34 @@
         </div>
         @endif
         <div class="card m-b-30">
+            @if(count($questionnaire['students']) !== 0)
             <div class="card-header">
-                <a data-toggle="modal" data-target="#questionnaire_topic" href="#" class="btn btn-primary-rgba"><i
-                        class="feather icon-plus "></i>{{ __('Add Quesionnaire') }} </a>
-            </div>
+                <a data-toggle="modal" data-target="#questionnaire_topic" href="#" class="btn btn-warning-rgba"><i
+                        class="feather icon-edit "></i>  {{ __('Edit Quesionnaire') }} </a>
+                    </div>
+            @endif
             <div class="card-body">
                 <div class="table-responsive">
                     <table id="" class="displaytable table table-striped table-bordered w-100">
                         <thead>
                             <tr>
                                 
-                                <th>{{ __('adminstaticword.userName') }}</th>
-                                <th>{{ __('adminstaticword.rate') }}</th>
-                                <th>{{ __('adminstaticword.hasCommented') }}</th>
+                                <th>{{ __('Name') }}</th>
+                                <th>{{ __('Email') }}</th>
+                                <th>{{ __('Date') }}</th>
                                 <th>{{ __('adminstaticword.Action') }}</th>
                         </thead>
-                        <?php
-/* <tbody>
+                     
+                        <tbody>
                             <?php $i = 0; ?>
-                            @foreach($topics as $topic)
+                            @foreach($questionnaire['students'] as $student)
                             <tr>
                                 <?php $i++; ?>
                                
-                                <td>{{$topic->title}}</td>
+                                <td>{{$student['fname']}} {{$student['lname']}}</td>
                                 
-                                <td>{{($topic->appointment )}}</td>
+                                <td>{{($student['email'] )}}</td>
+                                <td>{{($student['answer_date'] )}}</td>
                                 
                                 <td>
                                     <div class="dropdown">
@@ -41,65 +65,16 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
-                                            @can('Quesionnaire.edit')
-                                                <a class="dropdown-item" href="{{url('admin/Quesionnairetopic/'.$topic->id)}}"><i
-                                                        class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
-                                            @endcan
-                                            @can('Quesionnaire.view')
-                                                @if(auth()->user()->role == 'admin')
-                                                    <a class="dropdown-item" href="{{route('questions.show', $topic->id)}}"><i
-                                                        class="feather icon-file-plus mr-2"></i>{{ __('Add Questions') }}</a>
-                                                @elseif(auth()->user()->role == 'instructor')
-                                                    <a class="dropdown-item" href="{{route('questions.show', $topic->id)}}"><i
-                                                        class="feather icon-file-plus mr-2"></i>{{ __('View Questions') }}</a>
-                                                @endif
-                                            @endcan
-                                            {{-- <a class="dropdown-item" href="{{route('answersheet', $topic->id)}}"><i
-                                                    class="feather icon-delete mr-2"></i>{{ __('Delete Answer') }}</a> --}}
-                                            @can('report.Quesionnaire-report.manage')
-                                                <a class="dropdown-item" href="{{route('show.Quesionnairereport', $topic->id)}}"><i
-                                                    class="feather icon-file mr-2"></i>{{ __('Show Report') }}</a>
-                                            @endcan
-                                            @can('Quesionnaire.delete')
-                                                <a class="dropdown-item btn btn-link" data-toggle="modal" data-target="#deleteq{{ $topic->id}}">
-                                                    <i class="feather icon-delete mr-2"></i>{{ __("Delete") }}</a>
-                                                </a>
-                                            @endcan
+                                                <a class="dropdown-item" href="{{url('admin/questionnaires/'.$student['id'].'/edit')}}"><i
+                                                        class="feather icon-eye mr-2"></i>{{ __('view') }}</a>
+                                           
                                         </div>
                                     </div>
-                                    <div class="modal fade bd-example-modal-sm" id="deleteq{{$topic->id}}" tabindex="-1" role="dialog"
-                                         aria-hidden="true">
-                                        <div class="modal-dialog modal-sm">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleSmallModalLabel">{{ __('Delete') }}</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <h4>{{ __('Are You Sure ?')}}</h4>
-                                                    <p>{{ __('Do you really want to delete')}} <b>{{$topic->title}}</b>? {{ __('This process cannot be undone.')}}</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$topic->id)}}" class="pull-right">
-                                                        {{csrf_field()}}
-                                                        {{method_field("DELETE")}}
-                                                        <button type="reset" class="btn btn-secondary" data-dismiss="modal">{{ __('No') }}</button>
-                                                        <button type="submit" class="btn btn-primary">{{ __('Yes') }}</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
                                 </td>
                             </tr>
                             @endforeach
 
-                        </tbody>*/
-?>
+                        </tbody> 
                     </table>
                 </div>
             </div>
@@ -109,11 +84,11 @@
 </div>
 
 <div class="modal fade" id="questionnaire_topic" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-<div class="modal-dialog modal-md" role="document">
+<div class="modal-dialog modal-md " role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="my-modal-title">
-                    <b>Add Questionnaire</b>
+                    <b>Edit Questionnaire</b>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
@@ -122,38 +97,48 @@
             <div class="box box-primary">
                 <div class="panel panel-sum">
                     <div class="modal-body">
-                        <form autocomplete="off" id="demo-form2" method="post" action="{{url('admin/Quesionnairetopic/')}}" data-parsley-validate
+                        <form autocomplete="off" id="demo-form2" method="post" action="{{url('admin/questionnaires/'.$questionnaire['id'])}}" data-parsley-validate
                               class="form-horizontal form-label-left">
                             {{ csrf_field() }}
-
-                            {{--<input type="hidden" name="course_id" value="{{ $cor->id }}" />--}}
+                            {{method_field("PUT")}}
 
                             <div class="row">
                                 <div class="col-md-12">
                                     <label for="exampleInputTit1e">{{ __('adminstaticword.QuesionnaireTopic') }}:<span class="redstar">*</span>
                                     </label>
                                     <input type="text" placeholder="{{__('Enter Quesionnaire Topic')}}" class="form-control " name="title"
-                                           id="exampleInputTitle" required>
+                                           id="exampleInputTitle" value="{{ old('questionnaire_title', $questionnaire['questionnaire_title']) }}" required>
                                 </div>
                             </div>
                             <br>
-
-
-                            
-                            <!-- Dynamic Question Fields Container -->
-                            <div id="questionFieldsContainer">
-                            <label for="question1">Question 1:</label>
-                            <input type="text" class="form-control" name="questions[0]" id="question1" required>
-                            
-                            <label for="question1">Question 2:</label>
-                            <input type="text" class="form-control" name="questions[1]" id="question2" required>
-                            </div>
-                                <!-- Add Question Button -->
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <button type="button" class="btn btn-success ms-auto" onclick="addQuestionField()">Add Question</button>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="exampleInputTitle1">{{ __('adminstaticword.QuesionnaireDate') }}:<span class="redstar">*</span>
+                                    </label>
+                                    <input type="date" placeholder="{{__('Enter Quesionnaire date')}}" class="form-control " name="appointment"
+                                           id="exampleInputTitle1" value="{{ old('questionnaire_appointment', $questionnaire['questionnaire_appointment']) }}" required>
                                 </div>
+                            </div>
+                            <br>
+                            <!-- Dynamic Question Fields Container -->
+                            <div id="questionFieldsContainer"  style="max-height:300px ;overflow-y: auto;">
+                            <?php $i = 0; ?>
+                            @foreach($questionnaire['questions'] as $q)
+                            <label for="question{{$i}}">Question {{$i+1}}:</label>
+                            <input type="hidden" name="questions[{{$i}}][id]" value="{{ $q['id'] }}" />
+                            <input type="text" class="form-control" name="questions[{{ $i }}][title]" id="question{{ $i }}" value="{{ old('questions.'.$i.'.title', $q['title']) }}" required>
+                            <?php $i++; ?>
+                            @endforeach
+                            </div>
+                                
+                              
+                                
+                            <!-- Add Question Button -->
+                            <div class="row mt-4">
+                                <div class="col-md-12 ms-auto">
+                                    <button type="button" class="btn btn-success" onclick="addQuestionField({{$i}})">Add Question</button>
+                                </div>
+                            </div>
 
                             <br>
                             <div class="form-group">
@@ -171,17 +156,17 @@
         </div>
     </div>
 </div>
-
+</div>
 <script>
     // Counter for dynamic question fields
-    let questionCounter = 3;
-
-    function addQuestionField() {
+    
+    function addQuestionField(index) {
         // Create a new text field for the question
         const questionField = document.createElement('div');
         questionField.innerHTML = `
-            <label for="question${questionCounter}">Question ${questionCounter}:</label>
-            <input type="text" class="form-control" name="questions[`${questionCounter-1}`]" id="question${questionCounter}" required>
+        <input type="hidden" name="questions[${index}][id]" value="" />
+            <label for="question${index+1}">Question ${index+1}:</label>
+            <input type="text" class="form-control" name="questions[${index}][title]" id="question${index+1}" required>
         `;
 
         // Append the new question field to the container
@@ -191,8 +176,5 @@
         questionCounter++;
     }
 </script>
+@endsection
 
-
-<!-- script to change status start -->
-
-<!-- script to change status end -->

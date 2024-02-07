@@ -110,6 +110,7 @@ class QuestionnaireController extends Controller
 
     public function edit($id)
     {
+
         $questionnaire = QuestionnaireCourse::where('id', $id)
             ->with('course:id,title')
             ->with('questionnaire.questionBonds.question')
@@ -165,7 +166,7 @@ class QuestionnaireController extends Controller
 
         $questionnaire = $result;
 
-        dd($questionnaire);
+        // dd($questionnaire);
 
         return view('admin.course.questionnaire.questionnaire', compact('questionnaire'));
     }

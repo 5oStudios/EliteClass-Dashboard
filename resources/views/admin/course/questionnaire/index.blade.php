@@ -40,7 +40,7 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
-                                                <a class="dropdown-item" href="{{url('admin/questionnaire/'.$q['id'])}}"><i
+                                                <a class="dropdown-item" href="{{url('admin/questionnaires/'.$q['id'].'/edit')}}"><i
                                                         class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
                                             <!-- @can('Quesionnaire.view')
                                                 @if(auth()->user()->role == 'admin')
@@ -56,12 +56,10 @@
                                             @can('report.Quesionnaire-report.manage')
                                                 <a class="dropdown-item" href="{{route('show.Quesionnairereport', $topic->id)}}"><i
                                                     class="feather icon-file mr-2"></i>{{ __('Show Report') }}</a>
-                                            @endcan
-                                            @can('Quesionnaire.delete')
-                                                <a class="dropdown-item btn btn-link" data-toggle="modal" data-target="#deleteq{{ $topic->id}}">
+                                            @endcan -->
+                                                <a class="dropdown-item btn btn-link" data-toggle="modal" data-target="#deleteq{{ $q['id']}}">
                                                     <i class="feather icon-delete mr-2"></i>{{ __("Delete") }}</a>
                                                 </a>
-                                            @endcan -->
                                         </div>
                                     </div>
                                     <div class="modal fade bd-example-modal-sm" id="deleteq{{$q['id']}}" tabindex="-1" role="dialog"
@@ -79,7 +77,7 @@
                                                     <p>{{ __('Do you really want to delete')}} <b>{{$q['questionnaire_title']}}</b>? {{ __('This process cannot be undone.')}}</p>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$q['id'])}}" class="pull-right">
+                                                    <form method="post" action="{{url('admin/questionnaires/'.$q['id'])}}" class="pull-right">
                                                         {{csrf_field()}}
                                                         {{method_field("DELETE")}}
                                                         <button type="reset" class="btn btn-secondary" data-dismiss="modal">{{ __('No') }}</button>

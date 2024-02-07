@@ -113,29 +113,72 @@ class QuestionnaireController extends Controller
 
     public function update(Request $request, $id)
     {
-        // $request->validate([
-        //     'appointment' => 'required|date_format:Y-m-d',
-        //     'course_id' => 'required|integer|exists:courses,id',
-        //     'title' => 'required|string|max:250',
-        //     'questions' => 'required|array|min:1',
-        //     'questions.*' => 'required|string|max:250',
-        // ]);
-
-        $questionnaire = QuestionnaireCourse::where('id', $id)->exists();
-        if (!$questionnaire) {
-            return response()->json([
-                "message" => "No questionnaire with this id"
-            ], 404);
-        }
+        $request->validate([
+            'appointment' => 'required|date_format:Y-m-d',
+            'title' => 'required|string|max:250',
+            'questions' => 'required|array|min:1',
+            'questions.id' => 'nullable|integer|min:0',
+            'questions.title' => 'nullable|string|max:250',
+        ]);
 
         $questionnaire = QuestionnaireCourse::where('id', $id)
             ->with('course:id,title')
             ->with('questionnaire.questionBonds.question')
             ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
-            ->first()->toArray();
+            ->first();
 
+        if (!$questionnaire) {
+            return response()->json([
+                "message" => "No questionnaire with this id"
+            ], 404);
+        }
+        $questionnaire = $questionnaire->toArray();
         dd($questionnaire);
 
+        QuestionnaireCourse::where('id', $id)->update([
+            "appointment" => $request->appointment
+        ]);
+
+        Questionnaire::where('id', $questionnaire['questionnaire']['id'])->update([
+            'title' => $request->title,
+        ]);
+
+        $questions = [];
+        for ($i = 0; $i < count($questionnaire['questionnaire']['question_bonds']); $i++) {
+            $questions[] = $questionnaire['questionnaire']['question_bonds'][$i]['question']['id'];
+        }
+        // dd($questions);
+
+        $takenQuestions = [];
+        foreach ($request->questions as $question) {
+            $takenQuestions[] = $question['id'];
+            if (in_array($question['id'], $questions)) {
+                //if exist update
+                QuestionnaireQuestion::where('id', $question['id'])->update([
+                    'title' => $question['title'],
+                ]);
+
+            } else {
+                //if not exist create
+                $qq = QuestionnaireQuestion::create([
+                    'title' => $question['title']
+                ]);
+
+                QuestionnaireQuestionBond::create([
+                    'questionnaire_id' => $questionnaire['questionnaire']['id'],
+                    'question_id' => $qq->id,
+                ]);
+            }
+        }
+
+        foreach ($questions as $question) {
+            if (!in_array($question, $takenQuestions)) {
+                QuestionnaireQuestionBond::where('question_id', $question)->delete();
+                QuestionnaireQuestion::where('id', $question);
+            }
+        }
+
+        return back();
     }
 
     public function destroy($id)

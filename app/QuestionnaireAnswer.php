@@ -2,8 +2,9 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class QuestionnaireAnswer extends Model
 {
@@ -19,4 +20,9 @@ class QuestionnaireAnswer extends Model
         'answer',
         'answer_date'
     ];
+
+    public function student(): HasOne
+    {
+        return $this->hasOne(User::class, 'id', 'student_id');
+    }
 }

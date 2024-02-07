@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\QuestionnaireQuestion;
 use App\QuestionnaireQuestionBond;
 use Illuminate\Support\Facades\Auth;
+use App\User;
 
 class QuestionnaireController extends Controller
 {
@@ -131,6 +132,24 @@ class QuestionnaireController extends Controller
             ];
         }
 
+        $distinctUsers = QuestionnaireAnswer::groupBy('student_id')->get('student_id');
+        if ($distinctUsers) {
+            $distinctUsers = $distinctUsers->toArray();
+        }
+        $students = [];
+        foreach ($distinctUsers as $distinct) {
+            $user = User::where('id', $distinct['student_id'])->first();
+            if ($user) {
+                $user = $user->toArray();
+                $students[] = [
+                    'id' => $user['id'],
+                    'fname' => $user['fname'],
+                    'lname' => $user['lname'],
+                    'email' => $user['email']
+                ];
+            }
+        }
+
         $result = [
             'id' => $questionnaire['id'],
             'course_id' => $questionnaire['course_id'],
@@ -139,6 +158,7 @@ class QuestionnaireController extends Controller
             'questionnaire_title' => $questionnaire['questionnaire']['title'],
             'questionnaire_appointment' => $questionnaire['appointment'],
             'questions' => $questions,
+            'students' => $students
         ];
 
         $questionnaire = $result;
@@ -299,7 +319,6 @@ class QuestionnaireController extends Controller
             QuestionnaireAnswer::create([
                 'questionnaire_course_id' => $id,
                 'student_id' => Auth::user()->id,
-                // 'student_id' => Auth::user()->id,
                 'question_id' => $request->answers[$i]['question_id'],
                 'rate' => $request->answers[$i]['rate'],
                 'answer' => $request->answers[$i]['answer'],

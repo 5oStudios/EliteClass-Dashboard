@@ -35,7 +35,7 @@ class QuestionnaireController extends Controller
     public function store(Request $request)
     {
 
-        dd($request->all());
+        // dd($request->all());
         $request->validate([
             'appointment' => 'required|date_format:Y-m-d',
             'course_id' => 'required|integer|exists:courses,id',

@@ -1,4 +1,3 @@
-
 <div class="row">
     <div class="col-lg-12">
         @if ($errors->any())  
@@ -14,7 +13,6 @@
                 <a data-toggle="modal" data-target="#questionnaire_topic" href="#" class="btn btn-primary-rgba"><i
                         class="feather icon-plus "></i>{{ __('Add Quesionnaire') }} </a>
             </div>
-            {{$questionnaires}}
             <div class="card-body">
                 <div class="table-responsive">
                     <table id="" class="displaytable table table-striped table-bordered w-100">
@@ -28,13 +26,13 @@
                         
  <tbody>
                             <?php $i = 0; ?>
-                            @foreach($questionnaires as $questionnaire)
+                            @foreach($questionnaires as $q)
                             <tr>
                                 <?php $i++; ?>
                                
-                                <td>{{$questionnaire['questionnaire_title']}}</td>
+                                <td>{{$q['questionnaire_title']}}</td>
                                 
-                                <td>{{($questionnaire['appointment'] )}}</td>
+                                <td>{{($q['appointment'] )}}</td>
                                 
                                 <td>
                                     <div class="dropdown">
@@ -42,7 +40,7 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
-                                                <a class="dropdown-item" href="{{url('admin/questionnaires/'.$questionnaire['id'])}}"><i
+                                                <a class="dropdown-item" href="{{url('admin/questionnaire/'.$q['id'])}}"><i
                                                         class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
                                             <!-- @can('Quesionnaire.view')
                                                 @if(auth()->user()->role == 'admin')
@@ -66,7 +64,7 @@
                                             @endcan -->
                                         </div>
                                     </div>
-                                    <div class="modal fade bd-example-modal-sm" id="deleteq{{$questionnaire['id']}}" tabindex="-1" role="dialog"
+                                    <div class="modal fade bd-example-modal-sm" id="deleteq{{$q['id']}}" tabindex="-1" role="dialog"
                                          aria-hidden="true">
                                         <div class="modal-dialog modal-sm">
                                             <div class="modal-content">
@@ -78,10 +76,10 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <h4>{{ __('Are You Sure ?')}}</h4>
-                                                    <p>{{ __('Do you really want to delete')}} <b>{{$questionnaire['questionnaire_title']}}</b>? {{ __('This process cannot be undone.')}}</p>
+                                                    <p>{{ __('Do you really want to delete')}} <b>{{$q['questionnaire_title']}}</b>? {{ __('This process cannot be undone.')}}</p>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$questionnaire['id'])}}" class="pull-right">
+                                                    <form method="post" action="{{url('admin/Quesionnairetopic/'.$q['id'])}}" class="pull-right">
                                                         {{csrf_field()}}
                                                         {{method_field("DELETE")}}
                                                         <button type="reset" class="btn btn-secondary" data-dismiss="modal">{{ __('No') }}</button>
@@ -98,7 +96,6 @@
                             @endforeach
 
                         </tbody>
-
                     </table>
                 </div>
             </div>
@@ -121,32 +118,29 @@
             <div class="box box-primary">
                 <div class="panel panel-sum">
                     <div class="modal-body">
-                        <form autocomplete="off" id="demo-form2" method="post" action="{{url('admin/Quesionnairetopic/')}}" data-parsley-validate
+                        <form autocomplete="off" id="demo-form2" method="post" action="{{url('admin/questionnaires/')}}" data-parsley-validate
                               class="form-horizontal form-label-left">
                             {{ csrf_field() }}
 
-                            {{--<input type="hidden" name="course_id" value="{{ $cor->id }}" />--}}
-
+                            <input type="hidden" name="course_id" value="{{ $cor->id }}" />
                             <div class="row">
                                 <div class="col-md-12">
                                     <label for="exampleInputTit1e">{{ __('adminstaticword.QuesionnaireTopic') }}:<span class="redstar">*</span>
                                     </label>
                                     <input type="text" placeholder="{{__('Enter Quesionnaire Topic')}}" class="form-control " name="title"
-                                        id="exampleInputTitle" required>
+                                           id="exampleInputTitle" required>
                                 </div>
                             </div>
                             <br>
-
                             <div class="row">
                                 <div class="col-md-12">
-                                    <label for="exampleInputTit1e">{{ __('adminstaticword.Date') }}:<span class="redstar">*</span>
+                                    <label for="exampleInputTitle1">{{ __('adminstaticword.QuesionnaireDate') }}:<span class="redstar">*</span>
                                     </label>
-                                    <input type="date" placeholder="{{__('Enter Quesionnaire Date')}}" class="form-control " name="appointment"
-                                        id="exampleInputTitle" required>
+                                    <input type="date" placeholder="{{__('Enter Quesionnaire date')}}" class="form-control " name="appointment"
+                                           id="exampleInputTitle1" required>
                                 </div>
                             </div>
                             <br>
-                            
                             
                             <!-- Dynamic Question Fields Container -->
                             <div id="questionFieldsContainer"  style="max-height:300px ;overflow-y: auto;">
@@ -159,7 +153,7 @@
                             <!-- Add Question Button -->
                             <div class="row mt-4">
                                 <div class="col-md-12 ms-auto">
-                                    <button type="button" class="btn btn-success" onclick="test()">Add Question</button>
+                                    <button type="button" class="btn btn-success" onclick="addQuestionField()">Add Question</button>
                                 </div>
                             </div>
 
@@ -178,26 +172,29 @@
             </div>
         </div>
     </div>
-
 </div>
 
+<script>
+    // Counter for dynamic question fields
+    let questionCounter = 3;
 
-    <script>
-        // Counter for dynamic question fields
-        let questionCounter = 3;
-    
-        function test() {
-            // Create a new text field for the question
-            const questionField = document.createElement('div');
-            questionField.innerHTML = `
-                <label for="question${questionCounter}">Question ${questionCounter}:</label>
-                <input type="text" class="form-control" name="questions[`${questionCounter-1}`]" id="question${questionCounter}" required>
-            `;
-    
-            // Append the new question field to the container
-            document.getElementById('questionFieldsContainer').appendChild(questionField);
-    
-            // Increment the question counter for the next question
-            questionCounter++;
-        }
-    </script>
+    function addQuestionField() {
+        // Create a new text field for the question
+        const questionField = document.createElement('div');
+        questionField.innerHTML = `
+            <label for="question${questionCounter}">Question ${questionCounter}:</label>
+            <input type="text" class="form-control" name="questions[${questionCounter-1}]" id="question${questionCounter}" required>
+        `;
+
+        // Append the new question field to the container
+        document.getElementById('questionFieldsContainer').appendChild(questionField);
+
+        // Increment the question counter for the next question
+        questionCounter++;
+    }
+</script>
+
+
+<!-- script to change status start -->
+
+<!-- script to change status end -->

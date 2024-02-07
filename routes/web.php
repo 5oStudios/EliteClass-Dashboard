@@ -366,6 +366,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('admin/questionnaires/{id}', [QuestionnaireController::class, 'show']);
                 Route::post('admin/questionnaires', [QuestionnaireController::class, 'store']);
                 Route::delete('admin/questionnaires/{id}', [QuestionnaireController::class, 'destroy']);
+                Route::get('admin/questionnaires/{id}/edit', [QuestionnaireController::class, 'edit']);
                 Route::put('admin/questionnaires/{id}', [QuestionnaireController::class, 'update']);
 
 

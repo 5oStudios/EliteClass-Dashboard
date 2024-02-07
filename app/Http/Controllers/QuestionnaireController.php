@@ -70,18 +70,18 @@ class QuestionnaireController extends Controller
 
     public function show($id)
     {
-        $questionnaire = QuestionnaireCourse::where('id', $id)->exists();
+        $questionnaire = QuestionnaireCourse::where('id', $id)
+            ->with('course:id,title')
+            ->with('questionnaire.questionBonds.question')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
+            ->first();
+
         if (!$questionnaire) {
             return response()->json([
                 "message" => "No questionnaire with this id"
             ], 404);
         }
-
-        $questionnaire = QuestionnaireCourse::where('id', $id)
-            ->with('course:id,title')
-            ->with('questionnaire.questionBonds.question')
-            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
-            ->first()->toArray();
+        $questionnaire = $questionnaire->toArray();
 
 
         $questions = [];
@@ -109,6 +109,41 @@ class QuestionnaireController extends Controller
 
     public function edit($id)
     {
+        $questionnaire = QuestionnaireCourse::where('id', $id)
+            ->with('course:id,title')
+            ->with('questionnaire.questionBonds.question')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
+            ->first();
+
+        if (!$questionnaire) {
+            return response()->json([
+                "message" => "No questionnaire with this id"
+            ], 404);
+        }
+        $questionnaire = $questionnaire->toArray();
+
+
+        $questions = [];
+        for ($i = 0; $i < count($questionnaire['questionnaire']['question_bonds']); $i++) {
+            $questions[] = [
+                'id' => $questionnaire['questionnaire']['question_bonds'][$i]['question']['id'],
+                'title' => $questionnaire['questionnaire']['question_bonds'][$i]['question']['title']
+            ];
+        }
+
+        $result = [
+            'id' => $questionnaire['id'],
+            'course_id' => $questionnaire['course_id'],
+            'course_title' => $questionnaire['course']['title'],
+            // 'questionnaire_id' => $questionnaire['questionnaire_id'],
+            'questionnaire_title' => $questionnaire['questionnaire']['title'],
+            'questionnaire_appointment' => $questionnaire['appointment'],
+            'questions' => $questions,
+        ];
+
+        $questionnaire = $result;
+
+        return view('admin.course.questionnaire.questionnaire', compact('questionnaire'));
     }
 
     public function update(Request $request, $id)
@@ -133,7 +168,7 @@ class QuestionnaireController extends Controller
             ], 404);
         }
         $questionnaire = $questionnaire->toArray();
-        dd($questionnaire);
+        // dd($questionnaire);
 
         QuestionnaireCourse::where('id', $id)->update([
             "appointment" => $request->appointment

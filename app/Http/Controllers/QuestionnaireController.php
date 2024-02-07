@@ -132,10 +132,11 @@ class QuestionnaireController extends Controller
             ];
         }
 
-        $distinctUsers = QuestionnaireAnswer::groupBy('student_id')->get('student_id');
+        $distinctUsers = QuestionnaireAnswer::groupBy('student_id')->get(['student_id', 'answer_date']);
         if ($distinctUsers) {
             $distinctUsers = $distinctUsers->toArray();
         }
+        // dd($distinctUsers);
         $students = [];
         foreach ($distinctUsers as $distinct) {
             $user = User::where('id', $distinct['student_id'])->first();
@@ -145,7 +146,8 @@ class QuestionnaireController extends Controller
                     'id' => $user['id'],
                     'fname' => $user['fname'],
                     'lname' => $user['lname'],
-                    'email' => $user['email']
+                    'email' => $user['email'],
+                    'answer_date' => $distinct['answer_date']
                 ];
             }
         }
@@ -162,6 +164,8 @@ class QuestionnaireController extends Controller
         ];
 
         $questionnaire = $result;
+
+        dd($questionnaire);
 
         return view('admin.course.questionnaire.questionnaire', compact('questionnaire'));
     }

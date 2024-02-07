@@ -23,6 +23,7 @@ Route::get('/questionnaires/', [QuestionnaireController::class, 'index']);
 Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
 Route::get('/questionnaires/{id}', [QuestionnaireController::class, 'show']);
 Route::put('/questionnaires/{id}', [QuestionnaireController::class, 'update']);
+Route::delete('/questionnaires/{id}', [QuestionnaireController::class, 'destroy']);
 // Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
 // Route::get('/questionnaires/user/all/public', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
 

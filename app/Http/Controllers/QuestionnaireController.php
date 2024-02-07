@@ -140,6 +140,25 @@ class QuestionnaireController extends Controller
 
     public function destroy($id)
     {
+        $questionnaire = QuestionnaireCourse::where('id', $id)
+            ->with('course:id,title')
+            ->with('questionnaire.questionBonds.question')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
+            ->first();
+        if (!$questionnaire) {
+            return back();
+        }
+        $questionnaire = $questionnaire->toArray();
+
+        QuestionnaireAnswer::where('questionnaire_course_id', $id)->delete();
+        QuestionnaireQuestionBond::where('questionnaire_id', $questionnaire['questionnaire']['id'])->delete();
+        QuestionnaireCourse::where('id', $id)->delete();
+        Questionnaire::where('id', $questionnaire['questionnaire']['id'])->delete();
+        for ($i = 0; $i < count($questionnaire['questionnaire']['question_bonds']); $i++) {
+            QuestionnaireQuestion::
+                where('id', $questionnaire['questionnaire']['question_bonds'][$i]['question']['id'])->delete();
+        }
+        return back();
     }
 
     public function answer(Request $request, $id)

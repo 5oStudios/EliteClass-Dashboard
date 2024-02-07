@@ -138,26 +138,22 @@
                             </div>
                             <br>
 
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label for="exampleInputDetails">{{ __('adminstaticword.QuesionnaireDescription') }}:<sup
-                                            class="redstar">*</sup></label>
-                                    <textarea name="description" rows="3" class="form-control" placeholder="{{__('Enter Description')}}" required></textarea>
-                                </div>
-                            </div>
-                            <br>
 
-                            <!-- Add Question Button -->
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-success" onclick="addQuestionField()">Add Question</button>
-                                </div>
-                            </div>
-
+                            
                             <!-- Dynamic Question Fields Container -->
                             <div id="questionFieldsContainer">
-                                
+                            <label for="question1">Question 1:</label>
+                            <input type="text" class="form-control" name="questions[0]" id="question1" required>
+                            
+                            <label for="question1">Question 2:</label>
+                            <input type="text" class="form-control" name="questions[1]" id="question2" required>
                             </div>
+                                <!-- Add Question Button -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn btn-success ms-auto" onclick="addQuestionField()">Add Question</button>
+                                    </div>
+                                </div>
 
                             <br>
                             <div class="form-group">
@@ -178,14 +174,14 @@
 
 <script>
     // Counter for dynamic question fields
-    let questionCounter = 1;
+    let questionCounter = 3;
 
     function addQuestionField() {
         // Create a new text field for the question
         const questionField = document.createElement('div');
         questionField.innerHTML = `
             <label for="question${questionCounter}">Question ${questionCounter}:</label>
-            <input type="text" class="form-control" name="questions[]" id="question${questionCounter}" required>
+            <input type="text" class="form-control" name="questions[`${questionCounter-1}`]" id="question${questionCounter}" required>
         `;
 
         // Append the new question field to the container

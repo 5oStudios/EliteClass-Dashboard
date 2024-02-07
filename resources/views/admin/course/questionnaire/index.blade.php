@@ -1,3 +1,4 @@
+
 <div class="row">
     <div class="col-lg-12">
         @if ($errors->any())  
@@ -41,7 +42,7 @@
                                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
-                                                <a class="dropdown-item" href="{{url('admin/Quesionnairetopic/'.$topic->id)}}"><i
+                                                <a class="dropdown-item" href="{{url('admin/questionnaires/'.$questionnaire['id'])}}"><i
                                                         class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
                                             <!-- @can('Quesionnaire.view')
                                                 @if(auth()->user()->role == 'admin')
@@ -126,20 +127,39 @@
 
                             {{--<input type="hidden" name="course_id" value="{{ $cor->id }}" />--}}
 
-                            <!-- Add Question Button -->
-                           
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="exampleInputTit1e">{{ __('adminstaticword.QuesionnaireTopic') }}:<span class="redstar">*</span>
+                                    </label>
+                                    <input type="text" placeholder="{{__('Enter Quesionnaire Topic')}}" class="form-control " name="title"
+                                        id="exampleInputTitle" required>
+                                </div>
+                            </div>
+                            <br>
 
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label for="exampleInputTit1e">{{ __('adminstaticword.Date') }}:<span class="redstar">*</span>
+                                    </label>
+                                    <input type="date" placeholder="{{__('Enter Quesionnaire Date')}}" class="form-control " name="appointment"
+                                        id="exampleInputTitle" required>
+                                </div>
+                            </div>
+                            <br>
+                            
+                            
                             <!-- Dynamic Question Fields Container -->
                             <div id="questionFieldsContainer"  style="max-height:300px ;overflow-y: auto;">
-                            <label for="question1">Question 1:</label>
-                            <input type="text" class="form-control" name="question1" id="question1" required>
-                            <label for="question2">Question 2:</label>
-                            <input type="text" class="form-control" name="questions2" id="question2" required>
-        
+                                <label for="question1">Question 1:</label>
+                                <input type="text" class="form-control" name="questions[0]" id="question1" required>
+                                <label for="question2">Question 2:</label>
+                                <input type="text" class="form-control" name="questions[1]" id="question2" required>
+                                
                             </div>
+                            <!-- Add Question Button -->
                             <div class="row mt-4">
                                 <div class="col-md-12 ms-auto">
-                                    <button type="button" class="btn btn-success" onclick="addQuestionField()">Add Question</button>
+                                    <button type="button" class="btn btn-success" onclick="test()">Add Question</button>
                                 </div>
                             </div>
 
@@ -158,29 +178,26 @@
             </div>
         </div>
     </div>
+
 </div>
 
-<script>
-    // Counter for dynamic question fields
-    let questionCounter = 3;
 
-    function addQuestionField() {
-        // Create a new text field for the question
-        const questionField = document.createElement('div');
-        questionField.innerHTML = `
-            <label for="question${questionCounter}">Question ${questionCounter}:</label>
-            <input type="text" class="form-control" name="questions[]" id="question${questionCounter}" required>
-        `;
-
-        // Append the new question field to the container
-        document.getElementById('questionFieldsContainer').appendChild(questionField);
-
-        // Increment the question counter for the next question
-        questionCounter++;
-    }
-</script>
-
-
-<!-- script to change status start -->
-
-<!-- script to change status end -->
+    <script>
+        // Counter for dynamic question fields
+        let questionCounter = 3;
+    
+        function test() {
+            // Create a new text field for the question
+            const questionField = document.createElement('div');
+            questionField.innerHTML = `
+                <label for="question${questionCounter}">Question ${questionCounter}:</label>
+                <input type="text" class="form-control" name="questions[`${questionCounter-1}`]" id="question${questionCounter}" required>
+            `;
+    
+            // Append the new question field to the container
+            document.getElementById('questionFieldsContainer').appendChild(questionField);
+    
+            // Increment the question counter for the next question
+            questionCounter++;
+        }
+    </script>

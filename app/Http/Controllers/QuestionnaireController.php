@@ -16,10 +16,7 @@ class QuestionnaireController extends Controller
     public function index()
     {
         $questionnaires = QuestionnaireCourse::with('course:id,title')->with('questionnaire:id,title')->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->paginate();
-
         return $questionnaires;
-
-
     }
 
     public function store(Request $request)

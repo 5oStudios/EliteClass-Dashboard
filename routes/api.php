@@ -19,12 +19,11 @@ use App\Http\Controllers\Api\VerificationController;
 
 // Route::get('/test/{userId}', 'Api\MainController@overdue');
 
-
-Route::get('/questionnaires', [QuestionnaireController::class, 'index']);
+Route::get('/questionnaires/course/{id}', [QuestionnaireController::class, 'allForCourse']);
 Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
 Route::get('/questionnaires/{id}', [QuestionnaireController::class, 'show']);
-Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
-Route::get('/questionnaires/user/all', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
+// Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
+// Route::get('/questionnaires/user/all/public', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
 
 // Route::get('attendee', function () {
 //   $user = \App\User::find(321);

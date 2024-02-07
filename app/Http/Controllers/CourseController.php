@@ -833,9 +833,16 @@ class CourseController extends Controller
             ->activeOrder()
             ->exists();
 
-        $questionnaires = QuestionnaireCourse::where('course_id', $id)->with('questionnaire:id,title')->get(['course_id', 'questionnaire_id', 'appointment']);
-
         //return questionnaire here
+        $questionnaires = QuestionnaireCourse::where('course_id', $id)->with('questionnaire:id,title')->get(['id', 'course_id', 'questionnaire_id', 'appointment']);
+        $questionnaires = $questionnaires->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'appointment' => $item->appointment,
+                'questionnaire_title' => $item->questionnaire->title,
+            ];
+        });
+
 
 
         // $papers = PreviousPaper::where('course_id', '=', $id)->get();

@@ -405,8 +405,9 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
     });
     Route::post('courseclass/file/permission', 'Api\CourseController@allowFileDownloadOrPrint');
 
-    /*answer the question */
+    /*questionairs */
     Route::post('/questionnaires/{id}/answer', [QuestionnaireController::class, 'answer']);
+    Route::get('/questionnaires/user/all', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
 
   });
 

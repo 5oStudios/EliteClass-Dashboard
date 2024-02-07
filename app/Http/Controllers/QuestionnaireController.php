@@ -114,14 +114,21 @@ class QuestionnaireController extends Controller
             'answers.*.answer' => 'required|string|max:250',
         ]);
 
-        $questionnaire = QuestionnaireCourse::findOrFail($id)
+        $questionnaire = QuestionnaireCourse::Where('id', $id)
             ->with('course:id,title')
             ->with('questionnaire.questionBonds.question')
-            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->first()->toArray();
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->first();
+
+        if (!$questionnaire) {
+            return response()->json([
+                'message' => "No questionnaire with this id"
+            ], 404);
+        }
+        $questionnaire = $questionnaire->toArray();
 
         //check if answered before
-        $answeredBefore = QuestionnaireAnswer::where('questionnaire_course_id', $id)->where('student_id', 5494)->first();
-        // $answeredBefore = QuestionnaireAnswer::where('questionnaire_course_id', $id)->where('student_id', Auth::user()->id)->first();
+        $answeredBefore = QuestionnaireAnswer::where('questionnaire_course_id', $id)
+            ->where('student_id', Auth::user()->id)->first();
         if ($answeredBefore) {
             return response()->json([
                 'message' => "This questionnaire is answered before"
@@ -157,7 +164,7 @@ class QuestionnaireController extends Controller
         for ($i = 0; $i < count($request->answers); $i++) {
             QuestionnaireAnswer::create([
                 'questionnaire_course_id' => $id,
-                'student_id' => 5494,
+                'student_id' => Auth::user()->id,
                 // 'student_id' => Auth::user()->id,
                 'question_id' => $request->answers[$i]['question_id'],
                 'rate' => $request->answers[$i]['rate'],
@@ -173,75 +180,64 @@ class QuestionnaireController extends Controller
 
     public function getQuestionnairesForStudent()
     {
-        $courses = CourseProgress::where(['user_id' => 5494])->get('course_id')->toArray();
+        // Get all courses for the user
+        $courseIds = CourseProgress::where('user_id', Auth::user()->id)->pluck('course_id')->toArray();
 
-        $questionnaire_ids = [];
+        // Initialize an array to store questionnaire IDs
+        $questionnaireIds = [];
 
-        for ($i = 0; $i < count($courses); $i++) {
-            $course_id = $courses[$i]['course_id'];
+        // Loop through each course
+        foreach ($courseIds as $courseId) {
+            // Retrieve questionnaires for the current course with date filter
+            $questionnaires = QuestionnaireCourse::where('course_id', $courseId)
+                ->whereDate('appointment', '<=', now())
+                ->whereNotExists(function ($query) {
+                    $query->from('questionnaires_answers')
+                        ->whereColumn('questionnaire_course_id', 'questionnaires_courses.id')
+                        ->where('student_id', Auth::user()->id);
+                })
+                ->get(['id']);
 
-            //get questionnaire for this course with date filter
-            $questionnaires = QuestionnaireCourse::where('course_id', $course_id)
-                ->where('appointment', '<=', date('Y-m-d'))->get()->toArray();
-
-            if ($questionnaires) {
-                // dd($questionnaires);
-                for ($i = 0; $i < count($questionnaires); $i++) {
-                    //check if done by user or not
-                    $answeredBefore = QuestionnaireAnswer::where('questionnaire_course_id', $questionnaires[$i]['id'])->where('student_id', 5494)->exists();
-                    // dd($answeredBefore);
-
-                    if (!$answeredBefore) {
-                        $questionnaire_ids[] = $questionnaires[$i]['id'];
-                        // dd($questionnaire_ids);
-                    }
-                }
-            }
+            // Add questionnaire IDs to the array
+            $questionnaireIds = array_merge($questionnaireIds, $questionnaires->pluck('id')->toArray());
         }
 
-        if (count($questionnaire_ids) == 0) {
+        if (empty($questionnaireIds)) {
             return response()->json([
                 'message' => 'No questionnaires required',
-                'questionnaire_ids' => $questionnaire_ids
+                'questionnaires' => []
             ]);
         }
 
-        $questionnaire = QuestionnaireCourse::where('id', $questionnaire_ids[0])->exists();
-        if (!$questionnaire) {
-            return response()->json([
-                "message" => "No questionnaire with this id"
-            ], 404);
-        }
+        $questionnaires = [];
 
-        $questionnaire = QuestionnaireCourse::where('id', $questionnaire_ids[0])
-            ->with('course:id,title')
-            ->with('questionnaire.questionBonds.question')
-            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
-            ->first()->toArray();
+        foreach ($questionnaireIds as $questionnaireId) {
+            $questionnaire = QuestionnaireCourse::with([
+                'course:id,title',
+                'questionnaire.questionBonds.question:id,title'
+            ])->findOrFail($questionnaireId);
 
-
-        $questions = [];
-        for ($i = 0; $i < count($questionnaire['questionnaire']['question_bonds']); $i++) {
-            $questions[] = [
-                'id' => $questionnaire['questionnaire']['question_bonds'][$i]['question']['id'],
-                'title' => $questionnaire['questionnaire']['question_bonds'][$i]['question']['title']
+            $result = [
+                'id' => $questionnaire->id,
+                'course_id' => $questionnaire->course_id,
+                'course_title' => $questionnaire->course->title,
+                // 'questionnaire_id' => $questionnaire->questionnaire_id,
+                'questionnaire_title' => $questionnaire->questionnaire->title,
+                'questionnaire_appointment' => $questionnaire->appointment,
+                'questions' => $questionnaire->questionnaire->questionBonds->map(function ($bond) {
+                    return [
+                        'id' => $bond->question->id,
+                        'title' => $bond->question->title
+                    ];
+                })->toArray(),
             ];
-        }
 
-        $result = [
-            'id' => $questionnaire['id'],
-            'course_id' => $questionnaire['course_id'],
-            'course_title' => $questionnaire['course']['title'],
-            'questionnaire_id' => $questionnaire['questionnaire_id'],
-            'questionnaire_title' => $questionnaire['questionnaire']['title'],
-            'questionnaire_appointment' => $questionnaire['appointment'],
-            'questions' => $questions,
-        ];
+            $questionnaires[] = $result;
+        }
 
         return response()->json([
             'message' => 'Required questionnaires',
-            'questionnaire_ids' => $questionnaire_ids,
-            'questionnaire' => $result
+            'questionnaires' => $questionnaires
         ]);
     }
 }

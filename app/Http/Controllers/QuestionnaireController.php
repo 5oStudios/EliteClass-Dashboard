@@ -110,7 +110,6 @@ class QuestionnaireController extends Controller
 
     public function edit($id)
     {
-
         $questionnaire = QuestionnaireCourse::where('id', $id)
             ->with('course:id,title')
             ->with('questionnaire.questionBonds.question')
@@ -137,7 +136,7 @@ class QuestionnaireController extends Controller
         if ($distinctUsers) {
             $distinctUsers = $distinctUsers->toArray();
         }
-        dd($distinctUsers);
+        // dd($distinctUsers);
 
         $students = [];
         foreach ($distinctUsers as $distinct) {
@@ -162,6 +161,21 @@ class QuestionnaireController extends Controller
             }
         }
 
+        $summary = [];
+        foreach ($questions as $question) {
+            // dd($question);
+            $count = QuestionnaireAnswer::where('question_id', $question['id'])
+                ->where('questionnaire_course_id', $id)->count();
+            $sum = QuestionnaireAnswer::where('question_id', $question['id'])
+                ->where('questionnaire_course_id', $id)->sum('rate');
+            // dd($sum / $count);
+            $summary[] = [
+                'id' => $question['id'],
+                'title' => $question['title'],
+                'average' => $sum / $count
+            ];
+        }
+
         $result = [
             'id' => $questionnaire['id'],
             'course_id' => $questionnaire['course_id'],
@@ -170,7 +184,8 @@ class QuestionnaireController extends Controller
             'questionnaire_title' => $questionnaire['questionnaire']['title'],
             'questionnaire_appointment' => $questionnaire['appointment'],
             'questions' => $questions,
-            'students' => $students
+            'students' => $students,
+            'summary' => $summary,
         ];
 
         $questionnaire = $result;

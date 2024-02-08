@@ -368,6 +368,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::delete('admin/questionnaires/{id}', [QuestionnaireController::class, 'destroy']);
                 Route::get('admin/questionnaires/{id}/edit', [QuestionnaireController::class, 'edit']);
                 Route::put('admin/questionnaires/{id}', [QuestionnaireController::class, 'update']);
+                Route::post('admin/questionnaires/clone', [QuestionnaireController::class, 'clone']);
 
 
                 Route::get('getsecretkey', 'GenerateApiController@getkey')->name('get.api.key');

@@ -15,6 +15,8 @@
   "It will removed installments from all chapters associated with the installment number and turn off course installments.": "It will removed installments from all chapters associated with the installment number and turn off course installments.",
   "Start Date:": "Start Date:",
   "End Date:": "End Date:",
+  "adminstaticword.QuesionnaireTopic": "Questionnaire Title",
+  "adminstaticword.QuesionnaireDate": "Questionnaire Date",
   "Enter revenue percentage": "Enter revenue percentage",
   "Please Enter Skills": "Please Enter Skills",
   "Please Choose": "Please Choose",

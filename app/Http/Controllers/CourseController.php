@@ -45,6 +45,7 @@ use App\OfflineSession;
 use App\CoursesInBundle;
 use App\secondaryCategory;
 use App\SessionEnrollment;
+use App\QuestionnaireCourse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -55,12 +56,12 @@ use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Artesaos\SEOTools\Facades\SEOMeta;
 use Artesaos\SEOTools\Facades\SEOTools;
-use Artesaos\SEOTools\Facades\OpenGraph;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Artesaos\SEOTools\Facades\OpenGraph;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class CourseController extends Controller
 {
@@ -160,10 +161,26 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if ($row->price == $row->discount_price && (is_null($row->discount_type) || !is_null($row->discount_type))) {
-                        return __('Free');
+                    if (is_null($row->discount_type)) {
+                        if ($row->discount_price != 0) {
+                            return __('Paid');
+                        } elseif ($row->discount_price == 0) {
+                            return __('Free');
+                        }
                     } else {
-                        return __('Paid');
+                        if ($row->discount_type == 'percentage') {
+                            if ($row->discount_price >= 100) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        } elseif ($row->discount_type == 'fixed') {
+                            if ($row->discount_price >= $row->price) {
+                                return __('Free');
+                            } else {
+                                return __('Paid');
+                            }
+                        }
                     }
                 })
                 ->editColumn('status', 'admin.course.datatables.status')
@@ -816,11 +833,32 @@ class CourseController extends Controller
             ->activeOrder()
             ->exists();
 
+        //return questionnaire here
+        $questionnaires = QuestionnaireCourse::where('course_id', $id)->with('questionnaire:id,title')->get(['id', 'course_id', 'questionnaire_id', 'appointment']);
+        $questionnaires = $questionnaires->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'appointment' => $item->appointment,
+                'questionnaire_title' => $item->questionnaire->title,
+                'course_id' => $item->course_id,
+                'questionnaire_id' => $item->questionnaire->id
+            ];
+        });
+
+        $allQuestionnaires = QuestionnaireCourse::with('course:id,title')
+            ->with('questionnaire:id,title')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->get();
+        if($allQuestionnaires){
+            $allQuestionnaires = $allQuestionnaires->toArray();
+        }else{
+            $allQuestionnaires = [];
+        }
+
         // $papers = PreviousPaper::where('course_id', '=', $id)->get();
         // $countries = Allcountry::get();
 
         // return view('admin.course.show', compact('installments', 'cor', 'course', 'courseinclude', 'whatlearns', 'coursechapters', 'coursechapter', 'relatedcourse', 'courseclass', 'announsments', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'appointment', 'papers', 'users', 'countries'));
-        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists'));
+        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires','allQuestionnaires'));
     }
 
     public function duplicate(Request $request, $id)

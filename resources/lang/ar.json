@@ -14,6 +14,9 @@
   "Due Date": "تاريخ الاستحقاق",
   "envato": "إنفاتو",
   "regular": "عادي",
+
+  "adminstaticword.QuesionnaireTopic": "عنوان التقييم",
+  "adminstaticword.QuesionnaireDate": "تاريخ التقييم",
   "Saved successfully": "حفظ بنجاح",
   "Deleted Successfully": "حذف بنجاح",
   "Please select field to be deleted.": "الرجاء تحديد الحقل المراد حذفه.",

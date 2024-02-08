@@ -42,7 +42,7 @@ class LoginController extends Controller {
             $query->where('mobile', trim($request->email))->where('role', 'user');
         })->first();
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . Str::remove('+', trim($request->email)) . "' and `role` = 'user'))")->first();
-        
+
         if (isset($authUser) && $authUser->status == 0) {
             return response()->json(array("errors" => ["message" => [__('Blocked User')]]), 406);
         } else {

@@ -51,7 +51,6 @@ class CourseController extends Controller
 
             if (!$exist) {
                 return response()->json(['errors' => ['message' => [__('Course not exist OR may have been disabled')]]], 422);
-
             }
 
         } else {

@@ -9,12 +9,14 @@
   "All Enrollments": "All Enrollments",
 
   "You have received an email which contains two factor login code. If you haven't received it, press": "You have received an email which contains two factor login code. If you haven't received it, press",
-
+  "adminstaticword.Questionnaire": "Questionnaire",
   "Duplicate": "Duplicate",
   "Do you want to reset course ": "Do you want to reset course ",
   "It will removed installments from all chapters associated with the installment number and turn off course installments.": "It will removed installments from all chapters associated with the installment number and turn off course installments.",
   "Start Date:": "Start Date:",
   "End Date:": "End Date:",
+  "adminstaticword.QuesionnaireTopic": "Questionnaire Title",
+  "adminstaticword.QuesionnaireDate": "Questionnaire Date",
   "Enter revenue percentage": "Enter revenue percentage",
   "Please Enter Skills": "Please Enter Skills",
   "Please Choose": "Please Choose",

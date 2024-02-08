@@ -172,7 +172,7 @@ class QuestionnaireController extends Controller
             $summary[] = [
                 'id' => $question['id'],
                 'title' => $question['title'],
-                'average' => $sum / $count
+                'average' => $count == 0 ? $sum / $count : $count
             ];
         }
 

@@ -845,11 +845,20 @@ class CourseController extends Controller
             ];
         });
 
+        $allQuestionnaires = QuestionnaireCourse::with('course:id,title')
+            ->with('questionnaire:id,title')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->get();
+        if($allQuestionnaires){
+            $allQuestionnaires = $allQuestionnaires->toArray();
+        }else{
+            $allQuestionnaires = [];
+        }
+
         // $papers = PreviousPaper::where('course_id', '=', $id)->get();
         // $countries = Allcountry::get();
 
         // return view('admin.course.show', compact('installments', 'cor', 'course', 'courseinclude', 'whatlearns', 'coursechapters', 'coursechapter', 'relatedcourse', 'courseclass', 'announsments', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'appointment', 'papers', 'users', 'countries'));
-        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires'));
+        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires','allQuestionnaires'));
     }
 
     public function duplicate(Request $request, $id)

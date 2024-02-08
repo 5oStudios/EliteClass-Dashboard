@@ -172,7 +172,7 @@ class QuestionnaireController extends Controller
             $summary[] = [
                 'id' => $question['id'],
                 'title' => $question['title'],
-                'average' => $sum / $count
+                'average' => $count == 0 ? $sum / $count : $count
             ];
         }
 
@@ -422,4 +422,55 @@ class QuestionnaireController extends Controller
             'questionnaires' => $questionnaires
         ]);
     }
+
+    public function clone (Request $request)
+    {
+        $request->validate([
+            'appointment' => 'required|date_format:Y-m-d',
+            'title' => 'required|string|max:250',
+            'course_id' => 'required|integer|exists:courses,id',
+            'questionnaire_id' => 'required|integer|exists:questionnaires_courses,id'
+        ]);
+
+        $questionnaire = QuestionnaireCourse::where('id', $request->questionnaire_id)
+            ->with('questionnaire.questionBonds.question')
+            ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])
+            ->first();
+
+        if (!$questionnaire) {
+            return response()->json([
+                "message" => "No questionnaire with this id"
+            ], 404);
+        }
+        $questionnaire = $questionnaire->toArray();
+
+        $questions = [];
+        for ($i = 0; $i < count($questionnaire['questionnaire']['question_bonds']); $i++) {
+            $questions[] = $questionnaire['questionnaire']['question_bonds'][$i]['question']['title'];
+        }
+
+        $questionnaire = Questionnaire::create([
+            'title' => $request->title
+        ]);
+
+        foreach ($questions as $q) {
+            $question = QuestionnaireQuestion::create([
+                'title' => $q
+            ]);
+
+            QuestionnaireQuestionBond::create([
+                'questionnaire_id' => $questionnaire->id,
+                'question_id' => $question->id
+            ]);
+        }
+
+        QuestionnaireCourse::create([
+            'questionnaire_id' => $questionnaire->id,
+            'course_id' => $request->course_id,
+            'appointment' => $request->appointment
+        ]);
+
+        return back();
+    }
+
 }

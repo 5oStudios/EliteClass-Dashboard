@@ -24,9 +24,10 @@ use App\Http\Controllers\Api\VerificationController;
 // Route::get('/questionnaires/{id}', [QuestionnaireController::class, 'show']);
 // Route::put('/questionnaires/{id}', [QuestionnaireController::class, 'update']);
 // Route::delete('/questionnaires/{id}', [QuestionnaireController::class, 'destroy']);
-Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
+// Route::post('/questionnaires/{id}/answer/public', [QuestionnaireController::class, 'answer']);
 // Route::get('/questionnaires/user/all/public', [QuestionnaireController::class, 'getQuestionnairesForStudent']);
-Route::get('questionnaires/{id}/edit', [QuestionnaireController::class, 'edit']);
+// Route::get('questionnaires/{id}/edit', [QuestionnaireController::class, 'edit']);
+// Route::post('questionnaires/clone', [QuestionnaireController::class, 'clone']);
 
 
 // Route::get('attendee', function () {

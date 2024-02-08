@@ -190,7 +190,7 @@ class QuestionnaireController extends Controller
 
         $questionnaire = $result;
 
-        // dd($questionnaire);
+        //dd($questionnaire);
 
         return view('admin.course.questionnaire.questionnaire', compact('questionnaire'));
     }

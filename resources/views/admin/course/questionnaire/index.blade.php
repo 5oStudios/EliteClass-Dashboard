@@ -41,7 +41,7 @@
                                                 class="feather icon-more-vertical-"></i></button>
                                         <div class="dropdown-menu" aria-labelledby="CustomdropdownMenuButton1">
                                                 <a class="dropdown-item" href="{{url('admin/questionnaires/'.$q['id'].'/edit')}}"><i
-                                                        class="feather icon-edit mr-2"></i>{{ __('Edit') }}</a>
+                                                        class="feather icon-eye mr-2"></i>{{ __('View') }}</a>
                                             <!-- @can('Quesionnaire.view')
                                                 @if(auth()->user()->role == 'admin')
                                                     <a class="dropdown-item" href="{{route('questions.show', $topic->id)}}"><i

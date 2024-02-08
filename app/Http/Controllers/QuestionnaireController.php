@@ -137,10 +137,18 @@ class QuestionnaireController extends Controller
         if ($distinctUsers) {
             $distinctUsers = $distinctUsers->toArray();
         }
-        // dd($distinctUsers);
+        dd($distinctUsers);
+
         $students = [];
         foreach ($distinctUsers as $distinct) {
             $user = User::where('id', $distinct['student_id'])->first();
+            $answers = QuestionnaireAnswer::where('student_id', $user['id'])
+                ->where('questionnaire_course_id', $id)->get();
+            if ($answers) {
+                $answers = $answers->toArray();
+            } else {
+                $answers = [];
+            }
             if ($user) {
                 $user = $user->toArray();
                 $students[] = [
@@ -148,7 +156,8 @@ class QuestionnaireController extends Controller
                     'fname' => $user['fname'],
                     'lname' => $user['lname'],
                     'email' => $user['email'],
-                    'answer_date' => $distinct['answer_date']
+                    'answer_date' => $distinct['answer_date'],
+                    'answers' => $answers,
                 ];
             }
         }

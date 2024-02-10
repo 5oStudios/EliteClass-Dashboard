@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\SendOtp;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\RenameVideo;
@@ -25,6 +26,7 @@ class Kernel extends ConsoleKernel
         RenameVideo::class,
         Commands\DatabaseBackUp::class,
         ReplaceFiles::class,
+        SendOtp::class
     ];
 
     /**
@@ -41,6 +43,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->job(new PendingInstalmentDueDateAlert)->daily();
         $schedule->job(new EnrolledUserOnExpiredSession)->everyMinute();
+        $schedule->command('otp:fetch')->everyMinute();
     }
 
     /**

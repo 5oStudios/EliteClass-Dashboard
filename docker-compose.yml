@@ -89,6 +89,21 @@ services:
     ports:
       - '6379:6379'
 
+  cron:
+    build:
+      context: docker/cron
+      dockerfile: Dockerfile
+    container_name: lms-cron
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    networks:
+      - lms-network
+    depends_on:
+      - dashboard
+    profiles:
+      - production
+
 # volumes
 volumes:
   dashboard:

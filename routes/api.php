@@ -517,4 +517,7 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
   Route::get('/currencies', 'Api\OtherApiController@currencies');
   Route::post('/currency/rates', 'Api\OtherApiController@currency_rates');
 
+  // sendOtp route
+  Route::post('send-otp', 'Api\SendOtpController@sendOtp');
+
 });

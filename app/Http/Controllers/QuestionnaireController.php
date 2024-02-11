@@ -293,8 +293,8 @@ class QuestionnaireController extends Controller
         $request->validate([
             'answers' => 'required|array|min:1',
             'answers.*.question_id' => 'required|integer|exists:questionnaires_questions,id',
-            'answers.*.rate' => 'required|integer|min:0|max:5',
-            'answers.*.answer' => 'required|string|max:250',
+            'answers.*.rate' => 'required|numeric|min:0|max:5',
+            'answers.*.answer' => 'sometimes|string|max:250',
         ]);
 
         $questionnaire = QuestionnaireCourse::Where('id', $id)
@@ -350,7 +350,7 @@ class QuestionnaireController extends Controller
                 'student_id' => Auth::user()->id,
                 'question_id' => $request->answers[$i]['question_id'],
                 'rate' => $request->answers[$i]['rate'],
-                'answer' => $request->answers[$i]['answer'],
+                'answer' => $request->answers[$i]['answer'] ?? null,
                 'answer_date' => $current
             ]);
         }

@@ -266,6 +266,8 @@ class MainController extends Controller
                 'date_time' => $m->start_time,
                 'image' => url('images/bg/' . $m->image),
                 'discount_price' => $m->discount_price,
+                'price' => $m->price,
+                'discount_type' => $m->discount_type
             ];
         });
 
@@ -4008,10 +4010,14 @@ class MainController extends Controller
 
         $orders = Order::whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
-        })->with(['courses', 'bundle', 'payment_plan' => function ($query) {
-            $query->where('due_date', '<=', now()->addDays(2))
-                ->where('status', null);
-        }])->get();
+        })->with([
+                    'courses',
+                    'bundle',
+                    'payment_plan' => function ($query) {
+                        $query->where('due_date', '<=', now()->addDays(2))
+                            ->where('status', null);
+                    }
+                ])->get();
 
         $response = $orders->flatMap(function ($order) {
             return $order->payment_plan->filter()->map(function ($paymentPlan) use ($order) {

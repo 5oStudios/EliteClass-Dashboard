@@ -30,7 +30,8 @@
                         <div class="card mt-2 mb-2">
                             <div class="card-body">
 
-                                <h5 class="card-title">{{ $question['quiz']['question'] }}    <span>
+                                <h5 class="card-title">{{ str_replace('%_&', ' --------- ', $question['quiz']['question']) }}
+                                    <span>
                                     @if($question['grade'] == 1) 
                                         <span><i class="text-success">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -108,11 +109,11 @@
           <div class="d-flex justify-content-center align-items-center">
             @if(is_null($remark))
               <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#feedbackModal">
-              {{__(leave_feedback)}}
+              {{ __('leave_feedback') }}
               </button>
             @else
               <button type="button" class="btn btn-warning " data-toggle="modal" data-target="#feedbackModalUpdate">
-              {{__(update_feedback)}}
+              {{__('update_feedback')}}
               </button>
             @endif
           </div>
@@ -123,7 +124,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="feedbackModalLabel">{{__(leave_feedback)}}</h5>
+                    <h5 class="modal-title" id="feedbackModalLabel">{{__('leave_feedback')}}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                     </button>
@@ -135,12 +136,12 @@
                         <input type="text" name="student_id" value="{{$student['id']}}" hidden>
                         <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
                         <div class="form-group">
-                            <label for="feedbackTextArea">{{__(feedback)}}</label>
+                            <label for="feedbackTextArea">{{__('feedback')}}</label>
                             <textarea name="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3"></textarea>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__(Close)}}</button>
-                            <button type="submit" class="btn btn-success">{{__(Submit)}}</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__('Close')}}</button>
+                            <button type="submit" class="btn btn-success">{{__('Submit')}}</button>
                         </div>
                     </form>
                 </div>
@@ -153,7 +154,7 @@
                   <div class="modal-dialog" role="document">
                             <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="feedbackModalLabel">{{__(update_feedback)}}</h5>
+                                <h5 class="modal-title" id="feedbackModalLabel">{{__('update_feedback')}}</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                                 </button>
@@ -166,13 +167,13 @@
                                     <input type="text" name="student_id" value="{{$student['id']}}" hidden>
                                     <input type="text" name="topic_id" value="{{$topic['id']}}" hidden>
                                     <div class="form-group">
-    <label for="feedbackTextArea">{{__(feedback)}}</label>
+    <label for="feedbackTextArea">{{__('feedback')}}</label>
     <textarea name="content" id="content" style="border:black solid 1px !important" class="form-control" id="feedbackTextArea" rows="3">{{ old('content', $remark->content) }}</textarea>
 </div>
 
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__(Close)}}</button>
-                                        <button type="submit" class="btn btn-success">{{__(Submit)}}</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{__('Close')}}</button>
+                                        <button type="submit" class="btn btn-success">{{__('Submit')}}</button>
                                     </div>
                                 </form>
                             </div>

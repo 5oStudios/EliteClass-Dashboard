@@ -80,7 +80,7 @@ class SendOtp extends Command
 
                     if ($response->successful()){
                         $sentOpts = array_merge($sentOpts, [$otp['two_factor_code']]);
-                        Cache::put('otp_sent', $sentOpts, now()->addMinutes(10));
+                        Cache::put('otp_sent', $sentOpts, now()->addDay());
                     }
 
                 } catch (\Exception $e) {

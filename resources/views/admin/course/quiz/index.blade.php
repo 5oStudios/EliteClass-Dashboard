@@ -216,7 +216,7 @@
                                                                     <label for="exampleInputDetails">{{ __('adminstaticword.AOption') }} :<sup
                                                                             class="redstar">*</sup></label>
                                                                     <input type="text" name="a" value="{{ $quiz->a }}" class="form-control"
-                                                                           placeholder="{{_('Enter Option A')}}" required />
+                                                                           placeholder="{{ __('Enter Option A') }}" required />
                                                                 </div>
 
                                                                 <div class="col-md-12">

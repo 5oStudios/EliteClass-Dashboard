@@ -69,10 +69,18 @@
                                 </div>
                                 <div style="display: none" class="form-group col-md-6 course-enable">
                                     <label>{{ __('adminstaticword.Courses') }}:<span class="redstar">*</span></label>
-                                    <select name="course_id" id="course_id" class="select2 form-control">
+                                    <select  name="course_id" id="course_id"  class="select2 form-control">
+                                    <option disabled selected>Please select Course</option>
                                         @foreach ($course as $cor)
-                                            <option value="{{ $cor->id }}">{{ $cor->title }}</option>
+                                            <option value="{{ $cor->id }}" data-installments="{{ json_encode($cor->installments) }}">{{ $cor->title }}</option>
                                         @endforeach
+                                    </select>
+                                </div>
+
+                                <div style="display: none" class="form-group col-md-6 " id="installment_container">
+                                    <label id="installment_label">{{ __('adminstaticword.Installment') }}:<span class="redstar">*</span></label>
+                                    <select name="unlock_installment" id="installment" class="select form-control">
+                                        <!-- Options will be dynamically populated using JavaScript -->
                                     </select>
                                 </div>
 
@@ -187,7 +195,7 @@
                                             class="form-control">
                                     </div>
                                 @endif
-
+                                
                                 <div class="form-group col-md-6">
                                 <label for="exampleInputSlug">{{ __('adminstaticword.Price') }}: <sup
                                                 class="redstar">*</sup></label>
@@ -339,10 +347,45 @@ if (discountType === 'percentage') {
     prefixElement.textContent = '';
 }
 };
+$("#course_id").change(updateInstallments);
 
+    function updateInstallments() {
+        // Get the selected course ID
+        var selectedCourseId = $("#course_id").val();
+
+        // Get the selected course's installments
+        var installments = $("#course_id option:selected").data("installments");
+
+        // Get the installment select element
+        var installmentSelect = $("#installment");
+        var installmentContainer = $('#installment_container')
+        // Clear existing options
+        installmentSelect.empty();
+
+        // Check if installments array is not empty
+        if (installments.length > 0) {
+            // Show the installment select
+            installmentContainer.show()
+            // Populate options based on the selected course's installments
+            $.each(installments, function (index, installment) {
+                var option = $("<option>").val(installment.sort).text(installment.sort);
+                installmentSelect.append(option);
+            });
+
+            // Make the installmentSelect required
+            installmentSelect.prop('required', true);
+        } else {
+            // Hide the installment select if the array is empty
+            installmentContainer.hide()
+            // Make the installmentSelect not required
+            installmentSelect.prop('required', false);
+        }
+    }
 // Add an event listener to the discount type select element
 $('#discount_type').change(()=>{
 updatePrefix()            })
+
+
 
 // Initial call to set the prefix based on the default selected value
 updatePrefix();

@@ -294,7 +294,7 @@ class QuestionnaireController extends Controller
             'answers' => 'required|array|min:1',
             'answers.*.question_id' => 'required|integer|exists:questionnaires_questions,id',
             'answers.*.rate' => 'required|integer|min:0|max:5',
-            'answers.*.answer' => 'required|string|max:250',
+            'answers.*.answer' => 'sometimes|string|max:250',
         ]);
 
         $questionnaire = QuestionnaireCourse::Where('id', $id)

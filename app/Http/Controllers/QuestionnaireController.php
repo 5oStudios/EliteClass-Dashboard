@@ -350,7 +350,7 @@ class QuestionnaireController extends Controller
                 'student_id' => Auth::user()->id,
                 'question_id' => $request->answers[$i]['question_id'],
                 'rate' => $request->answers[$i]['rate'],
-                'answer' => $request->answers[$i]['answer'],
+                'answer' => $request->answers[$i]['answer'] ?? null,
                 'answer_date' => $current
             ]);
         }

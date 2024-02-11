@@ -97,19 +97,21 @@ class BigBlueController extends Controller
     public function create()
     {
         if (Auth::user()->role == "admin") {
-            $course = Course::query()
+            $course = Course::with('installments')
                 ->active()
                 ->get();
+            dd($course);
             $users = User::query()
                 ->where('id', '!=', Auth::user()->id)
                 ->where('role', '!=', 'user')
                 ->active()
                 ->get();
         } else {
-            $course = Course::query()
+            $course = Course::with('installments')
                 ->where('user_id', Auth::user()->id)
                 ->active()
                 ->get();
+            dd($course->toArray());
             $users = User::query()
                 ->where('id', Auth::user()->id)
                 ->active()

@@ -293,7 +293,7 @@ class QuestionnaireController extends Controller
         $request->validate([
             'answers' => 'required|array|min:1',
             'answers.*.question_id' => 'required|integer|exists:questionnaires_questions,id',
-            'answers.*.rate' => 'required|integer|min:0|max:5',
+            'answers.*.rate' => 'required|numeric|min:0|max:5',
             'answers.*.answer' => 'sometimes|string|max:250',
         ]);
 

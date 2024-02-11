@@ -19,7 +19,7 @@ class CreateTableQuestionnairesAnswers extends Migration
                 $table->unsignedBigInteger('questionnaire_course_id');
                 $table->unsignedInteger('student_id');
                 $table->unsignedBigInteger('question_id');
-                $table->integer('rate');
+                $table->decimal('rate');
                 $table->string('answer')->nullable();
                 $table->dateTime('answer_date');
                 $table->timestamps();

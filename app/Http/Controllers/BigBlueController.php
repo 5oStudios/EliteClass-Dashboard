@@ -100,7 +100,6 @@ class BigBlueController extends Controller
             $course = Course::with('installments')
                 ->active()
                 ->get();
-            dd($course);
             $users = User::query()
                 ->where('id', '!=', Auth::user()->id)
                 ->where('role', '!=', 'user')
@@ -111,7 +110,6 @@ class BigBlueController extends Controller
                 ->where('user_id', Auth::user()->id)
                 ->active()
                 ->get();
-            dd($course->toArray());
             $users = User::query()
                 ->where('id', Auth::user()->id)
                 ->active()
@@ -128,14 +126,14 @@ class BigBlueController extends Controller
         $meeting = BBL::findOrFail($meetingid);
 
         if (Auth::user()->role == "admin") {
-            $course = Course::all();
+            $course = Course::with('installments')->all();
             $users = User::query()
                 ->where('id', '!=', Auth::user()->id)
                 ->where('role', '!=', 'user')
                 ->active()
                 ->get();
         } else {
-            $course = Course::where('user_id', Auth::user()->id)->get();
+            $course = Course::with('installments')->where('user_id', Auth::user()->id)->get();
             $users = User::where('id', Auth::user()->id)->first();
         }
 
@@ -172,6 +170,7 @@ class BigBlueController extends Controller
             'discount_type' => 'sometimes|string|in:fixed,percentage',
             'setMaxParticipants' => 'required|numeric|min:1',
             'welcomemsg' => 'max:250',
+            'unlock_installment' => 'sometimes|integer|min:1|max:5'
         ], [
             "main_category.required_without" => __("Country name is required"),
             "scnd_category_id.required_with" => __("Type of institute field is required"),
@@ -296,7 +295,6 @@ class BigBlueController extends Controller
 
         //create the meeting as a chapter in the course
         if ($input['link_by'] == 'course') {
-
             $chapter = CourseChapter::create([
                 'course_id' => $input['course_id'],
                 'chapter_name' => $request->meetingname,
@@ -307,7 +305,8 @@ class BigBlueController extends Controller
                 'discount_price' => $request->discount_price,
                 'user_id' => $request->instructor_id,
                 'position' => (CourseChapter::count() + 1),
-                'status' => 1
+                'status' => 1,
+                'unlock_installment' => $request->unlock_installment ?? null
             ]);
 
             // $courseclass = new CourseClass();
@@ -347,6 +346,7 @@ class BigBlueController extends Controller
             'price' => 'required|numeric|min:0',
             'discount_price' => 'sometimes|numeric|min:0',
             'discount_type' => 'sometimes|string|in:fixed,percentage',
+            'unlock_installment' => 'sometimes|integer|min:1|max:5'
         ], [
             "main_category.required_without" => __("Country name is required"),
             "scnd_category_id.required_with" => __("Type of institute field is required"),

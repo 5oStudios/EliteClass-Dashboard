@@ -330,6 +330,8 @@
 
                     } else {
                         $('#course_id').val('').trigger('change');
+                        $('#installment_container').val('').trigger('change');
+                        $('#installment_container').css('display', 'none');
                         $('.course-enable').hide('fast');
                         $('.indv-bbl').show('fast');
                     }
@@ -363,7 +365,7 @@ $("#course_id").change(updateInstallments);
         installmentSelect.empty();
 
         // Check if installments array is not empty
-        if (installments.length > 0) {
+        if (installments?.length > 0) {
             // Show the installment select
             installmentContainer.show()
             // Populate options based on the selected course's installments

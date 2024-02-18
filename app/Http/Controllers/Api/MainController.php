@@ -4005,7 +4005,6 @@ class MainController extends Controller
     public function overdue()
     {
         $userId = Auth::user()->id;
-        // $userId = 5495;
 
         $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
@@ -4020,7 +4019,6 @@ class MainController extends Controller
         $ids = [];
         if ($ordersIds) {
             foreach ($ordersIds as $orderId) {
-                // dd($orderId->toArray());
                 $ids[] = $orderId->id;
             }
         }
@@ -4035,29 +4033,28 @@ class MainController extends Controller
                             ->where('status', null);
                         // ->where('due_date', '<=', now()->addDays(2))
                     }
-                ])->get();
+                ])
+            ->get();
 
-        $response = $orders->flatMap(function ($order) {
-            return $order->payment_plan->filter()->map(function ($paymentPlan) use ($order) {
-                $item = null;
-                if (isset($order->courses) && !empty($order->courses->title)) {
-                    $item = $order->courses;
-                } elseif (isset($order->bundle) && !empty($order->bundle->title)) {
-                    $item = $order->bundle;
-                }
-                return [
-                    'typeId' => $item->id,
-                    'name' => $item->title,
-                    'type' => isset($order->courses) ? 'course' : 'bundle',
-                    'image' => url($item->preview_image),
-                    'installmentId' => $paymentPlan->id,
-                    'dueDate' => \Carbon\Carbon::parse($paymentPlan->due_date)->format('Y-m-d'),
-                    'amount' => $paymentPlan ? $paymentPlan->amount : null,
-                ];
-            });
-        });
+        $response = [];
 
-        return response()->json($response->all());
+        for ($i = 0; $i < count($orders); $i++) {
+            $item = null;
+            if (isset($orders[$i]->courses) && !empty($orders[$i]->courses->title)) {
+                $item = $orders[$i]->courses;
+            } elseif (isset($orders[$i]->bundle) && !empty($orders[$i]->bundle->title)) {
+                $item = $orders[$i]->bundle;
+            }
+            $response[] = [
+                'typeId' => $item->id,
+                'name' => $item->title,
+                'type' => isset($orders[$i]->courses) ? 'course' : 'bundle',
+                'image' => url($item->preview_image),
+                'installments' => $orders[$i]->payment_plan,
+            ];
+        }
+
+        return response()->json($response);
 
     }
 }

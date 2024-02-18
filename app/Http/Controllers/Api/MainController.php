@@ -4002,20 +4002,38 @@ class MainController extends Controller
         }
     }
 
-    public function overdue($userId)
+    public function overdue()
     {
+        $userId = Auth::user()->id;
+        // $userId = 5495;
 
-        $user = User::findOrFail($userId);
-        $userId = $user->id;
+        $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->with([
+                    'payment_plan' => function ($query) {
+                        $query
+                            ->where('due_date', '<=', now()->addDays(2))
+                            ->where('status', null);
+                    }
+                ])->select('id')->get();
 
-        $orders = Order::whereHas('installments_list', function ($query) use ($userId) {
+        $ids = [];
+        if ($ordersIds) {
+            foreach ($ordersIds as $orderId) {
+                // dd($orderId->toArray());
+                $ids[] = $orderId->id;
+            }
+        }
+
+        $orders = Order::whereIn('id', $ids)->whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with([
                     'courses',
                     'bundle',
                     'payment_plan' => function ($query) {
-                        $query->where('due_date', '<=', now()->addDays(2))
+                        $query
                             ->where('status', null);
+                        // ->where('due_date', '<=', now()->addDays(2))
                     }
                 ])->get();
 

@@ -49,8 +49,8 @@ class UserController extends Controller
     {
         abort_if(!auth()->user()->can('users.view'), 403, __('User does not have the right permissions'));
 
-         $data = User::query()
-                    ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id())->latest();
+        $data = User::query()
+            ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id())->latest();
 
         if ($request->ajax()) {
             return DataTables::of($data)
@@ -100,8 +100,8 @@ class UserController extends Controller
     public function viewAllZakiUser(Request $request)
     {
         abort_if(!auth()->user()->can('users.view'), 403, __('User does not have the right permissions'));
-        
-         $data = User::select('id', 'fname', 'lname', 'email', 'mobile', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id());
+
+        $data = User::select('id', 'fname', 'lname', 'email', 'mobile', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id());
 
         if ($request->ajax()) {
             return DataTables::of($data)
@@ -155,7 +155,8 @@ class UserController extends Controller
         $countries = Country::all();
         $roles = Role::all();
 
-        return view('admin.user.adduser')->with(['cities' => $cities, 'states' => $states, 'countries' => $countries, 'roles' => $roles]);
+        return view('admin.user.adduser')
+            ->with(['cities' => $cities, 'states' => $states, 'countries' => $countries, 'roles' => $roles]);
     }
 
 
@@ -172,12 +173,12 @@ class UserController extends Controller
             'full_phone' => 'required|unique:users,mobile',
             'role' => 'required|exists:roles,name',
             'password' => [
-                            'required',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ],
+                'required',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ],
 
         ], [
             'fname.required' => __('First Name is required'),
@@ -258,6 +259,65 @@ class UserController extends Controller
         return redirect('user')->with('success', trans('flash.AddedSuccessfully'));
     }
 
+    public function bulkAdd()
+    {
+        return view('admin.user.bulkAdd');
+    }
+
+    public function storeBulk(Request $request)
+    {
+
+        // [▼
+        //   0 => "Ahmed"
+        //   1 => "Elgamal"
+        //   2 => "cairo/egypt"
+        //   3 => "20123456789"
+        //   4 => "user"
+        //   5 => "123456789"
+        // ]
+
+        if (!$request->hasFile('csvFile')) {
+            return back()->with('error', 'Please select a CSV file');
+        }
+
+        $errors = [];
+
+        $path = $request->file('csvFile')->getRealPath();
+        $rows = array_map('str_getcsv', file($path));
+
+        for ($i = 1; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $exist = User::where('email', $row[2])->orWhere('mobile', $row[4])->first();
+            if ($exist) {
+                $errors[] = [
+                    "msg" => "This data is already exists",
+                    "row" => $row
+                ];
+            } else {
+                User::create([
+                    'fname' => $row[0],
+                    'lname' => $row[1],
+                    'email' => $row[2],
+                    'mobile' => $row[3],
+                    'role' => $row[4],
+                    'password' => bcrypt($row[5]),
+                ]);
+            }
+        }
+
+        if (count($errors)) {
+            return back()->with('waring', 'Bulk user created users successfully, But some data was invalid');
+        }
+
+        return back()->with('success', 'Bulk user created users successfully');
+    }
+
+    public function downloadFileSample()
+    {
+        $filePath = public_path('/excel/user_bulk.csv'); // Path to your file
+        return response()->download($filePath, 'user_bulk.csv');
+    }
+
 
     public function show(User $user)
     {
@@ -270,7 +330,7 @@ class UserController extends Controller
         abort_if(!auth()->user()->can('users.edit'), 403, __('User does not have the right permissions'));
 
         if ($id != Auth::id()) {
-            $categories = \App\Categories::where('status', true)->get(['id','title']);
+            $categories = \App\Categories::where('status', true)->get(['id', 'title']);
             $roles = Role::all();
             $user = User::findOrFail($id);
             if (Auth::user()->role == 'admin') {
@@ -311,12 +371,13 @@ class UserController extends Controller
             'timezone' => 'required',
             'full_phone' => 'required|unique:users,mobile,' . $id,
             'role' => 'required|exists:roles,name',
-            'password' => [ 'nullable',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ]
+            'password' => [
+                'nullable',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ]
         ], [
             'fname.required' => __('First Name is required'),
             'fname.min' => __('First Name must contain at least 3 characters'),
@@ -491,14 +552,14 @@ class UserController extends Controller
         abort_unless(auth()->user()->can('blocked-users.manage'), 403, __('User does not have the right permissions'));
 
         $blockedUsers = User::query()
-                        ->select('id', 'user_img', 'fname', 'lname', 'email', 'mobile', 'blocked_count', 'is_allow_multiple_device', 'is_locked', 'status', 'updated_at')
-                        ->where( function($query){
-                            $query->where('is_locked', 1)
-                            ->orWhere('blocked_count', '>', 0)
-                            ->orWhere('is_allow_multiple_device', 1);
-                        })
-                        ->latest('updated_at')
-                        ->with('fingerprint');
+            ->select('id', 'user_img', 'fname', 'lname', 'email', 'mobile', 'blocked_count', 'is_allow_multiple_device', 'is_locked', 'status', 'updated_at')
+            ->where(function ($query) {
+                $query->where('is_locked', 1)
+                    ->orWhere('blocked_count', '>', 0)
+                    ->orWhere('is_allow_multiple_device', 1);
+            })
+            ->latest('updated_at')
+            ->with('fingerprint');
 
         if ($request->ajax()) {
             return DataTables::of($blockedUsers)

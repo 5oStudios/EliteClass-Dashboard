@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\VerificationController;
   |
  */
 
-// Route::get('/test/{userId}', 'Api\MainController@overdue');
+Route::get('/test', 'Api\MainController@overdue');
 
 // Route::get('/questionnaires/', [QuestionnaireController::class, 'index']);
 // Route::post('/questionnaires', [QuestionnaireController::class, 'store']);
@@ -189,7 +189,7 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
     Route::post('my/calendar', 'Api\UserApiController@mycalendar');
     Route::post('user-categories', 'Api\UserApiController@updateUserCategories');
 
-    Route::get('/overdue/{userId}', 'Api\MainController@overdue');
+    Route::get('/overdue', 'Api\MainController@overdue');
 
     //cart
     Route::post('addtocart/course', 'Api\MainController@addtocartCourse');

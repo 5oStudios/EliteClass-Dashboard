@@ -76,6 +76,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
+use Illuminate\Support\Facades\Cache;
 
 class MainController extends Controller
 {
@@ -4002,44 +4003,72 @@ class MainController extends Controller
         }
     }
 
-    public function overdue($userId)
+    public function overdue()
     {
+        $userId = Auth::user()->id;
 
-        $user = User::findOrFail($userId);
-        $userId = $user->id;
+        $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->with([
+                    'payment_plan' => function ($query) {
+                        $query
+                            ->where('due_date', '<=', now()->addDays(2))
+                            ->where('status', null);
+                    }
+                ])->select('id')->get();
 
-        $orders = Order::whereHas('installments_list', function ($query) use ($userId) {
+        $ids = [];
+        if ($ordersIds) {
+            foreach ($ordersIds as $orderId) {
+                $ids[] = $orderId->id;
+            }
+        }
+
+        $orders = Order::whereIn('id', $ids)->whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with([
                     'courses',
                     'bundle',
                     'payment_plan' => function ($query) {
-                        $query->where('due_date', '<=', now()->addDays(2))
+                        $query
                             ->where('status', null);
+                        // ->where('due_date', '<=', now()->addDays(2))
                     }
-                ])->get();
+                ])
+            ->get();
 
-        $response = $orders->flatMap(function ($order) {
-            return $order->payment_plan->filter()->map(function ($paymentPlan) use ($order) {
-                $item = null;
-                if (isset($order->courses) && !empty($order->courses->title)) {
-                    $item = $order->courses;
-                } elseif (isset($order->bundle) && !empty($order->bundle->title)) {
-                    $item = $order->bundle;
-                }
-                return [
-                    'typeId' => $item->id,
-                    'name' => $item->title,
-                    'type' => isset($order->courses) ? 'course' : 'bundle',
-                    'image' => url($item->preview_image),
-                    'installmentId' => $paymentPlan->id,
-                    'dueDate' => \Carbon\Carbon::parse($paymentPlan->due_date)->format('Y-m-d'),
-                    'amount' => $paymentPlan ? $paymentPlan->amount : null,
+        $response = [];
+
+        $userPayInstallments = Cache::get($userId) ?? [];
+
+        for ($i = 0; $i < count($orders); $i++) {
+            $item = null;
+            if (isset($orders[$i]->courses) && !empty($orders[$i]->courses->title)) {
+                $item = $orders[$i]->courses;
+            } elseif (isset($orders[$i]->bundle) && !empty($orders[$i]->bundle->title)) {
+                $item = $orders[$i]->bundle;
+            }
+            $installments = [];
+            foreach ($orders[$i]->payment_plan as $paymentPlan) {
+                $installments[] = [
+                    'id' => $paymentPlan->id,
+                    'is_selected' => in_array($paymentPlan->id, $userPayInstallments) ? true : false,
+                    'amount' => $paymentPlan->amount,
+                    'due_date' => $paymentPlan->due_date,
+                    'status' => $paymentPlan->status,
+                    'installment_no' => $paymentPlan->installment_no,
                 ];
-            });
-        });
+            }
 
-        return response()->json($response->all());
+            $response[] = [
+                'typeId' => $item->id,
+                'name' => $item->title,
+                'type' => isset($orders[$i]->courses) ? 'course' : 'bundle',
+                'image' => url($item->preview_image),
+                'installments' => $installments,
+            ];
+        }
 
+        return response()->json($response);
     }
 }

@@ -196,6 +196,8 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('/locked', 'UserController@locked')->name('user.locked');
                 Route::get('/allow/multi/device', 'UserController@allowMultipleDevice')->name('user.allow.multiple.device');
                 Route::post('/bulk_delete', 'UserController@bulk_delete')->name('user.bulk_delete');
+
+                Route::get('/bulk_add', 'UserController@bulkAdd');
             });
 
             Route::prefix('alluser')->group(function () {

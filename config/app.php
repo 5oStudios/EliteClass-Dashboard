@@ -80,6 +80,7 @@ return [
     'demolock' => '0',
 
     'OTP' => env('OTP_ENABLE', true),
+    'fingerPrint' => env('FINGER_PRINT_ENABLE', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -189,9 +190,9 @@ return [
 
     'providers' => [
 
-            /*
-             * Laravel Framework Service Providers...
-             */
+        /*
+         * Laravel Framework Service Providers...
+         */
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,
@@ -221,9 +222,9 @@ return [
 
 
 
-            /*
-             * Package Service Providers...
-             */
+        /*
+         * Package Service Providers...
+         */
         Intervention\Image\ImageServiceProvider::class,
         DevMarketer\EasyNav\EasyNavServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
@@ -247,12 +248,12 @@ return [
         Torann\GeoIP\GeoIPServiceProvider::class,
         Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
 
-            /*
-             * Application Service Providers...
-             */
+        /*
+         * Application Service Providers...
+         */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-            // App\Providers\BroadcastServiceProvider::class,
+        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Itskodinger\Midia\MidiaServiceProvider::class,

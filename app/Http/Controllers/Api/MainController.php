@@ -76,6 +76,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\CourseController;
+use Illuminate\Support\Facades\Cache;
 
 class MainController extends Controller
 {
@@ -4038,6 +4039,8 @@ class MainController extends Controller
 
         $response = [];
 
+        $userPayInstallments = Cache::get($userId) ?? [];
+
         for ($i = 0; $i < count($orders); $i++) {
             $item = null;
             if (isset($orders[$i]->courses) && !empty($orders[$i]->courses->title)) {
@@ -4045,16 +4048,27 @@ class MainController extends Controller
             } elseif (isset($orders[$i]->bundle) && !empty($orders[$i]->bundle->title)) {
                 $item = $orders[$i]->bundle;
             }
+            $installments = [];
+            foreach ($orders[$i]->payment_plan as $paymentPlan) {
+                $installments[] = [
+                    'id' => $paymentPlan->id,
+                    'is_selected' => in_array($paymentPlan->id, $userPayInstallments) ? true : false,
+                    'amount' => $paymentPlan->amount,
+                    'due_date' => $paymentPlan->due_date,
+                    'status' => $paymentPlan->status,
+                    'installment_no' => $paymentPlan->installment_no,
+                ];
+            }
+
             $response[] = [
                 'typeId' => $item->id,
                 'name' => $item->title,
                 'type' => isset($orders[$i]->courses) ? 'course' : 'bundle',
                 'image' => url($item->preview_image),
-                'installments' => $orders[$i]->payment_plan,
+                'installments' => $installments,
             ];
         }
 
         return response()->json($response);
-
     }
 }

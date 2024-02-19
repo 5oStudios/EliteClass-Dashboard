@@ -49,8 +49,8 @@ class UserController extends Controller
     {
         abort_if(!auth()->user()->can('users.view'), 403, __('User does not have the right permissions'));
 
-         $data = User::query()
-                    ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id())->latest();
+        $data = User::query()
+            ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id())->latest();
 
         if ($request->ajax()) {
             return DataTables::of($data)
@@ -100,8 +100,8 @@ class UserController extends Controller
     public function viewAllZakiUser(Request $request)
     {
         abort_if(!auth()->user()->can('users.view'), 403, __('User does not have the right permissions'));
-        
-         $data = User::select('id', 'fname', 'lname', 'email', 'mobile', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id());
+
+        $data = User::select('id', 'fname', 'lname', 'email', 'mobile', 'role', 'status')->with(['roles'])->where('id', '!=', Auth::id());
 
         if ($request->ajax()) {
             return DataTables::of($data)
@@ -155,7 +155,8 @@ class UserController extends Controller
         $countries = Country::all();
         $roles = Role::all();
 
-        return view('admin.user.adduser')->with(['cities' => $cities, 'states' => $states, 'countries' => $countries, 'roles' => $roles]);
+        return view('admin.user.adduser')
+            ->with(['cities' => $cities, 'states' => $states, 'countries' => $countries, 'roles' => $roles]);
     }
 
 
@@ -172,12 +173,116 @@ class UserController extends Controller
             'full_phone' => 'required|unique:users,mobile',
             'role' => 'required|exists:roles,name',
             'password' => [
-                            'required',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ],
+                'required',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ],
+
+        ], [
+            'fname.required' => __('First Name is required'),
+            'fname.min' => __('First Name must contain at least 3 characters'),
+            'fname.max' => __('First Name should not be more than 20 characters'),
+            'fname.alpha' => __('First Name should only contains letters'),
+            'lname.required' => __('Last Name is required'),
+            'lname.min' => __('Last Name must contain at least 3 characters'),
+            'lname.max' => __('Last Name should not be more than 20 characters'),
+            'lname.alpha' => __('Last Name should only contains letters'),
+            'email.required' => __("Email is required"),
+            'email.email' => __("Email is invalid"),
+            'email.max' => __('Email maximum length is 40'),
+            'email.unique' => __('Email is already taken'),
+            'user_img.mimes' => __('Image must be a type of jpeg, jpg or png'),
+            'user_img.max' => __('Image size should not be more than 10 MB'),
+            'timezone.required' => __('Timezone is required'),
+            'full_phone.required' => __('Mobile number is required'),
+            'full_phone.unique' => __('Mobile number is already taken'),
+            'role.required' => __('Role is required'),
+            'password.required' => __('Password is required'),
+            'password.min' => __('Password must be at least 8 characters'),
+            'password.max' => __('Password should not be more than 50 characters'),
+            'password.mixedCase' => __('Password must contain at least one uppercase and one lowercase letter'),
+            'password.numbers' => __('Password must contain at least one number'),
+            'user_img.mimes' => __('Image must be a type of jpeg, jpg or png'),
+            'user_img.max' => __('Image size should not be greater 10 MB'),
+        ]);
+
+
+        $input = $request->all();
+        if ($file = $request->file('user_img')) {
+            $optimizeImage = Image::make($file);
+            $optimizePath = public_path() . '/images/user_img/';
+            $image = time() . $file->getClientOriginalName();
+            $optimizeImage->save($optimizePath . $image, 72);
+            $input['user_img'] = $image;
+        }
+        $input['status'] = isset($request->status) ? 1 : 0;
+        $input['password'] = Hash::make($request->password);
+        // $input['mobile'] = substr($request->full_phone, 1);
+        $input['country_code'] = substr($request->full_phone, 0, strpos($request->full_phone, str_replace(' ', '', $request->mobile)));
+        $input['mobile'] = $request->full_phone;
+        $input['detail'] = $request->detail;
+        $input['email_verified_at'] = \Carbon\Carbon::now()->toDateTimeString();
+
+        if ($request->user_id) {
+            $input['user_id'] = $request->user_id;
+        }
+
+        if ($request->role == 'user') {
+            $input['role'] = 'user';
+
+            if (Schema::hasTable('affiliate') && Schema::hasTable('wallet_settings')) {
+                $affiliate = Affiliate::first();
+                if (isset($affiliate) && $affiliate->status == 1) {
+                    $input['affiliate_id'] = User::createReferCode(); // Affiliate ID is actually a reffer code
+                } else {
+                    $input['affiliate_id'] = null;
+                }
+            } else {
+                $input['affiliate_id'] = null;
+            }
+
+        } elseif ($request->role == 'instructor') {
+            $input['role'] = 'instructor';
+        } elseif ($request->role == 'admin') {
+            $input['role'] = 'admin';
+        } else {
+            $input['role'] = $request->role;
+        }
+
+        $data = User::create($input);
+        $data->assignRole($request->role);
+        $data->save();
+
+        // Session::flash('success', trans('flash.AddedSuccessfully'));
+        return redirect('user')->with('success', trans('flash.AddedSuccessfully'));
+    }
+
+    public function bulkAdd()
+    {
+        return view('admin.user.bulkAdd');
+    }
+
+    public function storeBulk(Request $request)
+    {
+        abort_if(!auth()->user()->can('users.create'), 403, __('User does not have the right permissions'));
+
+        $request->validate([
+            'fname' => 'required|alpha|min:3|max:20',
+            'lname' => 'required|alpha|min:3|max:20',
+            'email' => 'required|email:rfc,dns|max:40|unique:users,email',
+            'user_img' => 'mimes:jpg,jpeg,png|max:10240',
+            'timezone' => 'required',
+            'full_phone' => 'required|unique:users,mobile',
+            'role' => 'required|exists:roles,name',
+            'password' => [
+                'required',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ],
 
         ], [
             'fname.required' => __('First Name is required'),
@@ -270,7 +375,7 @@ class UserController extends Controller
         abort_if(!auth()->user()->can('users.edit'), 403, __('User does not have the right permissions'));
 
         if ($id != Auth::id()) {
-            $categories = \App\Categories::where('status', true)->get(['id','title']);
+            $categories = \App\Categories::where('status', true)->get(['id', 'title']);
             $roles = Role::all();
             $user = User::findOrFail($id);
             if (Auth::user()->role == 'admin') {
@@ -311,12 +416,13 @@ class UserController extends Controller
             'timezone' => 'required',
             'full_phone' => 'required|unique:users,mobile,' . $id,
             'role' => 'required|exists:roles,name',
-            'password' => [ 'nullable',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ]
+            'password' => [
+                'nullable',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ]
         ], [
             'fname.required' => __('First Name is required'),
             'fname.min' => __('First Name must contain at least 3 characters'),
@@ -491,14 +597,14 @@ class UserController extends Controller
         abort_unless(auth()->user()->can('blocked-users.manage'), 403, __('User does not have the right permissions'));
 
         $blockedUsers = User::query()
-                        ->select('id', 'user_img', 'fname', 'lname', 'email', 'mobile', 'blocked_count', 'is_allow_multiple_device', 'is_locked', 'status', 'updated_at')
-                        ->where( function($query){
-                            $query->where('is_locked', 1)
-                            ->orWhere('blocked_count', '>', 0)
-                            ->orWhere('is_allow_multiple_device', 1);
-                        })
-                        ->latest('updated_at')
-                        ->with('fingerprint');
+            ->select('id', 'user_img', 'fname', 'lname', 'email', 'mobile', 'blocked_count', 'is_allow_multiple_device', 'is_locked', 'status', 'updated_at')
+            ->where(function ($query) {
+                $query->where('is_locked', 1)
+                    ->orWhere('blocked_count', '>', 0)
+                    ->orWhere('is_allow_multiple_device', 1);
+            })
+            ->latest('updated_at')
+            ->with('fingerprint');
 
         if ($request->ajax()) {
             return DataTables::of($blockedUsers)

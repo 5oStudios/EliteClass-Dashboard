@@ -198,6 +198,8 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::post('/bulk_delete', 'UserController@bulk_delete')->name('user.bulk_delete');
 
                 Route::get('/bulk_add', 'UserController@bulkAdd');
+                Route::post('/bulk_add', 'UserController@storeBulk')->name('user.bulk_store');
+                Route::get('/bulk_add_sample', 'UserController@downloadFileSample')->name('user.bulk_store_sample');
             });
 
             Route::prefix('alluser')->group(function () {

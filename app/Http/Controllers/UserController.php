@@ -266,16 +266,6 @@ class UserController extends Controller
 
     public function storeBulk(Request $request)
     {
-
-        // [▼
-        //   0 => "Ahmed"
-        //   1 => "Elgamal"
-        //   2 => "cairo/egypt"
-        //   3 => "20123456789"
-        //   4 => "user"
-        //   5 => "123456789"
-        // ]
-
         if (!$request->hasFile('csvFile')) {
             return back()->with('error', 'Please select a CSV file');
         }
@@ -299,14 +289,14 @@ class UserController extends Controller
                     'lname' => $row[1],
                     'email' => $row[2],
                     'mobile' => $row[3],
-                    'role' => $row[4],
-                    'password' => bcrypt($row[5]),
+                    'password' => bcrypt($row[4]),
+                    'role' => 'user',
                 ]);
             }
         }
 
         if (count($errors)) {
-            return back()->with('waring', 'Bulk user created users successfully, But some data was invalid');
+            return back()->with('warning', 'Bulk user created users successfully, But some data was invalid');
         }
 
         return back()->with('success', 'Bulk user created users successfully');

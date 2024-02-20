@@ -149,6 +149,13 @@
                                     </ul>
                                 </li>
                             @endcanany
+                            @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')  
+                                 <li>
+                                        <a href="{{ route('user.bulk_add') }}">
+                                            <i class="feather icon-users text-secondary"></i><span>{{ __('bulkAdd') }} {{ __('Students') }}</span>
+                                        </a>
+                                 </li>  
+                            @endif
 
                             @canany(['instructorrequest.view', 'instructor-pending-request.manage',
                                 'instructor-plan-subscription.view'])

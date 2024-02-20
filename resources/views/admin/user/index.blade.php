@@ -22,6 +22,7 @@
                     <a href="{{ route('user.add') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add User') }} </a>
                 @endcan
+               
             </div>
         </div>
     @endslot

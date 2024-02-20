@@ -43,7 +43,7 @@
                 <div class="form-group ml-2">
                     <label class="text-dark" for="exampleInputSlug">{{ __('upload') }} {{ __('CSV') }}: </label>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="exampleInputSlug" name="csvFile" accept=".csv">
+                        <input type="file" required class="custom-file-input" id="exampleInputSlug" name="csvFile" accept=".csv">
                         <label class="custom-file-label" for="exampleInputSlug">{{ __('Choose file') }}</label>
                     </div>
                 </div>

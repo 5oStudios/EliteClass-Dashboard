@@ -197,7 +197,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('/allow/multi/device', 'UserController@allowMultipleDevice')->name('user.allow.multiple.device');
                 Route::post('/bulk_delete', 'UserController@bulk_delete')->name('user.bulk_delete');
 
-                Route::get('/bulk_add', 'UserController@bulkAdd');
+                Route::get('/bulk_add', 'UserController@bulkAdd')->name('user.bulk_add');
                 Route::post('/bulk_add', 'UserController@storeBulk')->name('user.bulk_store');
                 Route::get('/bulk_add_sample', 'UserController@downloadFileSample')->name('user.bulk_store_sample');
             });

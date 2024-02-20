@@ -20,6 +20,10 @@
                     <a href="{{ route('alluser.add') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add Student') }}</a>
                 @endcan
+                @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')                   
+                 <a href="{{ route('user.bulk_add') }}" class="float-right btn btn-warning-rgba mr-2"><i
+                            class="feather icon-plus mr-2"></i>{{ __('bulkAdd') }} {{ __('adminstaticword.User') }} </a>
+                @endif
             </div>
         </div>
     @endslot

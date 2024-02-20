@@ -149,6 +149,13 @@
                                     </ul>
                                 </li>
                             @endcanany
+                            @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')  
+                                 <li>
+                                        <a href="{{ route('user.bulk_add') }}">
+                                            <i class="feather icon-users text-secondary"></i><span>{{ __('bulkAdd') }} {{ __('Students') }}</span>
+                                        </a>
+                                 </li>  
+                            @endif
 
                             @canany(['instructorrequest.view', 'instructor-pending-request.manage',
                                 'instructor-plan-subscription.view'])
@@ -379,12 +386,12 @@
                             <!-- ====================instructor start======================== -->
 
                             <!--===================instructor end====================================  -->
-                            @can(['coupons.view'])
-                                <li class="header">{{ __('Marketing') }}</li>
+                            <li class="header">{{ __('Marketing') }}</li>
+                            @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')  
                                 <li class="{{ Nav::isResource('coupon') }}"><a href="{{ url('coupon') }}"><i
                                             class="feather icon-award text-secondary"></i><span>{{ __('adminstaticword.Coupon') }}</span></a>
                                 </li>
-                            @endcan
+                            @endif
 
                             {{-- @can(['followers.manage'])
                                 <li class="{{ Nav::isRoute('follower.view') }}"><a

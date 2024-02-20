@@ -266,18 +266,15 @@ class UserController extends Controller
 
     public function storeBulk(Request $request)
     {
-
-        // [▼
-        //   0 => "Ahmed"
-        //   1 => "Elgamal"
-        //   2 => "cairo/egypt"
-        //   3 => "20123456789"
-        //   4 => "user"
-        //   5 => "123456789"
-        // ]
+        // dd("FOL", Auth::user());
+        if (!Auth::check()) {
+            return back()->withErrors(['Not authorized']);
+        } else if (Auth::user()->role != 'admin' && Auth::user()->role != 'ABPP') {
+            return back()->withErrors(['Not has a role']);
+        }
 
         if (!$request->hasFile('csvFile')) {
-            return back()->with('error', 'Please select a CSV file');
+            return back()->withErrors(['Please select a CSV file']);
         }
 
         $errors = [];
@@ -294,19 +291,21 @@ class UserController extends Controller
                     "row" => $row
                 ];
             } else {
-                User::create([
+                $data = User::create([
                     'fname' => $row[0],
                     'lname' => $row[1],
                     'email' => $row[2],
                     'mobile' => $row[3],
-                    'role' => $row[4],
-                    'password' => bcrypt($row[5]),
+                    'password' => Hash::make($row[4]),
+                    'role' => 'user',
                 ]);
+                $data->assignRole('user');
+                $data->save();
             }
         }
 
         if (count($errors)) {
-            return back()->with('waring', 'Bulk user created users successfully, But some data was invalid');
+            return back()->with('warning', 'Bulk user created users successfully, But some data was invalid');
         }
 
         return back()->with('success', 'Bulk user created users successfully');

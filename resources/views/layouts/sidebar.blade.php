@@ -55,7 +55,7 @@
                             @endcanany
                             <!-- Category end  -->
 
-                            @canany(['users.view', 'Alluser.view', 'Allinstructor.view', 'role.view'])
+                            @canany(['users.view','user.bulk', 'Alluser.view', 'Allinstructor.view', 'role.view'])
                                 <li class="header header-one">{{ __('Users') }}</li>
                                 <!-- user start  -->
                                 <li
@@ -71,6 +71,7 @@
                                                     href="{{ route('user.index') }}">{{ __('All Users') }}</a>
                                             </li>
                                         @endcan
+                                       
                                         @can('Alluser.view')
                                             <li>
                                                 <a class="{{ Nav::isResource('alluser') }}"

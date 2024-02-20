@@ -42,12 +42,12 @@
                         </div>
                     </div>
                 @endcan
-                @can('coupons.create')
+                @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')  
                     <a href="{{ route('coupon.bulk.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add Bulk Coupon') }}</a>
                     <a href="{{ route('coupon.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add Coupon') }}</a>
-                @endcan
+                @endif
             </div>
         @endslot
     @endcomponent

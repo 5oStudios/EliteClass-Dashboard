@@ -12,23 +12,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(AllcitiesTableSeeder::class);
-        $this->call(AllcountryTableSeeder::class);
-        $this->call(AllstatesTableSeeder::class);
-        $this->call(SettingsTableSeeder::class);
-        $this->call(LanguagesTableSeeder::class);
-        $this->call(CurrenciesTableSeeder::class);
-        $this->call(AboutsTableSeeder::class);
-        $this->call(CareersTableSeeder::class);
-        $this->call(ColorOptionsTableSeeder::class);
-        $this->call(InvoiceDesignSeeder::class);
-        $this->call(PlayerSettingsTableSeeder::class);
-        $this->call(AffiliateTableSeeder::class);
-        $this->call(WidgetSettingsTableSeeder::class);
-        $this->call(PermissionsTableSeeder::class);
-        $this->call(RolesTableSeeder::class);
-        $this->call(ModelHasPermissionsTableSeeder::class);
-        $this->call(ModelHasRolesTableSeeder::class);
-        $this->call(RoleHasPermissionsTableSeeder::class);
+        // $this->call(AllcitiesTableSeeder::class);
+        // $this->call(AllcountryTableSeeder::class);
+        // $this->call(AllstatesTableSeeder::class);
+        // $this->call(SettingsTableSeeder::class);
+        // $this->call(LanguagesTableSeeder::class);
+        // $this->call(CurrenciesTableSeeder::class);
+        // $this->call(AboutsTableSeeder::class);
+        // $this->call(CareersTableSeeder::class);
+        // $this->call(ColorOptionsTableSeeder::class);
+        // $this->call(InvoiceDesignSeeder::class);
+        // $this->call(PlayerSettingsTableSeeder::class);
+        // $this->call(AffiliateTableSeeder::class);
+        // $this->call(WidgetSettingsTableSeeder::class);
+        // $this->call(PermissionsTableSeeder::class);
+        // $this->call(RolesTableSeeder::class);
+        // $this->call(ModelHasPermissionsTableSeeder::class);
+        // $this->call(ModelHasRolesTableSeeder::class);
+        // $this->call(RoleHasPermissionsTableSeeder::class);
+
+        $this->call(ABPPSeeder::class);
     }
 }

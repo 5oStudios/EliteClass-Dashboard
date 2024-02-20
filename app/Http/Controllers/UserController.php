@@ -266,6 +266,10 @@ class UserController extends Controller
 
     public function storeBulk(Request $request)
     {
+        if (!Auth::check() || Auth::user()->role != 'admin' || Auth::user()->role != 'ABPP') {
+            return back()->with('error', 'Not authorized');
+        }
+
         if (!$request->hasFile('csvFile')) {
             return back()->with('error', 'Please select a CSV file');
         }

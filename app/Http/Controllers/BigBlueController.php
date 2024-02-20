@@ -745,6 +745,17 @@ class BigBlueController extends Controller
                 return view('bbl.setting')->with('delete', __('Recordings not found !'));
             }
 
+            foreach ($all_recordings->recording as $meeting) {
+                $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                if ($exist) {
+                    $existChapter = CourseChapter::where('type_id', $exist->id)->first();
+                }
+                if ($existChapter) {
+                    $meeting->course = $existChapter->course_id;
+                } else {
+                    $meeting->course = -1;
+                }
+            }
             return view('bbl.recordings', compact('all_recordings'));
         }
 

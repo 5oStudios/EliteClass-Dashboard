@@ -50,7 +50,8 @@
             </div>  
             <div class="row">
                 <div class="form-group">
-                    <button type="button" class="btn btn-secondary me-4">{{ __('downloadSample') }}</button>
+                  <a href="{{route('user.bulk_store_sample')}}" class="btn btn-secondary me-4"> {{__('downloadSample')}} </a>
+                    <!-- <button type="button" onClick="" class="btn btn-secondary me-4">{{ __('downloadSample') }}</button> -->
                     <button type="submit" class="btn btn-primary">{{ __('Submit') }}</button>
 
                 </div>

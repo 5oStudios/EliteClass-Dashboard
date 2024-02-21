@@ -44,14 +44,13 @@
                     </div>
                     <div class="card-body">
 
-                        <form autocomplete="off" action="{{ route('bbl.store') }}" method="POST"
+                        <form autocomplete="off" action="{{ route('link.meeting.create') }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
 
                             <div class="row">
                                
-
-                               
+                            <input type="hidden" name="meeting_id" value="{{ $meeting_id }}" />
                                 <div  class="form-group col-md-6 ">
                                     <label>{{ __('adminstaticword.Courses') }}:<span class="redstar">*</span></label>
                                     <select  name="course_id" id="course_id"  class="select2 form-control">

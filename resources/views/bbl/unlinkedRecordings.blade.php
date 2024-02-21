@@ -65,7 +65,7 @@
                                                 <td><?php echo $i; ?></td>
                                                 <td><b>{{ $meeting->meetingID }}</b></td>
                                                 <td><b>{{ $meeting->name }}</b></td>
-                                                <td><a href="{{ route('link.meeting') }}" 
+                                                <td><a href="{{ url('recordings/linkToCourse/' . $meeting->meetingID) }}" 
                                                    class="btn btn-primary"
                                                     >Link To Course</a>
                                                 </td>

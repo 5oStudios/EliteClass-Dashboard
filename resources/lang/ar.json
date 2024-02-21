@@ -1370,6 +1370,8 @@
   "Education": "تعليم",
   "Big Blue": "بيج بلو",
   "Recorded": "مسجل",
+  "unlinkedRecorded": "التسجلات غير المربوطة",
+
   "Google Meet": "جوجل ميت",
   "Jitsi Meeting": "لقاء جيتسي",
   "Certificate Verify": "التحقق من الشهادة",
@@ -1799,6 +1801,8 @@
   "Attandee Password": "كلمة مرور Attandee",
   " Edit meetings": "تحرير الاجتماعات",
   "List all Recordings ": "قائمة بجميع التسجيلات",
+  "List unlinked Recordings": "قائمة التسجيلات غير المربوطة بكورسات",
+
   "Update Big Blue Settings": "قم بتحديث إعدادات Big Blue",
   " Update Big Blue Settings": "قم بتحديث إعدادات Big Blue",
   "Update BigBlue Button Salt Key and Server URL : ": "تحديث BigBlue Button Salt Key وعنوان URL للخادم:",

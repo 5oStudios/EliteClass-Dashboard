@@ -5,7 +5,7 @@
 
     @component('components.breadcumb', ['fourthactive' => 'active'])
         @slot('heading')
-            {{ __('List all Recordings ') }}
+            {{ __('List unlinked Recordings') }}
         @endslot
         @slot('menu1')
             {{ __('Live Streamings') }}
@@ -14,7 +14,7 @@
             {{ __('Big Blue') }}
         @endslot
         @slot('menu3')
-            {{ __('List unlinked Recordings ') }}
+            {{ __('List unlinked Recordings') }}
         @endslot
     @endcomponent
 
@@ -26,7 +26,7 @@
             <div class="col-lg-12">
                 <div class="card m-b-30">
                     <div class="card-header">
-                        <h5 class="box-title">{{ __('List unlinked Recordings ') }}</h5>
+                        <h5 class="box-title">{{ __('List unlinked Recordings') }}</h5>
                     </div>
                     <div class="card-body">
 
@@ -58,15 +58,15 @@
                                     
                                     ?>
 
-                                    @if (isset($unlinkedRecordings->recording))
-                                        @foreach ($unlinkedRecordings->recording as $meeting)
+                                    @if (isset($unlinkedRecordings))
+                                        @foreach ($unlinkedRecordings as $meeting)
                                             <?php $i++; ?>
                                             <tr>
                                                 <td><?php echo $i; ?></td>
                                                 <td><b>{{ $meeting->meetingID }}</b></td>
                                                 <td><b>{{ $meeting->name }}</b></td>
                                                 <td><a href="{{ route('link.meeting') }}" 
-                                                    @if($meeting->course != -1) disabled class="btn btn-primary disabled" @else class="btn btn-primary" @endif
+                                                   class="btn btn-primary"
                                                     >Link To Course</a>
                                                 </td>
                                                 <td>
@@ -82,6 +82,7 @@
                                         @endforeach
                                     @endif
                                 </tbody>
+                             
                             </table>
                         </div>
                     </div>

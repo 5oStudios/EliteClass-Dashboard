@@ -803,6 +803,36 @@ class BigBlueController extends Controller
         }
     }
 
+    public function getUnlinkedRecordings(Request $request)
+    {
+        if (env('BBB_SECURITY_SALT') != null && env('BBB_SERVER_BASE_URL') != null) {
+            $recordingParams = new GetRecordingsParameters();
+            //$recordingParams->setMeetingId('fztrain-30-06-2022');
+            $bbb = new BigBlueButton();
+            $response = $bbb->getRecordings($recordingParams);
+            if ($response->getReturnCode() == 'SUCCESS') {
+                foreach ($response->getRawXml()->recordings as $recording) {
+                    $all_recordings = $recording;
+                }
+            } else {
+                return view('bbl.setting')->with('delete', __('Recordings not found !'));
+            }
+            $unlinkedRecordings = [];
+            foreach ($all_recordings->recording as $meeting) {
+                $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                if ($exist) {
+                    $existChapter = CourseChapter::where('type_id', $exist->id)->first();
+                }
+                if (!$existChapter) {
+                    $unlinkedRecordings[] = $meeting;
+                }
+            }
+            return view('bbl.unlinkedRecordings', compact('unlinkedRecordings'));
+        }
+
+        return view('bbl.setting')->with('delete', __('Update your settings !'));
+    }
+
     public function linkRecordingsToCourse()
     {
         if (Auth::user()->role == "admin") {

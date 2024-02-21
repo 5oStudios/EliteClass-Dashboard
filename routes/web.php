@@ -575,6 +575,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::post('whatsapp/update', 'WhatsappButtonController@update')->name('whatsapp.update');
 
                 Route::get('recordings/meeting', 'BigBlueController@getrecordings')->name('download.meeting');
+                Route::get('recordings/linkToCourse', 'BigBlueController@linkRecordingsToCourse')->name('link.meeting');
                 Route::resource('batch', 'BatchController');
 
                 Route::resource('refundpolicy', 'RefundPolicyController');

@@ -759,10 +759,8 @@ class BigBlueController extends Controller
             return view('bbl.recordings', compact('all_recordings'));
         }
 
-
         return view('bbl.setting')->with('delete', __('Update your settings !'));
     }
-
 
     protected function changeEnv($data = array())
     {
@@ -803,5 +801,31 @@ class BigBlueController extends Controller
         } else {
             return false;
         }
+    }
+
+    public function linkRecordingsToCourse()
+    {
+        if (Auth::user()->role == "admin") {
+            $course = Course::with('installments')
+                ->active()
+                ->get();
+            $users = User::query()
+                ->where('id', '!=', Auth::user()->id)
+                ->where('role', '!=', 'user')
+                ->active()
+                ->get();
+        } else {
+            $course = Course::with('installments')
+                ->where('user_id', Auth::user()->id)
+                ->active()
+                ->get();
+            $users = User::query()
+                ->where('id', Auth::user()->id)
+                ->active()
+                ->first();
+        }
+
+        $category = Categories::where('status', 1)->get();
+        return view('bbl.linkToCourse', compact('category', 'users', 'course'));
     }
 }

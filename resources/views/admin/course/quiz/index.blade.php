@@ -449,31 +449,110 @@
                                         </div> -->
                                     </div>
                                     <div class="col-md-6 question-options" >
-                                        <div class="col-md-6">
+                                    <div class="col-md-12">
+                                    <label for="questionsType " >{{ __('questionsType') }}:<sup
+                                                    class="redstar">*</sup></label>
+                                            <select id="questionsType" style="width: 100%" name="mcqType" class="form-control select2" required>
+ 
+                                                <option value="text" selected>{{ __('text') }}</option>
+                                                <option value="image">{{ __('images') }}</option>
+
+                                            </select>
+                                    </div>
+                                    <div id="textMCQs">
+                                         <div class="col-md-12">
                                             <label for="exampleInputDetails">{{ __('adminstaticword.AOption') }} :<sup
                                                     class="redstar">*</sup></label>
                                             <input type="text" name="a" class="form-control" placeholder="{{__('Enter Option A')}}" required/>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <label for="exampleInputDetails">{{ __('adminstaticword.BOption') }} :<sup
                                                     class="redstar">*</sup></label>
                                             <input type="text" name="b" class="form-control" placeholder="{{__('Enter Option B')}}" required/>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
 
                                             <label for="exampleInputDetails">{{ __('adminstaticword.COption') }} :<sup
                                                     class="redstar">*</sup></label>
                                             <input type="text" name="c" class="form-control" placeholder="{{__('Enter Option C')}}" required/>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
 
                                             <label for="exampleInputDetails">{{ __('adminstaticword.DOption') }} :<sup
                                                     class="redstar">*</sup></label>
                                             <input type="text" name="d" class="form-control" placeholder="{{__('Enter Option D')}}" required/>
                                         </div>
+                                    </div>
+                                    <div id="imageMCQs" style="display:none">
+                                        
+                                         <div class="col-md-12">
+                                            <label for="exampleInputDetails">{{ __('adminstaticword.AOption') }} :<sup
+                                                    class="redstar">*</sup></label>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="inputGroupFileAddonimage">{{ __('Upload') }}</span>
+                                                </div>
+                                                <div class="custom-file">
+                                                    <!-- Change the accept attribute to accept only image files -->
+                                                    <input type="file" name="a" class="custom-file-input" id="exampleInputimage"
+                                                        aria-describedby="inputGroupFileAddonimage" accept="image/*">
+                                                    <label class="custom-file-label" for="exampleInputimage">{{ __('Choose image file') }}</label>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <label for="exampleInputDetails">{{ __('adminstaticword.BOption') }} :<sup
+                                                    class="redstar">*</sup></label>
+                                                    <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="inputGroupFileAddonimage">{{ __('Upload') }}</span>
+                                                </div>
+                                                <div class="custom-file">
+                                                    <!-- Change the accept attribute to accept only image files -->
+                                                    <input type="file" name="b" class="custom-file-input" id="exampleInputimage"
+                                                        aria-describedby="inputGroupFileAddonimage" accept="image/*">
+                                                    <label class="custom-file-label" for="exampleInputimage">{{ __('Choose image file') }}</label>
+                                                </div>
+                                            </div>                                        </div>
+
+                                        <div class="col-md-12">
+
+                                            <label for="exampleInputDetails">{{ __('adminstaticword.COption') }} :<sup
+                                                    class="redstar">*</sup></label>
+                                                    <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="inputGroupFileAddonimage">{{ __('Upload') }}</span>
+                                                </div>
+                                                <div class="custom-file">
+                                                    <!-- Change the accept attribute to accept only image files -->
+                                                    <input type="file" name="c" class="custom-file-input" id="exampleInputimage"
+                                                        aria-describedby="inputGroupFileAddonimage" accept="image/*">
+                                                    <label class="custom-file-label" for="exampleInputimage">{{ __('Choose image file') }}</label>
+                                                </div>
+                                            </div>                                        </div>
+
+                                        <div class="col-md-12">
+
+                                            <label for="exampleInputDetails">{{ __('adminstaticword.DOption') }} :<sup
+                                                    class="redstar">*</sup></label>
+                                                    <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="inputGroupFileAddonimage">{{ __('Upload') }}</span>
+                                                </div>
+                                                <div class="custom-file">
+                                                    <!-- Change the accept attribute to accept only image files -->
+                                                    <input type="file" name="d" class="custom-file-input" id="exampleInputimage"
+                                                        aria-describedby="inputGroupFileAddonimage" accept="image/*">
+                                                    <label class="custom-file-label" for="exampleInputimage">{{ __('Choose image file') }}</label>
+                                                </div>
+                                            </div>                                        </div>
+                                    </div>
+                                       
                                     </div>
                                     <!-- <div class="col-md-6">
                                         <label class="text-dark" for="exampleInputSlug">{{ __('adminstaticword.Image') }}: </label>
@@ -530,6 +609,17 @@
         $('.question-options :input').prop('required', false);
         $('.question-audio :input').prop('required', false);
         $('.question-image :input').prop('required', false);
+
+        $('#questionsType').on('change',function (){
+            var selectedType = $(this).val();
+            if(selectedType === 'image'){
+                $('#imageMCQs').show();
+                $('#textMCQs').hide();
+            }else{
+                $('#imageMCQs').hide();
+                $('#textMCQs').show();
+            }
+        })
         // Show/hide question-options based on the selected type
         $('#questionType').on('change', function () {
             var selectedType = $(this).val();

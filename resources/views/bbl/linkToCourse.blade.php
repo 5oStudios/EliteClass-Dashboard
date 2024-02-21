@@ -77,41 +77,7 @@
                                             placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.Price') }}"
                                             value="{{ old('price') ?? 0 }}">
 
-                                </div>
-
-                                <div class="form-group col-md-6">
-                                <label for="discount_type">{{ __('discount_type') }}</label>
-                                        <select name="discount_type" id="discount_type" class="form-control js-example-basic-single ">
-                                            <option value="none" selected disabled>
-                                                {{ __('frontstaticword.SelectanOption') }}
-                                            </option>
-                                            <option value="percentage">{{ __('percentage') }}</option>
-                                            <option value="fixed">{{ __('fixed') }}</option>
-                                        </select>
-                                </div>
-                                <div class="form-group col-md-6">
-                                <label for="exampleInputSlug">{{ __('adminstaticword.DiscountPrice') }}: <sup class="redstar">*</sup>
-                                            <small class="text-muted"><i class="fa fa-question-circle"></i>
-                                                {{ __('Discounted price Zero(0) consider as no discount') }}
-                                            </small>
-                                        </label>
-
-                                        <div class="input-group">
-                                            <input type="number" step="0.1" min="0" required class="form-control" name="discount_price" id="offerPrice"
-                                                placeholder="{{ __('adminstaticword.Enter') }} {{ __('adminstaticword.DiscountPrice') }}"
-                                                value="{{ old('discount_price') ?? 0 }}" />
-
-                                            <div class="input-group-append">
-                                                <span class="input-group-text" id="prefix">
-                                                    @if(old('discount_type') == 'percentage')
-                                                        %
-                                                    @elseif(old('discount_type') == 'fixed')
-                                                        KWD
-                                                    @endif
-                                                </span>
-                                            </div>
-                                        </div>
-                                </div>                          
+                                </div>               
                             </div>
                             <button type="reset" class="btn btn-danger-rgba"><i class="fa fa-ban"></i>
                                 {{ __('Reset') }}</button>

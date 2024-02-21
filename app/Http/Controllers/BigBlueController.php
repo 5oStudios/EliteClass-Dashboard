@@ -833,7 +833,7 @@ class BigBlueController extends Controller
         return view('bbl.setting')->with('delete', __('Update your settings !'));
     }
 
-    public function linkRecordingsToCourse()
+    public function linkRecordingsToCourse($meeting_id)
     {
         if (Auth::user()->role == "admin") {
             $course = Course::with('installments')
@@ -854,8 +854,10 @@ class BigBlueController extends Controller
                 ->active()
                 ->first();
         }
-
         $category = Categories::where('status', 1)->get();
-        return view('bbl.linkToCourse', compact('category', 'users', 'course'));
+
+        return view('bbl.linkToCourse', compact('category', 'users', 'course', 'meeting_id'));
     }
+
+
 }

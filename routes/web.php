@@ -577,6 +577,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('recordings/meeting', 'BigBlueController@getrecordings')->name('download.meeting');
                 Route::get('recordings/unlinked', 'BigBlueController@getUnlinkedRecordings')->name('link.meeting.unlink');
                 Route::get('recordings/linkToCourse/{meeting_id}', 'BigBlueController@linkRecordingsToCourse')->name('link.meeting');
+                Route::post('recordings/linkToCourse', 'BigBlueController@linkRecordingToCourse')->name('link.meeting.create');
                 Route::resource('batch', 'BatchController');
 
                 Route::resource('refundpolicy', 'RefundPolicyController');

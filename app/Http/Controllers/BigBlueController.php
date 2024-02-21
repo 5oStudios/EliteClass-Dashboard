@@ -839,24 +839,44 @@ class BigBlueController extends Controller
             $course = Course::with('installments')
                 ->active()
                 ->get();
-            $users = User::query()
-                ->where('id', '!=', Auth::user()->id)
-                ->where('role', '!=', 'user')
-                ->active()
-                ->get();
         } else {
             $course = Course::with('installments')
                 ->where('user_id', Auth::user()->id)
                 ->active()
                 ->get();
-            $users = User::query()
-                ->where('id', Auth::user()->id)
-                ->active()
-                ->first();
         }
-        $category = Categories::where('status', 1)->get();
 
-        return view('bbl.linkToCourse', compact('category', 'users', 'course', 'meeting_id'));
+        return view('bbl.linkToCourse', compact('course', 'meeting_id'));
+    }
+
+
+    public function linkRecordingToCourse(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|integer|exists:courses,id',
+            'meeting_id' => 'required|exists:bigbluemeetings,meetingid',
+            'price' => 'sometimes|numeric',
+            // 'discount_price' => 'sometimes|numeric',
+            // 'discount_type' => 'sometimes|string|in:fixed,percentage',
+        ]);
+
+        $meeting = BBL::where('meetingid', $request->meeting_id)->first();
+
+        CourseChapter::create([
+            'course_id' => $request->course_id,
+            'price' => $request->price ?? 0,
+            'discount_price' => $request->price ?? 0,
+            'type' => 'live-streaming',
+            'status' => 1,
+            'type_id' => $meeting->id,
+            'user_id' => $meeting->instructor_id,
+            'position' => (CourseChapter::count() + 1),
+            'chapter_name' => $meeting->meetingname,
+            'detail' => $meeting->detail,
+            'unlock_installment' => $request->unlock_installment ?? null,
+        ]);
+
+        return view('bbl.unlinkedRecordings')->with('success', trans('flash.CreatedSuccessfully'));
     }
 
 

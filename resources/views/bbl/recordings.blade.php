@@ -44,7 +44,7 @@
                                             Meeting Name
                                         </th>
                                         <th>
-                                            test
+                                            Link
                                         </th>
                                         <th>
                                             Get Recording
@@ -65,7 +65,10 @@
                                                 <td><?php echo $i; ?></td>
                                                 <td><b>{{ $meeting->meetingID }}</b></td>
                                                 <td><b>{{ $meeting->name }}</b></td>
-                                                <td><b>{{ $meeting->course }}</b></td>
+                                                <td><a href="{{ route('link.meeting') }}" 
+                                                    @if($meeting->course != -1) disabled class="btn btn-primary disabled" @else class="btn btn-primary" @endif
+                                                    >Link To Course</a>
+                                                </td>
                                                 <td>
 
                                                     <a href="{{ $meeting->playback->format->url }}" target="_blank"

@@ -156,6 +156,7 @@ class QuizController extends Controller
           'c' => 'required|max:200',
           'd' => 'required|max:200',
           'answer' => 'required|size:1',
+          'is_image' => 'required|boolean'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -190,14 +191,55 @@ class QuizController extends Controller
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'] ?? null;
         $quiz->question_img = $name;
-        $quiz->a = $input['a'];
-        $quiz->b = $input['b'];
-        $quiz->c = $input['c'];
-        $quiz->d = $input['d'];
+        if ($input['is_image']) {
+          if ($request->hasFile('a')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('a')->getClientOriginalName();
+            // $size = $request->file('a')->getSize();
+            $extension = $request->file('a')->getClientOriginalExtension();
+            $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('a')->move(public_path('files/images'), $name);
+          }
+          if ($request->hasFile('b')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('b')->getClientOriginalName();
+            // $size = $request->file('b')->getSize();
+            $extension = $request->file('b')->getClientOriginalExtension();
+            $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('b')->move(public_path('files/images'), $name);
+          }
+          if ($request->hasFile('c')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('c')->getClientOriginalName();
+            // $size = $request->file('c')->getSize();
+            $extension = $request->file('c')->getClientOriginalExtension();
+            $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('c')->move(public_path('files/images'), $name);
+          }
+          if ($request->hasFile('d')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('d')->getClientOriginalName();
+            // $size = $request->file('d')->getSize();
+            $extension = $request->file('d')->getClientOriginalExtension();
+            $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('d')->move(public_path('files/images'), $name);
+          }
+
+          $quiz->a = $name_a;
+          $quiz->b = $name_b;
+          $quiz->c = $name_c;
+          $quiz->d = $name_d;
+          $quiz->is_image = true;
+
+        } else {
+          $quiz->a = $input['a'];
+          $quiz->b = $input['b'];
+          $quiz->c = $input['c'];
+          $quiz->d = $input['d'];
+        }
         $quiz->answer = $input['answer'];
         $quiz->type = $input['type'];
         $quiz->save();
-
 
       } elseif ($request->type == 'essay') {
         $request->validate([
@@ -631,8 +673,8 @@ class QuizController extends Controller
       ->whereIn('type', ['essay', 'audio'])
       ->with('quiz')
       ->get()->toArray();
-      
-      $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
+
+    $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
 
     $course = $course->toArray();
     $topic = $topic->toArray();

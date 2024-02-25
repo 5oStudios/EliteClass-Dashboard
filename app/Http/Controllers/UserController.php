@@ -554,7 +554,7 @@ class UserController extends Controller
             ->select('id', 'user_img', 'fname', 'lname', 'email', 'mobile', 'blocked_count', 'is_allow_multiple_device', 'is_locked', 'status', 'updated_at')
             ->where(function ($query) {
                 $query->where('is_locked', 1)
-                    ->orWhere('blocked_count', '>', 0)
+                    // ->orWhere('blocked_count', '>', 0)
                     ->orWhere('is_allow_multiple_device', 1);
             })
             ->latest('updated_at')

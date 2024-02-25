@@ -92,18 +92,58 @@ class QuizController extends Controller
           'answer.required' => __('Answer is required'),
           'answer.size' => __('Answer must contain only one letter'),
         ]);
-
-
         $input = $request->all();
 
         $quiz = new Quiz();
         $quiz->course_id = $input['course_id'];
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'];
-        $quiz->a = $input['a'];
-        $quiz->b = $input['b'];
-        $quiz->c = $input['c'];
-        $quiz->d = $input['d'];
+        if ($input['is_image']) {
+          if ($request->hasFile('a')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('a')->getClientOriginalName();
+            // $size = $request->file('a')->getSize();
+            $extension = $request->file('a')->getClientOriginalExtension();
+            $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('a')->move(public_path('files/images'), $name_a);
+          }
+          if ($request->hasFile('b')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('b')->getClientOriginalName();
+            // $size = $request->file('b')->getSize();
+            $extension = $request->file('b')->getClientOriginalExtension();
+            $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('b')->move(public_path('files/images'), $name_b);
+          }
+          if ($request->hasFile('c')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('c')->getClientOriginalName();
+            // $size = $request->file('c')->getSize();
+            $extension = $request->file('c')->getClientOriginalExtension();
+            $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('c')->move(public_path('files/images'), $name_c);
+          }
+          if ($request->hasFile('d')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('d')->getClientOriginalName();
+            // $size = $request->file('d')->getSize();
+            $extension = $request->file('d')->getClientOriginalExtension();
+            $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('d')->move(public_path('files/images'), $name_d);
+          }
+
+          $quiz->a = $name_a;
+          $quiz->b = $name_b;
+          $quiz->c = $name_c;
+          $quiz->d = $name_d;
+          $quiz->is_image = true;
+
+        } else {
+          $quiz->a = $input['a'];
+          $quiz->b = $input['b'];
+          $quiz->c = $input['c'];
+          $quiz->d = $input['d'];
+        }
         $quiz->answer = $input['answer'];
         $quiz->type = $input['type'];
         $quiz->save();

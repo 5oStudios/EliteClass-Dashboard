@@ -126,7 +126,7 @@ class BigBlueController extends Controller
         $meeting = BBL::findOrFail($meetingid);
 
         if (Auth::user()->role == "admin") {
-            $course = Course::with('installments')->all();
+            $course = Course::with('installments')->get();
             $users = User::query()
                 ->where('id', '!=', Auth::user()->id)
                 ->where('role', '!=', 'user')

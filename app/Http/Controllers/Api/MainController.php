@@ -3241,6 +3241,7 @@ class MainController extends Controller
                     "d" => $q->d,
                     'type' => $q->type,
                     'audio' => $q->audio,
+                    'is_image' => $q->is_image,
                 ];
             }
 

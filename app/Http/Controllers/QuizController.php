@@ -76,6 +76,7 @@ class QuizController extends Controller
           'c' => 'required|max:200',
           'd' => 'required|max:200',
           'answer' => 'required|size:1',
+          'is_image' => 'required|in:image,text'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -98,7 +99,7 @@ class QuizController extends Controller
         $quiz->course_id = $input['course_id'];
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'];
-        if ($input['is_image']) {
+        if ($input['is_image'] == 'image') {
           if ($request->hasFile('a')) {
             $uniqueId = uniqid();
             // $original_name = $request->file('a')->getClientOriginalName();
@@ -191,12 +192,12 @@ class QuizController extends Controller
           'topic_id' => 'required',
           'question_img' => 'required|file|mimes:png,jpg,jpeg|max:10240',
           'question' => 'sometimes|max:500',
-          'a' => 'required|max:200',
-          'b' => 'required|max:200',
-          'c' => 'required|max:200',
-          'd' => 'required|max:200',
+          'a' => 'required',
+          'b' => 'required',
+          'c' => 'required',
+          'd' => 'required',
           'answer' => 'required|size:1',
-          'is_image' => 'required|boolean'
+          'is_image' => 'required|in:image,text'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -231,7 +232,7 @@ class QuizController extends Controller
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'] ?? null;
         $quiz->question_img = $name;
-        if ($input['is_image']) {
+        if ($input['is_image'] == 'image') {
           if ($request->hasFile('a')) {
             $uniqueId = uniqid();
             // $original_name = $request->file('a')->getClientOriginalName();

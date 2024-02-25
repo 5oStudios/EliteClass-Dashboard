@@ -25,6 +25,11 @@
     <div class="contentbar">
         <div id="loading">
         </div>
+        <div id="progress-container" style="display: none;">
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="row">
                 <div class="offset-md-4 col-md-4">
@@ -128,7 +133,7 @@
             console.log(uploadResponse);
         });
 
-
+      
         async function createVideo(params) {
             let title = document.getElementById('txtVideoTitle').value;
             const options = {
@@ -149,7 +154,7 @@
                 console.error(error);
 
                 document.getElementById("loading").innerHTML =
-                    "<h3>Video Upload is in progress, please wait...</h3><h4>This might take some time, depending upon your video size</h4><h3 style='color:red'><b>There is something wrong with the initial request, Please manually Upload the video to BunnyCDN</b></h3>";
+                    "Error Uploading video !!"
                 return null;
             }
             return null;
@@ -170,14 +175,18 @@
                 console.log(event);
                 if (event.lengthComputable) {
                     let progress = (event.loaded / event.total) * 100;
+                    document.getElementById("progress-container").style.display = "block";
+                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                    document.getElementById('progress-bar').innerHTML = `${Math.round(progress)}%`;
                     console.log(`Upload progress: ${progress}%`);
                 }
             };
             xhr.onload = () => {
                 if (xhr.status === 200) {
+                    document.getElementById("loading").innerHTML = "File uploaded successfully!"
                     console.log("File uploaded successfully!");
                     window.location.href = fullURL;
-
+                    console.log(xhr);
                     // Display PNotify notification
                     new PNotify({
                         title: 'Uploaded Successfully',

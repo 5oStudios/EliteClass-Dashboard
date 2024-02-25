@@ -222,7 +222,9 @@ class MainController extends Controller
             ];
         });
 
-        $bbl_meetings = BBL::query()
+        $bbl_meetings = BBL::
+        where('is_ended', 1)->
+        query()
             ->when($seach_text, function ($q) use ($seach_text, $lang) {
                 $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
                     ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
@@ -3241,6 +3243,7 @@ class MainController extends Controller
                     "d" => $q->d,
                     'type' => $q->type,
                     'audio' => $q->audio,
+                    'is_image' => $q->is_image,
                 ];
             }
 

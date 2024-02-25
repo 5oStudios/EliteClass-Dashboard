@@ -76,6 +76,7 @@ class QuizController extends Controller
           'c' => 'required|max:200',
           'd' => 'required|max:200',
           'answer' => 'required|size:1',
+          'is_image' => 'required|in:image,text'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -92,18 +93,58 @@ class QuizController extends Controller
           'answer.required' => __('Answer is required'),
           'answer.size' => __('Answer must contain only one letter'),
         ]);
-
-
         $input = $request->all();
 
         $quiz = new Quiz();
         $quiz->course_id = $input['course_id'];
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'];
-        $quiz->a = $input['a'];
-        $quiz->b = $input['b'];
-        $quiz->c = $input['c'];
-        $quiz->d = $input['d'];
+        if ($input['is_image'] == 'image') {
+          if ($request->hasFile('a')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('a')->getClientOriginalName();
+            // $size = $request->file('a')->getSize();
+            $extension = $request->file('a')->getClientOriginalExtension();
+            $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('a')->move(public_path('files/images'), $name_a);
+          }
+          if ($request->hasFile('b')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('b')->getClientOriginalName();
+            // $size = $request->file('b')->getSize();
+            $extension = $request->file('b')->getClientOriginalExtension();
+            $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('b')->move(public_path('files/images'), $name_b);
+          }
+          if ($request->hasFile('c')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('c')->getClientOriginalName();
+            // $size = $request->file('c')->getSize();
+            $extension = $request->file('c')->getClientOriginalExtension();
+            $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('c')->move(public_path('files/images'), $name_c);
+          }
+          if ($request->hasFile('d')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('d')->getClientOriginalName();
+            // $size = $request->file('d')->getSize();
+            $extension = $request->file('d')->getClientOriginalExtension();
+            $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('d')->move(public_path('files/images'), $name_d);
+          }
+
+          $quiz->a = $name_a;
+          $quiz->b = $name_b;
+          $quiz->c = $name_c;
+          $quiz->d = $name_d;
+          $quiz->is_image = true;
+
+        } else {
+          $quiz->a = $input['a'];
+          $quiz->b = $input['b'];
+          $quiz->c = $input['c'];
+          $quiz->d = $input['d'];
+        }
         $quiz->answer = $input['answer'];
         $quiz->type = $input['type'];
         $quiz->save();
@@ -151,11 +192,12 @@ class QuizController extends Controller
           'topic_id' => 'required',
           'question_img' => 'required|file|mimes:png,jpg,jpeg|max:10240',
           'question' => 'sometimes|max:500',
-          'a' => 'required|max:200',
-          'b' => 'required|max:200',
-          'c' => 'required|max:200',
-          'd' => 'required|max:200',
+          'a' => 'required',
+          'b' => 'required',
+          'c' => 'required',
+          'd' => 'required',
           'answer' => 'required|size:1',
+          'is_image' => 'required|in:image,text'
         ], [
           'course_id.required' => __('Course is required'),
           'topic_id.string' => __('Quiz Topic is required'),
@@ -190,14 +232,55 @@ class QuizController extends Controller
         $quiz->topic_id = $input['topic_id'];
         $quiz->question = $input['question'] ?? null;
         $quiz->question_img = $name;
-        $quiz->a = $input['a'];
-        $quiz->b = $input['b'];
-        $quiz->c = $input['c'];
-        $quiz->d = $input['d'];
+        if ($input['is_image'] == 'image') {
+          if ($request->hasFile('a')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('a')->getClientOriginalName();
+            // $size = $request->file('a')->getSize();
+            $extension = $request->file('a')->getClientOriginalExtension();
+            $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('a')->move(public_path('files/images'), $name_a);
+          }
+          if ($request->hasFile('b')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('b')->getClientOriginalName();
+            // $size = $request->file('b')->getSize();
+            $extension = $request->file('b')->getClientOriginalExtension();
+            $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('b')->move(public_path('files/images'), $name_b);
+          }
+          if ($request->hasFile('c')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('c')->getClientOriginalName();
+            // $size = $request->file('c')->getSize();
+            $extension = $request->file('c')->getClientOriginalExtension();
+            $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('c')->move(public_path('files/images'), $name_c);
+          }
+          if ($request->hasFile('d')) {
+            $uniqueId = uniqid();
+            // $original_name = $request->file('d')->getClientOriginalName();
+            // $size = $request->file('d')->getSize();
+            $extension = $request->file('d')->getClientOriginalExtension();
+            $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+            $path = $request->file('d')->move(public_path('files/images'), $name_d);
+          }
+
+          $quiz->a = $name_a;
+          $quiz->b = $name_b;
+          $quiz->c = $name_c;
+          $quiz->d = $name_d;
+          $quiz->is_image = true;
+
+        } else {
+          $quiz->a = $input['a'];
+          $quiz->b = $input['b'];
+          $quiz->c = $input['c'];
+          $quiz->d = $input['d'];
+        }
         $quiz->answer = $input['answer'];
         $quiz->type = $input['type'];
         $quiz->save();
-
 
       } elseif ($request->type == 'essay') {
         $request->validate([
@@ -269,10 +352,10 @@ class QuizController extends Controller
     if ($question->type == 'mcq' || $question->type == null) {
       $request->validate([
         'question' => 'sometimes|max:500',
-        'a' => 'sometimes|max:200',
-        'b' => 'sometimes|max:200',
-        'c' => 'sometimes|max:200',
-        'd' => 'sometimes|max:200',
+        'a' => 'sometimes',
+        'b' => 'sometimes',
+        'c' => 'sometimes',
+        'd' => 'sometimes',
         'answer' => 'sometimes|size:1',
       ], [
         'question.max' => __('Quiz question should not be more than 500 characters'),
@@ -288,19 +371,83 @@ class QuizController extends Controller
       }
 
       if (isset($input['a'])) {
-        $question->a = $input['a'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('a')->getClientOriginalExtension();
+          $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('a')->move(public_path('files/images'), $name_a);
+
+          $question->a = $name_a;
+        } else {
+          $question->a = $input['a'];
+        }
       }
 
       if (isset($input['b'])) {
-        $question->a = $input['b'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('b')->getClientOriginalExtension();
+          $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('b')->move(public_path('files/images'), $name_b);
+
+          $question->b = $name_b;
+        } else {
+          $question->b = $input['b'];
+        }
       }
 
       if (isset($input['c'])) {
-        $question->a = $input['c'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('c')->getClientOriginalExtension();
+          $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('c')->move(public_path('files/images'), $name_c);
+
+          $question->c = $name_c;
+        } else {
+          $question->c = $input['c'];
+        }
       }
 
       if (isset($input['d'])) {
-        $question->a = $input['d'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('d')->getClientOriginalExtension();
+          $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('d')->move(public_path('files/images'), $name_d);
+
+          $question->d = $name_d;
+        } else {
+          $question->d = $input['d'];
+        }
       }
 
       if (isset($input['answer'])) {
@@ -389,19 +536,83 @@ class QuizController extends Controller
       }
 
       if (isset($input['a'])) {
-        $question->a = $input['a'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('a')->getClientOriginalExtension();
+          $name_a = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('a')->move(public_path('files/images'), $name_a);
+
+          $question->a = $name_a;
+        } else {
+          $question->a = $input['a'];
+        }
       }
 
       if (isset($input['b'])) {
-        $question->a = $input['b'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('b')->getClientOriginalExtension();
+          $name_b = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('b')->move(public_path('files/images'), $name_b);
+
+          $question->b = $name_b;
+        } else {
+          $question->b = $input['b'];
+        }
       }
 
       if (isset($input['c'])) {
-        $question->a = $input['c'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('c')->getClientOriginalExtension();
+          $name_c = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('c')->move(public_path('files/images'), $name_c);
+
+          $question->c = $name_c;
+        } else {
+          $question->c = $input['c'];
+        }
       }
 
       if (isset($input['d'])) {
-        $question->a = $input['d'];
+        if ($question->is_image) {
+          $imagePath = public_path("/files/images" . $question->a);
+          if (File::exists($imagePath)) {
+            File::delete($imagePath);
+          }
+
+          $uniqueId = uniqid();
+          // $original_name = $request->file('d')->getClientOriginalName();
+          // $size = $request->file('d')->getSize();
+          $extension = $request->file('d')->getClientOriginalExtension();
+          $name_d = Carbon::now()->format('Ymd') . '_' . $uniqueId . '.' . $extension;
+          $path = $request->file('d')->move(public_path('files/images'), $name_d);
+
+          $question->d = $name_d;
+        } else {
+          $question->d = $input['d'];
+        }
       }
 
       if (isset($input['answer'])) {
@@ -409,6 +620,7 @@ class QuizController extends Controller
       }
 
       $question->save();
+
     } elseif ($question->type == 'essay') {
 
       $request->validate([
@@ -631,8 +843,8 @@ class QuizController extends Controller
       ->whereIn('type', ['essay', 'audio'])
       ->with('quiz')
       ->get()->toArray();
-      
-      $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
+
+    $remark = Remark::where('topic_id', $topic->id)->where('student_id', $student->id)->first();
 
     $course = $course->toArray();
     $topic = $topic->toArray();

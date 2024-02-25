@@ -126,7 +126,7 @@ class BigBlueController extends Controller
         $meeting = BBL::findOrFail($meetingid);
 
         if (Auth::user()->role == "admin") {
-            $course = Course::with('installments')->all();
+            $course = Course::with('installments')->get();
             $users = User::query()
                 ->where('id', '!=', Auth::user()->id)
                 ->where('role', '!=', 'user')
@@ -745,13 +745,22 @@ class BigBlueController extends Controller
                 return view('bbl.setting')->with('delete', __('Recordings not found !'));
             }
 
+            foreach ($all_recordings->recording as $meeting) {
+                $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                if ($exist) {
+                    $existChapter = CourseChapter::where('type_id', $exist->id)->first();
+                }
+                if ($existChapter) {
+                    $meeting->course = $existChapter->course_id;
+                } else {
+                    $meeting->course = -1;
+                }
+            }
             return view('bbl.recordings', compact('all_recordings'));
         }
 
-
         return view('bbl.setting')->with('delete', __('Update your settings !'));
     }
-
 
     protected function changeEnv($data = array())
     {
@@ -793,4 +802,82 @@ class BigBlueController extends Controller
             return false;
         }
     }
+
+    public function getUnlinkedRecordings(Request $request)
+    {
+        if (env('BBB_SECURITY_SALT') != null && env('BBB_SERVER_BASE_URL') != null) {
+            $recordingParams = new GetRecordingsParameters();
+            //$recordingParams->setMeetingId('fztrain-30-06-2022');
+            $bbb = new BigBlueButton();
+            $response = $bbb->getRecordings($recordingParams);
+            if ($response->getReturnCode() == 'SUCCESS') {
+                foreach ($response->getRawXml()->recordings as $recording) {
+                    $all_recordings = $recording;
+                }
+            } else {
+                return view('bbl.setting')->with('delete', __('Recordings not found !'));
+            }
+            $unlinkedRecordings = [];
+            foreach ($all_recordings->recording as $meeting) {
+                $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                if ($exist) {
+                    $existChapter = CourseChapter::where('type_id', $exist->id)->first();
+                }
+                if (!$existChapter) {
+                    $unlinkedRecordings[] = $meeting;
+                }
+            }
+            return view('bbl.unlinkedRecordings', compact('unlinkedRecordings'));
+        }
+
+        return view('bbl.setting')->with('delete', __('Update your settings !'));
+    }
+
+    public function linkRecordingsToCourse($meeting_id)
+    {
+        if (Auth::user()->role == "admin") {
+            $course = Course::with('installments')
+                ->active()
+                ->get();
+        } else {
+            $course = Course::with('installments')
+                ->where('user_id', Auth::user()->id)
+                ->active()
+                ->get();
+        }
+
+        return view('bbl.linkToCourse', compact('course', 'meeting_id'));
+    }
+
+
+    public function linkRecordingToCourse(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|integer|exists:courses,id',
+            'meeting_id' => 'required|exists:bigbluemeetings,meetingid',
+            'price' => 'sometimes|numeric',
+            // 'discount_price' => 'sometimes|numeric',
+            // 'discount_type' => 'sometimes|string|in:fixed,percentage',
+        ]);
+
+        $meeting = BBL::where('meetingid', $request->meeting_id)->first();
+
+        CourseChapter::create([
+            'course_id' => $request->course_id,
+            'price' => $request->price ?? 0,
+            'discount_price' => $request->price ?? 0,
+            'type' => 'live-streaming',
+            'status' => 1,
+            'type_id' => $meeting->id,
+            'user_id' => $meeting->instructor_id,
+            'position' => (CourseChapter::count() + 1),
+            'chapter_name' => $meeting->meetingname,
+            'detail' => $meeting->detail,
+            'unlock_installment' => $request->unlock_installment ?? null,
+        ]);
+
+        return view('bbl.unlinkedRecordings')->with('success', trans('flash.CreatedSuccessfully'));
+    }
+
+
 }

@@ -284,6 +284,9 @@
                                                         <li class="{{ Nav::isRoute('download.meeting') }}"><a
                                                                 href="{{ route('download.meeting') }}">{{ __('Recorded') }}</a>
                                                         </li>
+                                                        <li class="{{ Nav::isRoute('link.meeting.unlink') }}"><a
+                                                                href="{{ route('link.meeting.unlink') }}">{{ __('unlinkedRecorded') }}</a>
+                                                        </li>
                                                     </ul>
                                                 </li>
                                             </ul>

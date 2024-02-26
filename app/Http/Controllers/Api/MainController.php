@@ -4008,6 +4008,10 @@ class MainController extends Controller
     {
         $userId = Auth::user()->id;
 
+        if (!$userId) {
+            return [];
+        }
+
         $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with([

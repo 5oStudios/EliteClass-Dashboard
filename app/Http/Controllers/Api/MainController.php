@@ -1522,7 +1522,7 @@ class MainController extends Controller
             'meeting_id' => [
                 'required',
                 Rule::exists('bigbluemeetings', 'id')->where(function ($query) {
-                    return $query->where('discount_price', '<>', '0')
+                    return $query->where('price', '<>', '0')
                         ->where('expire_date', '>=', date('Y-m-d'));
                 })
             ],

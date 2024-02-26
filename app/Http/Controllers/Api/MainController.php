@@ -223,8 +223,8 @@ class MainController extends Controller
         });
 
         $bbl_meetings = BBL::
-        query()
-        ->where('is_ended', 1)
+            query()
+            ->where('is_ended', 1)
             ->when($seach_text, function ($q) use ($seach_text, $lang) {
                 $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
                     ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
@@ -4054,6 +4054,8 @@ class MainController extends Controller
                 $item = $orders[$i]->courses;
             } elseif (isset($orders[$i]->bundle) && !empty($orders[$i]->bundle->title)) {
                 $item = $orders[$i]->bundle;
+            } else {
+                continue;
             }
             $installments = [];
             foreach ($orders[$i]->payment_plan as $paymentPlan) {

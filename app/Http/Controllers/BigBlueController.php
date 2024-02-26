@@ -862,6 +862,13 @@ class BigBlueController extends Controller
 
         $meeting = BBL::where('meetingid', $request->meeting_id)->first();
 
+        if ($request->price) {
+            $meeting->price = $request->price;
+            $meeting->discount_price = null;
+            $meeting->discount_type = null;
+            $meeting->save();
+        }
+
         CourseChapter::create([
             'course_id' => $request->course_id,
             'price' => $request->price ?? 0,

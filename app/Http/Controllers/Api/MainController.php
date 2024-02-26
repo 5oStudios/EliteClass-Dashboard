@@ -224,7 +224,7 @@ class MainController extends Controller
 
         $bbl_meetings = BBL::
             query()
-            ->where('is_ended', 1)
+            ->where('is_ended', 0)
             ->when($seach_text, function ($q) use ($seach_text, $lang) {
                 $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
                     ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');

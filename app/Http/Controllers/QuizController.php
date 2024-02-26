@@ -352,10 +352,10 @@ class QuizController extends Controller
     if ($question->type == 'mcq' || $question->type == null) {
       $request->validate([
         'question' => 'sometimes|max:500',
-        'a' => 'sometimes|max:200',
-        'b' => 'sometimes|max:200',
-        'c' => 'sometimes|max:200',
-        'd' => 'sometimes|max:200',
+        'a' => 'sometimes',
+        'b' => 'sometimes',
+        'c' => 'sometimes',
+        'd' => 'sometimes',
         'answer' => 'sometimes|size:1',
       ], [
         'question.max' => __('Quiz question should not be more than 500 characters'),

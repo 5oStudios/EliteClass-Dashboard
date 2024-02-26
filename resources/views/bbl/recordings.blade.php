@@ -65,9 +65,10 @@
                                                 <td><?php echo $i; ?></td>
                                                 <td><b>{{ $meeting->meetingID }}</b></td>
                                                 <td><b>{{ $meeting->name }}</b></td>
-                                                <td><a href="{{ route('link.meeting') }}" 
-                                                    @if($meeting->course != -1) disabled class="btn btn-primary disabled" @else class="btn btn-primary" @endif
-                                                    >Link To Course</a>
+                                                <td><a {{-- href="{{ route('link.meeting') }}" --}}
+                                                        href="{{ url('recordings/linkToCourse/' . $meeting->meetingID) }}"
+                                                        @if ($meeting->course != -1) disabled class="btn btn-primary disabled" @else class="btn btn-primary" @endif>Link
+                                                        To Course</a>
                                                 </td>
                                                 <td>
 

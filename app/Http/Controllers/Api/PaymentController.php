@@ -549,10 +549,13 @@ class PaymentController extends Controller
             'id' => [
                 'required',
                 Rule::exists($arr2[$key1], 'id')
-                    ->where('discount_price', '0')
-                    ->when($request->type == 'course' || $request->type == 'chapter' || $request->type == 'package', function ($q) {
-                        $q->where('status', '1');
-                    }),
+                ->where(function ($query) {
+                    $query->where('discount_price', null)
+                        ->orWhere('discount_price', '0');
+                })
+                ->when($request->type == 'course' || $request->type == 'chapter' || $request->type == 'package', function ($query) {
+                    $query->where('status', '1');
+                }),
                 // ->when($request->type == 'live-streaming', function ($q) {
                 //     $q->where('expire_date', '>=', date('Y-m-d'));
                 // })
@@ -620,8 +623,8 @@ class PaymentController extends Controller
             'order_id' => $trackId,
             'transaction_id' => $wallet_transaction->id,
             'payment_method' => 'Free',
-            'total_amount' => $orderItem->discount_price,
-            'paid_amount' => $orderItem->discount_price,
+            'total_amount' => $orderItem->discount_price??0,
+            'paid_amount' => $orderItem->discount_price??0,
             'installments' => 0,
             'coupon_discount' => 0,
             'coupon_id' => null,

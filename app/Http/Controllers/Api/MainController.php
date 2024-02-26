@@ -223,8 +223,8 @@ class MainController extends Controller
         });
 
         $bbl_meetings = BBL::
-        where('is_ended', 1)->
         query()
+        ->where('is_ended', 1)
             ->when($seach_text, function ($q) use ($seach_text, $lang) {
                 $q->where(DB::raw("LOWER(meetingname->>'$.en')"), 'like', '%' . strtolower($seach_text) . '%')
                     ->orWhere(DB::raw("LOWER(meetingname->>'$.ar')"), 'like', '%' . strtolower($seach_text) . '%');
@@ -4009,6 +4009,10 @@ class MainController extends Controller
     public function overdue()
     {
         $userId = Auth::user()->id;
+
+        if (!$userId) {
+            return [];
+        }
 
         $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);

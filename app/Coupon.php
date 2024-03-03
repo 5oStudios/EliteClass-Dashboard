@@ -13,8 +13,25 @@ class Coupon extends Model
 {
     protected $table = 'coupons';
     protected $fillable = [
-        'code', 'distype', 'amount', 'link_by', 'maxusage', 'minamount', 'expirydate', 'coupon_type', 'course_id',
-        'bundle_id', 'meeting_id', 'offline_session_id', 'payment_type', 'installment_id',  'category_id', 'stripe_coupon_id', 'show_to_users', 'meeting_id'
+        'code',
+        'distype',
+        'amount',
+        'link_by',
+        'maxusage',
+        'minamount',
+        'expirydate',
+        'coupon_type',
+        'course_id',
+        'bundle_id',
+        'meeting_id',
+        'offline_session_id',
+        'payment_type',
+        'installment_id',
+        'category_id',
+        'stripe_coupon_id',
+        'show_to_users',
+        'meeting_id',
+        'user_id',
     ];
 
     public function product()
@@ -84,7 +101,7 @@ class Coupon extends Model
                 } elseif (
                     (isset($pendingInstallmentId) && isset($installmentId) && ($this->payment_type == 'installment') && $this->coupon_type == 'item') &&
                     (($this->link_by == 'course' && $orderfor == 'course' && $this->course_id == $item->order->course_id && $this->installment_id == $installmentId) ||
-                    ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->order->bundle_id && $this->installment_id == $installmentId))
+                        ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->order->bundle_id && $this->installment_id == $installmentId))
                     &&
                     ($item->amount > 0)
                 ) {
@@ -92,7 +109,7 @@ class Coupon extends Model
                 } elseif (
                     (isset($installmentId) && ($this->payment_type == 'installment') && $this->coupon_type == 'item') &&
                     (($this->link_by == 'course' && $orderfor == 'course' && $this->course_id == $item->course_id && $this->installment_id == $installmentId) ||
-                    ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->bundle_id && $this->installment_id == $installmentId))
+                        ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->bundle_id && $this->installment_id == $installmentId))
                     &&
                     ($item->amount > 0)
                 ) {
@@ -100,9 +117,9 @@ class Coupon extends Model
                 } elseif (
                     ($this->coupon_type == 'item') && ($this->payment_type == 'full') &&
                     (($this->link_by == 'course' && $orderfor == 'course' && $this->course_id == $item->id) ||
-                    ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->id) ||
-                    ($this->link_by == 'meeting' && $orderfor == 'meeting' && $this->meeting_id == $item->meeting_id) ||
-                    ($this->link_by == 'session' && $orderfor == 'session' && $this->offline_session_id == $item->id))
+                        ($this->link_by == 'bundle' && $orderfor == 'bundle' && $this->bundle_id == $item->id) ||
+                        ($this->link_by == 'meeting' && $orderfor == 'meeting' && $this->meeting_id == $item->meeting_id) ||
+                        ($this->link_by == 'session' && $orderfor == 'session' && $this->offline_session_id == $item->id))
                     &&
                     ($item->discount_price > 0)
                 ) {
@@ -135,7 +152,7 @@ class Coupon extends Model
             'total_amount' => $amount,
             'discount_amount' => $per,
             'distype' => $distype,
-            'pay_amount' => $amount  - $per
+            'pay_amount' => $amount - $per
         ];
 
         return $data;

@@ -49,13 +49,68 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $fillable = [
-        'fname', 'email', 'password', 'lname', 'short_info', 'dob', 'doa', 'country_code', 'timezone', 'mobile', 'address', 'institute',
-        'major', 'city_id', 'state_id', 'country_id', 'gender', 'pin_code', 'status', 'test_user', 'is_locked', 'blocked_count', 'is_allow_multiple_device',
-        'verified', 'role', 'married_status','user_img', 'detail', 'two_factor_code', 'two_factor_expires_at', 'braintree_id', 'fb_url',
-        'twitter_url', 'youtube_url', 'linkedin_url', 'email_verified_at', 'code', 'token', 'google_id', 'facebook_id', 'amazon_id', 'gitlab_id',
-        'linkedin_id', 'twitter_id', 'jwt_token', 'zoom_email', 'referred_by', 'affiliate_id', 'google2fa_secret', 'google2fa_enable',
-        'remember_token', 'vacation_start', 'vacation_end', 'age', 'main_category','scnd_category_id','sub_category','ch_sub_category',
-        'notifications','updated_by','deleted_by'
+        'fname',
+        'email',
+        'password',
+        'lname',
+        'short_info',
+        'dob',
+        'doa',
+        'country_code',
+        'timezone',
+        'mobile',
+        'address',
+        'institute',
+        'major',
+        'city_id',
+        'state_id',
+        'country_id',
+        'gender',
+        'pin_code',
+        'status',
+        'test_user',
+        'is_locked',
+        'blocked_count',
+        'is_allow_multiple_device',
+        'verified',
+        'role',
+        'married_status',
+        'user_img',
+        'detail',
+        'two_factor_code',
+        'two_factor_expires_at',
+        'braintree_id',
+        'fb_url',
+        'twitter_url',
+        'youtube_url',
+        'linkedin_url',
+        'email_verified_at',
+        'code',
+        'token',
+        'google_id',
+        'facebook_id',
+        'amazon_id',
+        'gitlab_id',
+        'linkedin_id',
+        'twitter_id',
+        'jwt_token',
+        'zoom_email',
+        'referred_by',
+        'affiliate_id',
+        'google2fa_secret',
+        'google2fa_enable',
+        'remember_token',
+        'vacation_start',
+        'vacation_end',
+        'age',
+        'main_category',
+        'scnd_category_id',
+        'sub_category',
+        'ch_sub_category',
+        'notifications',
+        'updated_by',
+        'deleted_by',
+        'is_abpp'
     ];
 
     /**
@@ -64,7 +119,9 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'google2fa_secret',
+        'password',
+        'remember_token',
+        'google2fa_secret',
     ];
 
     protected $appends = ['full_name'];
@@ -235,8 +292,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function fingerprint()
     {
-        return $this->hasOne('Laravel\Passport\Token','user_id')->whereNotNull('fpjsid')->latest();
-    } 
+        return $this->hasOne('Laravel\Passport\Token', 'user_id')->whereNotNull('fpjsid')->latest();
+    }
 
     public function plans()
     {
@@ -261,10 +318,10 @@ class User extends Authenticatable implements MustVerifyEmail
                 return $w;
             } else {
                 // dd($this,'In user model to update user balance while creating user wallet');
-                 Wallet::create([
-                                'user_id' => $this->id,
-                                'balance' => 0,
-                            ]);
+                Wallet::create([
+                    'user_id' => $this->id,
+                    'balance' => 0,
+                ]);
             }
         }
     }

@@ -34,19 +34,22 @@ class ABPPSeeder extends Seeder
             ]);
         }
 
-        $abpp = DB::table('roles')->where('name', '=', 'ABPP')->first();
         $admin = DB::table('roles')->where('name', '=', 'admin')->first();
+        $instructor = DB::table('roles')->where('name', '=', 'instructor')->first();
         $userBulk = DB::table('permissions')->where('name', '=', 'user.bulk')->first();
+        $couponsCreate = DB::table('permissions')->where('name', '=', 'coupons.create')->first();
+        $couponsView = DB::table('permissions')->where('name', '=', 'coupons.view')->first();
+        // $abpp = DB::table('roles')->where('name', '=', 'ABPP')->first();
 
-        $roleHasPermissions = DB::table('role_has_permissions')
-            ->where('role_id', '=', $abpp->id)
-            ->where('permission_id', '=', $userBulk->id)->exists();
-        if (!$roleHasPermissions) {
-            DB::table('role_has_permissions')->insert([
-                'role_id' => $abpp->id,
-                'permission_id' => $userBulk->id,
-            ]);
-        }
+        // $roleHasPermissions = DB::table('role_has_permissions')
+        //     ->where('role_id', '=', $abpp->id)
+        //     ->where('permission_id', '=', $userBulk->id)->exists();
+        // if (!$roleHasPermissions) {
+        //     DB::table('role_has_permissions')->insert([
+        //         'role_id' => $abpp->id,
+        //         'permission_id' => $userBulk->id,
+        //     ]);
+        // }
 
         $roleHasPermissions = DB::table('role_has_permissions')
             ->where('role_id', '=', $admin->id)
@@ -55,6 +58,36 @@ class ABPPSeeder extends Seeder
             DB::table('role_has_permissions')->insert([
                 'role_id' => $admin->id,
                 'permission_id' => $userBulk->id,
+            ]);
+        }
+
+        $roleHasPermissions = DB::table('role_has_permissions')
+            ->where('role_id', '=', $instructor->id)
+            ->where('permission_id', '=', $userBulk->id)->exists();
+        if (!$roleHasPermissions) {
+            DB::table('role_has_permissions')->insert([
+                'role_id' => $instructor->id,
+                'permission_id' => $userBulk->id,
+            ]);
+        }
+
+        $roleHasPermissions = DB::table('role_has_permissions')
+            ->where('role_id', '=', $instructor->id)
+            ->where('permission_id', '=', $couponsCreate->id)->exists();
+        if (!$roleHasPermissions) {
+            DB::table('role_has_permissions')->insert([
+                'role_id' => $instructor->id,
+                'permission_id' => $couponsCreate->id,
+            ]);
+        }
+
+        $roleHasPermissions = DB::table('role_has_permissions')
+            ->where('role_id', '=', $instructor->id)
+            ->where('permission_id', '=', $couponsView->id)->exists();
+        if (!$roleHasPermissions) {
+            DB::table('role_has_permissions')->insert([
+                'role_id' => $instructor->id,
+                'permission_id' => $couponsView->id,
             ]);
         }
     }

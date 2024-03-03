@@ -30,36 +30,36 @@ class TestUserController extends Controller
         abort_unless(auth()->user()->hasRole('admin'), 403, __('User does not have the right permissions'));
 
         $data = User::query()
-                    ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'test_user', 'status')->where('test_user', 1)->latest();
+            ->select('id', 'fname', 'lname', 'dob', 'email', 'mobile', 'gender', 'role', 'test_user', 'status')->where('test_user', 1)->latest();
 
         if ($request->ajax()) {
             return DataTables::of($data)
-                    ->addIndexColumn()
-                    ->addColumn('checkbox', function ($row) {
+                ->addIndexColumn()
+                ->addColumn('checkbox', function ($row) {
 
-                        $chk = "<div class='inline'>
+                    $chk = "<div class='inline'>
                               <input type='checkbox' form='bulk_delete_form' class='filled-in material-checkbox-input' name='checked[]'' value='$row->id' id='checkbox$row->id'>
                               <label for='checkbox$row->id' class='material-checkbox'></label>
                             </div>";
 
-                        return $chk;
-                    })
-                    ->editColumn('name', function ($row) {
+                    return $chk;
+                })
+                ->editColumn('name', function ($row) {
 
-                        return $row->fname ? ($row->lname ? $row->fname . ' ' . $row->lname : $row->fname) : '';
-                    })
-                    ->editColumn('email', function ($row) {
+                    return $row->fname ? ($row->lname ? $row->fname . ' ' . $row->lname : $row->fname) : '';
+                })
+                ->editColumn('email', function ($row) {
 
-                        return $row->email ?? '';
-                    })
-                    ->editColumn('mobile', function ($row) {
+                    return $row->email ?? '';
+                })
+                ->editColumn('mobile', function ($row) {
 
-                        return $row->mobile ?? '';
-                    })
-                    ->editColumn('status', 'admin.alluser.status')
-                    ->editColumn('action', 'admin.testuser.action')
-                    ->rawColumns(['checkbox', 'name', 'email', 'mobile', 'status','action'])
-                    ->toJson();
+                    return $row->mobile ?? '';
+                })
+                ->editColumn('status', 'admin.alluser.status')
+                ->editColumn('action', 'admin.testuser.action')
+                ->rawColumns(['checkbox', 'name', 'email', 'mobile', 'status', 'action'])
+                ->toJson();
         }
 
         return view('admin.testuser.index');
@@ -87,12 +87,12 @@ class TestUserController extends Controller
             'timezone' => 'required',
             'full_phone' => 'required|unique:users,mobile',
             'password' => [
-                            'required',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ],
+                'required',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ],
 
         ], [
             'fname.required' => __('First Name is required'),
@@ -201,12 +201,13 @@ class TestUserController extends Controller
             'user_img' => 'mimes:jpg,jpeg,png|max:10240',
             'timezone' => 'required',
             'full_phone' => 'required|unique:users,mobile,' . $id,
-            'password' => [ 'nullable',
-                            'max:50',
-                            Password::min(8)
-                            ->mixedCase()
-                            ->numbers()
-                        ]
+            'password' => [
+                'nullable',
+                'max:50',
+                Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+            ]
         ], [
             'fname.required' => __('First Name is required'),
             'fname.min' => __('First Name must contain at least 3 characters'),
@@ -286,13 +287,13 @@ class TestUserController extends Controller
     public function enrollment(Request $request, $id)
     {
         $orders = Order::query()
-                        ->select('orders.id', 'title', 'orders.user_id', 'orders.instructor_id', 'orders.course_id', 'orders.chapter_id', 'orders.bundle_id', 'orders.meeting_id', 'orders.offline_session_id', 'orders.installments', 'orders.transaction_id', 'orders.total_amount', 'orders.paid_amount', 'orders.enroll_start', 'orders.enroll_expire', 'orders.created_at', 'orders.currency_icon', 'orders.coupon_id', 'orders.coupon_discount', 'orders.status')
-                        ->allActiveInactiveOrder()
-                        ->where('user_id', $id)
-                        ->with('user:id,fname,lname,email,mobile')
-                        ->with('instructor:id,fname,lname')
-                        ->with('transaction:id,payment_method,transaction_id,created_at')
-                        ->with('payment_plan:id,order_id,due_date,installment_no,payment_date,amount,status');
+            ->select('orders.id', 'title', 'orders.user_id', 'orders.instructor_id', 'orders.course_id', 'orders.chapter_id', 'orders.bundle_id', 'orders.meeting_id', 'orders.offline_session_id', 'orders.installments', 'orders.transaction_id', 'orders.total_amount', 'orders.paid_amount', 'orders.enroll_start', 'orders.enroll_expire', 'orders.created_at', 'orders.currency_icon', 'orders.coupon_id', 'orders.coupon_discount', 'orders.status')
+            ->allActiveInactiveOrder()
+            ->where('user_id', $id)
+            ->with('user:id,fname,lname,email,mobile')
+            ->with('instructor:id,fname,lname')
+            ->with('transaction:id,payment_method,transaction_id,created_at')
+            ->with('payment_plan:id,order_id,due_date,installment_no,payment_date,amount,status');
 
         if ($request->ajax()) {
             return Datatables::eloquent($orders)
@@ -308,6 +309,6 @@ class TestUserController extends Controller
                 ->toJson();
         }
 
-        return view('admin.testuser.enrollment.index', compact($orders));
+        return view('admin.testuser.enrollment.index', compact('orders'));
     }
 }

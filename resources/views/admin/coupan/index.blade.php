@@ -42,11 +42,15 @@
                         </div>
                     </div>
                 @endcan
-                @if (Auth::user()->role == 'admin' || Auth::user()->role == 'ABPP')  
+                @if (Auth::user()->role == 'admin')
                     <a href="{{ route('coupon.bulk.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add Bulk Coupon') }}</a>
                     <a href="{{ route('coupon.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
                             class="feather icon-plus mr-2"></i>{{ __('Add Coupon') }}</a>
+                @endif
+                @if (Auth::user()->is_abpp == 1)
+                    <a href="{{ route('coupon.bulk.create') }}" class="float-right btn btn-primary-rgba mr-2"><i
+                            class="feather icon-plus mr-2"></i>{{ __('Add Bulk Coupon') }}</a>
                 @endif
             </div>
         @endslot
@@ -57,12 +61,14 @@
             width: 100% !important;
             vertical-align: middle;
         }
+
         table.dataTable {
             border-collapse: collapse !important;
         }
+
         .active-coupon-color {
             color: #8A98AC;
-             !important;
+            !important;
         }
     </style>
 

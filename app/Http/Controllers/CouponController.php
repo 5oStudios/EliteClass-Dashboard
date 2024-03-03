@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -24,17 +25,25 @@ class CouponController extends Controller
     {
         $this->middleware('permission:coupons.view', ['only' => ['index']]);
         $this->middleware('permission:coupons.create', ['only' => ['create', 'store', 'bulkCreate', 'bulkStore']]);
-        $this->middleware('permission:coupons.edit', ['only' => ['edit', 'update','status']]);
+        $this->middleware('permission:coupons.edit', ['only' => ['edit', 'update', 'status']]);
         $this->middleware('permission:coupons.delete', ['only' => ['destroy', 'bulk_delete']]);
     }
 
 
     public function index(Request $request)
     {
-        $data = Coupon::query()
-                    ->select('*')
-                    ->with(['course', 'bundle', 'meeting', 'session'])
-                    ->latest('id');
+        if (Auth::user()->is_abpp) {
+            $data = Coupon::query()
+                ->select('*')
+                ->where('user_id', '=', Auth::user()->id)
+                ->with(['course', 'bundle', 'meeting', 'session'])
+                ->latest('id');
+        } else {
+            $data = Coupon::query()
+                ->select('*')
+                ->with(['course', 'bundle', 'meeting', 'session'])
+                ->latest('id');
+        }
 
         if ($request->ajax()) {
             return DataTables::eloquent($data)
@@ -118,16 +127,20 @@ class CouponController extends Controller
             'offline_session_id' => 'nullable|required_if:link_by,session',
             'payment_type' => 'nullable|required_with:link_by|in:full,installment',
             'installment_number' => 'nullable|required_if:payment_type,installment',
-            'amount' => ['required','numeric','min:1',
-                            function ($attribute, $value, $fail) use ($request) {
-                                if ($request->distype == 'per') {
-                                    if (!is_int(intval($value))) {
-                                        $fail(__('Percentage number should be a positive integer'));
-                                    } elseif ($value > 100) {
-                                        $fail(__('Percentage number should not be greater than 100'));
-                                    }
-                                }
-                            }],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->distype == 'per') {
+                        if (!is_int(intval($value))) {
+                            $fail(__('Percentage number should be a positive integer'));
+                        } elseif ($value > 100) {
+                            $fail(__('Percentage number should not be greater than 100'));
+                        }
+                    }
+                }
+            ],
             'distype' => 'required|in:fix,per',
             'expirydate' => "required|date|date_format:Y-m-d|after_or_equal:" . date('Y-m-d'),
             'maxusage' => 'required|numeric|min:1',
@@ -169,22 +182,23 @@ class CouponController extends Controller
                 $input['minamount'] = null;
 
                 $installment = Installment::query()
-                                            ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
-                                                $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
-                                            })
-                                            ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
-                                                $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
-                                            })
-                                            ->first();
+                    ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
+                        $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
+                    })
+                    ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
+                        $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
+                    })
+                    ->first();
 
                 $input['installment_id'] = $installment ? $installment->id : null;
             }
 
             $input['show_to_users'] = 0;
+            $input['user_id'] = Auth::user()->id;
 
             // stripe coupon creation
             // $input = $this->processSubscriptionCoupon($input);
-
+            dd($input);
             $coupon->create($input);
 
             return redirect("coupon")->with('success', trans('flash.CouponCreatedSuccessfully'));
@@ -211,16 +225,20 @@ class CouponController extends Controller
             'offline_session_id' => 'nullable|required_if:link_by,session',
             'payment_type' => 'nullable|required_with:link_by|in:full,installment',
             'installment_number' => 'nullable|required_if:payment_type,installment',
-            'amount' => ['required','numeric','min:1',
-                            function ($attribute, $value, $fail) use ($request) {
-                                if ($request->distype == 'per') {
-                                    if (!is_int(intval($value))) {
-                                        $fail(__('Percentage number should be a positive integer'));
-                                    } elseif ($value > 100) {
-                                        $fail(__('Percentage number should not be greater than 100'));
-                                    }
-                                }
-                            }],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->distype == 'per') {
+                        if (!is_int(intval($value))) {
+                            $fail(__('Percentage number should be a positive integer'));
+                        } elseif ($value > 100) {
+                            $fail(__('Percentage number should not be greater than 100'));
+                        }
+                    }
+                }
+            ],
             'distype' => 'required|in:fix,per',
             'expirydate' => "required|date|date_format:Y-m-d|after_or_equal:" . date('Y-m-d'),
             'maxusage' => 'required|numeric|min:1',
@@ -260,13 +278,13 @@ class CouponController extends Controller
             $input['minamount'] = null;
 
             $installment = Installment::query()
-                                        ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
-                                            $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
-                                        })
-                                        ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
-                                            $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
-                                        })
-                                        ->first();
+                ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
+                    $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
+                })
+                ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
+                    $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
+                })
+                ->first();
 
             $input['installment_id'] = $installment ? $installment->id : null;
         }
@@ -282,10 +300,14 @@ class CouponController extends Controller
                 }
 
                 $input['show_to_users'] = 0;
+                $input['user_id'] = Auth::user()->id;
                 $coupon->create($input);
             }
         });
 
+        if (Auth::user()->is_abpp) {
+            return redirect("coupon")->with('success', trans('flash.CreatedSuccessfully'));
+        }
         return redirect("coupon")->with('success', trans('flash.CreatedSuccessfully'));
     }
 
@@ -318,16 +340,20 @@ class CouponController extends Controller
             'link_by' => 'nullable|required_if:coupon_type,item|in:course,bundle,meeting,session',
             'payment_type' => 'nullable|required_with:link_by|in:full,installment',
             'installment_number' => 'nullable|required_if:payment_type,installment',
-            'amount' => ['required','numeric','min:1',
-                            function ($attribute, $value, $fail) use ($request) {
-                                if ($request->distype == 'per') {
-                                    if (!is_int(intval($value))) {
-                                        $fail(__('Percentage number should be a positive integer'));
-                                    } elseif ($value > 100) {
-                                        $fail(__('Percentage number should not be greater than 100'));
-                                    }
-                                }
-                            }],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->distype == 'per') {
+                        if (!is_int(intval($value))) {
+                            $fail(__('Percentage number should be a positive integer'));
+                        } elseif ($value > 100) {
+                            $fail(__('Percentage number should not be greater than 100'));
+                        }
+                    }
+                }
+            ],
             'distype' => 'required|in:fix,per',
             'expirydate' => "required|date|date_format:Y-m-d|after_or_equal:" . date('Y-m-d'),
             'maxusage' => 'required|numeric|min:1',
@@ -365,13 +391,13 @@ class CouponController extends Controller
             $input['minamount'] = null;
 
             $installment = Installment::query()
-                                        ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
-                                            $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
-                                        })
-                                        ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
-                                            $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
-                                        })
-                                        ->first();
+                ->when(request('payment_type') == 'installment' && request('course_id') && request('installment_number'), function ($q) {
+                    $q->where(['course_id' => request('course_id'), 'sort' => request('installment_number')]);
+                })
+                ->when(request('payment_type') == 'installment' && request('bundle_id') && request('installment_number'), function ($q) {
+                    $q->where(['bundle_id' => request('bundle_id'), 'sort' => request('installment_number')]);
+                })
+                ->first();
 
             $input['installment_id'] = $installment ? $installment->id : null;
         }
@@ -469,9 +495,9 @@ class CouponController extends Controller
 
 
     /**
-    * only create coupon in stripe for subscription bundle
-    * dont allow edit of this coupon since stripe by design dont allow editing coupons
-    */
+     * only create coupon in stripe for subscription bundle
+     * dont allow edit of this coupon since stripe by design dont allow editing coupons
+     */
     private function processSubscriptionCoupon($input)
     {
         if (isset($input['bundle_id'])) {
@@ -502,7 +528,7 @@ class CouponController extends Controller
         } else {
             $currency = Currency::where('default', '=', '1')->first();
             $couponCreateArgs['currency'] = $currency->code;
-            $couponCreateArgs['amount_off'] =  $input['amount'] * 100;
+            $couponCreateArgs['amount_off'] = $input['amount'] * 100;
         }
 
         $couponCreateArgs['applies_to'] = ['products' => [$bundle->product_id]];
@@ -531,8 +557,8 @@ class CouponController extends Controller
 
 
     /**
-    * If bundle with subscription then delete coupon in stripe
-    */
+     * If bundle with subscription then delete coupon in stripe
+     */
     private function deleteCouponInStripe($coupon)
     {
         if (!isset($coupon->stripe_coupon_id)) {

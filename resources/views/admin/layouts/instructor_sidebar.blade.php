@@ -12,34 +12,43 @@
 
                     <div class="tab-pane fade active show" id="v-pills-dashboard" role="tabpanel"
                         aria-labelledby="v-pills-dashboard">
-                        @if(Auth::User()->role == "instructor")
-                        <ul class="vertical-menu">
-                            <div class="logobar">
-                                <a href="{{ url('/') }}" class="logo logo-large">
-                                    <img style="object-fit:scale-down;" src="{{ url('images/logo/'.$gsetting->footer_logo) }}"
-                                        class="img-fluid" alt="logo">
-                                </a>
-                            </div>
+                        @if (Auth::User()->role == 'instructor')
+                            <ul class="vertical-menu">
+                                <div class="logobar">
+                                    <a href="{{ url('/') }}" class="logo logo-large">
+                                        <img style="object-fit:scale-down;"
+                                            src="{{ url('images/logo/' . $gsetting->footer_logo) }}" class="img-fluid"
+                                            alt="logo">
+                                    </a>
+                                </div>
 
 
-                            <li class="{{ Nav::isRoute('instructor.index') }}">
-                                <a class="nav-link" href="{{route('instructor.index')}}">
-                                    <i class="feather icon-box text-secondary"></i>
-                                    <span>{{ __('adminstaticword.Dashboard') }}</span>
-                                </a>
-                            </li>
-                            <!-- dashboard end -->
+                                <li class="{{ Nav::isRoute('instructor.index') }}">
+                                    <a class="nav-link" href="{{ route('instructor.index') }}">
+                                        <i class="feather icon-box text-secondary"></i>
+                                        <span>{{ __('adminstaticword.Dashboard') }}</span>
+                                    </a>
+                                </li>
+                                <!-- dashboard end -->
 
-                            <li class="header header-one">{{ __('Education') }}</li>
+                                <li class="header header-one">{{ __('Education') }}</li>
 
-                            <!-- Course start  -->
-                            @can(['courses.view'])
-                            <li class="{{ Nav::isResource('course') }}"><a href="{{url('course')}}"><i
-                                        class="feather icon-book text-secondary"></i><span>{{ __('adminstaticword.Courses') }}</span></a>
-                            </li>
-                            @endcan
-                            
-                            <!-- <li
+                                <!-- Course start  -->
+                                @can(['courses.view'])
+                                    <li class="{{ Nav::isResource('course') }}"><a href="{{ url('course') }}"><i
+                                                class="feather icon-book text-secondary"></i><span>{{ __('adminstaticword.Courses') }}</span></a>
+                                    </li>
+                                @endcan
+                                @if (Auth::user()->is_abpp == 1)
+                                    <li>
+                                        <a href="{{ route('user.bulk_add') }}">
+                                            <i class="feather icon-users text-secondary"></i><span>{{ __('bulkAdd') }}
+                                                {{ __('Students') }}</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- <li
                                 class="{{ Nav::isResource('category') }} {{ Nav::isResource('subcategory') }} {{ Nav::isResource('childcategory') }} {{ Nav::isResource('course') }} {{ Nav::isResource('courselang') }}">
                                 <a href="javaScript:void();">
                                     <i class="feather icon-book text-secondary"></i>
@@ -50,198 +59,209 @@
 
                                     <li
                                         class="{{ Nav::isResource('category') }} {{ Nav::isResource('subcategory') }} {{ Nav::isResource('childcategory') }} {{ Nav::isResource('course') }} {{ Nav::isResource('courselang') }} {{ Nav::isRoute('assignment.view') }}">
-                                        @if($gsetting->cat_enable == 1)
-                                        <a href="javaScript:void();">
+                                        @if ($gsetting->cat_enable == 1)
+<a href="javaScript:void();">
                                             <span>{{ __('adminstaticword.Category') }}</span><i
                                                 class="feather icon-chevron-right"></i>
                                         </a>
                                         <ul class="vertical-submenu">
 
                                             <li class="{{ Nav::isResource('category') }}">
-                                                <a href="{{url('category')}}">{{ __('adminstaticword.Category') }}</a>
+                                                <a href="{{ url('category') }}">{{ __('adminstaticword.Category') }}</a>
                                             </li>
 
                                             <li class="{{ Nav::isResource('subcategory') }}">
                                                 <a
-                                                    href="{{url('subcategory')}}">{{ __('adminstaticword.SubCategory') }}</a>
+                                                    href="{{ url('subcategory') }}">{{ __('adminstaticword.SubCategory') }}</a>
                                             </li>
 
                                             <li class="{{ Nav::isResource('childcategory') }}">
                                                 <a
-                                                    href="{{url('childcategory')}}">{{ __('adminstaticword.ChildCategory') }}</a>
+                                                    href="{{ url('childcategory') }}">{{ __('adminstaticword.ChildCategory') }}</a>
                                             </li>
 
                                         </ul>
-                                        @endif
+@endif
                                     </li>
                                     <li class="{{ Nav::isResource('course') }}">
-                                        <a href="{{url('course')}}">{{ __('adminstaticword.Course') }}</a>
+                                        <a href="{{ url('course') }}">{{ __('adminstaticword.Course') }}</a>
                                     </li>
                                     <li class="{{ Nav::isRoute('courses.reject') }}">
                                         <a
-                                            href="{{route('courses.reject')}}">{{ __('adminstaticword.RejectedCourses') }}</a>
+                                            href="{{ route('courses.reject') }}">{{ __('adminstaticword.RejectedCourses') }}</a>
                                     </li>
                                     <li class="{{ Nav::isResource('courselang') }}">
-                                        <a href="{{url('courselang')}}">{{ __('adminstaticword.Course') }}
+                                        <a href="{{ url('courselang') }}">{{ __('adminstaticword.Course') }}
                                             {{ __('adminstaticword.Language') }}</a>
                                     </li>
-                                    @if($gsetting->assignment_enable == 1)
-                                    <li class="{{ Nav::isRoute('assignment.view') }}">
+                                    @if ($gsetting->assignment_enable == 1)
+<li class="{{ Nav::isRoute('assignment.view') }}">
                                         <a
-                                            href="{{route('assignment.view')}}">{{ __('adminstaticword.Assignment') }}</a>
+                                            href="{{ route('assignment.view') }}">{{ __('adminstaticword.Assignment') }}</a>
                                     </li>
-                                    @endif
+@endif
 
                                     <li class="{{ Nav::isRoute('quiz.review') }}"><a
-                                            href="{{route('quiz.review')}}"><span>{{ __('adminstaticword.QuizReview') }}</span></a>
+                                            href="{{ route('quiz.review') }}"><span>{{ __('adminstaticword.QuizReview') }}</span></a>
                                     </li>
                                 </ul>
                             </li> -->
 
-                            <!-- meeeting start  -->
-                            @if(isset($gsetting) && $gsetting->bbl_enable == 1)
-                            <li
-                                class="{{ Nav::isRoute('meeting.create') }} {{ Nav::isRoute('zoom.show') }} {{ Nav::isRoute('zoom.edit') }} {{ Nav::isRoute('zoom.setting') }} {{ Nav::isRoute('zoom.index') }} {{ Nav::isRoute('bbl.setting') }} {{ Nav::isRoute('bbl.all.meeting') }} {{ Nav::isRoute('download.meeting') }} {{ Nav::isRoute('googlemeet.setting') }} {{ Nav::isRoute('googlemeet.index') }} {{ Nav::isRoute('googlemeet.allgooglemeeting') }} {{ Nav::isRoute('jitsi.dashboard') }} {{ Nav::isRoute('jitsi.create') }} {{ Nav::isResource('meeting-recordings') }}">
-                                <a href="javaScript:void();">
-                                    <i class="fa fa-podcast text-secondary"></i>
-                                    <span>{{ __('adminstaticword.Meetings') }}</span><i
-                                        class="feather icon-chevron-right"></i>
-                                </a>
-                                
-                                <!-- ======= bbl_enable start =============== -->
-                                <ul class="vertical-submenu">
-
+                                <!-- meeeting start  -->
+                                @if (isset($gsetting) && $gsetting->bbl_enable == 1)
                                     <li
-                                        class="{{ Nav::isRoute('bbl.setting') }} {{ Nav::isRoute('bbl.all.meeting') }} {{ Nav::isRoute('download.meeting') }}">
+                                        class="{{ Nav::isRoute('meeting.create') }} {{ Nav::isRoute('zoom.show') }} {{ Nav::isRoute('zoom.edit') }} {{ Nav::isRoute('zoom.setting') }} {{ Nav::isRoute('zoom.index') }} {{ Nav::isRoute('bbl.setting') }} {{ Nav::isRoute('bbl.all.meeting') }} {{ Nav::isRoute('download.meeting') }} {{ Nav::isRoute('googlemeet.setting') }} {{ Nav::isRoute('googlemeet.index') }} {{ Nav::isRoute('googlemeet.allgooglemeeting') }} {{ Nav::isRoute('jitsi.dashboard') }} {{ Nav::isRoute('jitsi.create') }} {{ Nav::isResource('meeting-recordings') }}">
                                         <a href="javaScript:void();">
-                                            <span>{{ __('adminstaticword.BigBlueMeetings') }}</span><i
+                                            <i class="fa fa-podcast text-secondary"></i>
+                                            <span>{{ __('adminstaticword.Meetings') }}</span><i
                                                 class="feather icon-chevron-right"></i>
                                         </a>
+
+                                        <!-- ======= bbl_enable start =============== -->
                                         <ul class="vertical-submenu">
-                                            <li class="{{ Nav::isRoute('bbl.all.meeting') }}">
-                                                <a
-                                                    href="{{ route('bbl.all.meeting') }}">{{ __('adminstaticword.ListMeetings') }}</a>
+
+                                            <li
+                                                class="{{ Nav::isRoute('bbl.setting') }} {{ Nav::isRoute('bbl.all.meeting') }} {{ Nav::isRoute('download.meeting') }}">
+                                                <a href="javaScript:void();">
+                                                    <span>{{ __('adminstaticword.BigBlueMeetings') }}</span><i
+                                                        class="feather icon-chevron-right"></i>
+                                                </a>
+                                                <ul class="vertical-submenu">
+                                                    <li class="{{ Nav::isRoute('bbl.all.meeting') }}">
+                                                        <a
+                                                            href="{{ route('bbl.all.meeting') }}">{{ __('adminstaticword.ListMeetings') }}</a>
+                                                    </li>
+                                                    <li class="d-none {{ Nav::isRoute('download.meeting') }}">
+                                                        <a
+                                                            href="{{ route('download.meeting') }}">{{ __('adminstaticword.MeetingRecordings') }}</a>
+                                                    </li>
+                                                </ul>
                                             </li>
-                                            <li class="d-none {{ Nav::isRoute('download.meeting') }}">
-                                                <a
-                                                    href="{{ route('download.meeting') }}">{{ __('adminstaticword.MeetingRecordings') }}</a>
-                                            </li>
+
                                         </ul>
+                                        <!-- ======= bbl_enable end ================= -->
+
                                     </li>
+                                @endif
 
-                                </ul>
-                                <!-- ======= bbl_enable end ================= -->
-                                
-                            </li>
-                            @endif
-
-                            <!-- meeeting end -->
-                            <!-- <li><a href="{{url('institute')}}"><i
+                                <!-- meeeting end -->
+                                <!-- <li><a href="{{ url('institute') }}"><i
                                         class="feather icon-grid text-secondary"></i><span>{{ __('Institute') }}</span></a>
                             </li> -->
-                            <!-- Course end -->
+                                <!-- Course end -->
 
-                            <!-- featurecourse start -->
-                            <!-- @if(isset($gsetting->feature_amount))
-                            <li class="{{ Nav::isResource('featurecourse') }}">
-                                <a href="{{url('featurecourse')}}">
+                                <!-- featurecourse start -->
+                                <!-- @if (isset($gsetting->feature_amount))
+<li class="{{ Nav::isResource('featurecourse') }}">
+                                <a href="{{ url('featurecourse') }}">
                                     <i class="feather icon-phone-forwarded text-secondary"></i><span>{{ __('adminstaticword.Featured') }}
                                         {{ __('adminstaticword.Course') }}</span>
                                 </a>
                             </li>
-                            @endif -->
+@endif -->
 
 
-                            <!-- MultipleInstructor start  -->
-                            <li style="display:none;"
-                                class="{{ Nav::isRoute('allrequestinvolve') }} {{ Nav::isRoute('involve.request.index') }} {{ Nav::isRoute('involve.request') }}">
-                                <a href="javaScript:void();">
-                                    <i
-                                        class="feather icon-users text-secondary"></i><span>{{ __('adminstaticword.MultipleInstructor') }}</span><i
-                                        class="feather icon-chevron-right"></i>
-                                </a>
-                                <ul class="vertical-submenu">
+                                <!-- MultipleInstructor start  -->
+                                <li style="display:none;"
+                                    class="{{ Nav::isRoute('allrequestinvolve') }} {{ Nav::isRoute('involve.request.index') }} {{ Nav::isRoute('involve.request') }}">
+                                    <a href="javaScript:void();">
+                                        <i
+                                            class="feather icon-users text-secondary"></i><span>{{ __('adminstaticword.MultipleInstructor') }}</span><i
+                                            class="feather icon-chevron-right"></i>
+                                    </a>
+                                    <ul class="vertical-submenu">
 
-                                    <li>
-                                        <a class="{{ Nav::isRoute('allrequestinvolve') }}"
-                                            href="{{route('allrequestinvolve')}}">{{ __('adminstaticword.RequestToInvolve') }}</a>
+                                        <li>
+                                            <a class="{{ Nav::isRoute('allrequestinvolve') }}"
+                                                href="{{ route('allrequestinvolve') }}">{{ __('adminstaticword.RequestToInvolve') }}</a>
+                                        </li>
+                                        <li>
+                                            <a class="{{ Nav::isRoute('involve.request.index') }}"
+                                                href="{{ route('involve.request.index') }}">{{ __('adminstaticword.InvolvementRequests') }}</a>
+                                        </li>
+                                        <li>
+                                            <a class="{{ Nav::isRoute('involve.request') }}"
+                                                href="{{ route('involve.request') }}">{{ __('adminstaticword.InvolvedInCourse') }}</a>
+                                        </li>
+
+                                    </ul>
+                                </li>
+                                <!-- Question & Answer start  -->
+                                <li
+                                    class="{{ Nav::isResource('instructorquestion') }} {{ Nav::isResource('instructoranswer') }}">
+                                    <a href="javaScript:void();">
+                                        <i class="feather icon-help-circle text-secondary"></i><span>{{ __('adminstaticword.Question') }}
+                                            / {{ __('adminstaticword.Answer') }}</span><i
+                                            class="feather icon-chevron-right"></i>
+                                    </a>
+                                    <ul class="vertical-submenu">
+
+                                        <li class="{{ Nav::isResource('instructorquestion') }}">
+                                            <a
+                                                href="{{ url('instructorquestion') }}">{{ __('adminstaticword.Question') }}</a>
+                                        </li>
+
+                                        <li class="{{ Nav::isResource('instructoranswer') }}">
+                                            <a
+                                                href="{{ url('instructoranswer') }}">{{ __('adminstaticword.Answer') }}</a>
+                                        </li>
+
+                                    </ul>
+                                </li>
+                                <!-- Question & Answer end -->
+                                <!-- MultipleInstructor end -->
+                                <li class="header">{{ __('Financial') }}</li>
+
+                                <!-- userenroll start -->
+                                <li
+                                    class="{{ Nav::isRoute('user.enroll.fullpayment') }} {{ Nav::isRoute('user.enroll.installment') }}">
+                                    <a href="javaScript:void();">
+                                        <i
+                                            class="feather icon-users text-secondary"></i><span>{{ __('adminstaticword.EnrolledStudents') }}</span><i
+                                            class="feather icon-chevron-right"></i>
+                                    </a>
+                                    <ul class="vertical-submenu">
+                                        <li class="{{ Nav::isRoute('user.enroll.fullpayment') }}">
+                                            <a
+                                                href="{{ route('user.enroll.fullpayment') }}">{{ __('adminstaticword.FullPayments') }}</a>
+                                        </li>
+                                        <li class="{{ Nav::isRoute('user.enroll.installment') }}">
+                                            <a
+                                                href="{{ route('user.enroll.installment') }}">{{ __('adminstaticword.PaymentInInstallments') }}</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                @if (Auth::user()->is_abpp == 1)
+                                    <li class="{{ Nav::isResource('coupon') }}"><a href="{{ url('coupon') }}"><i
+                                                class="feather icon-award text-secondary"></i><span>{{ __('adminstaticword.Coupon') }}</span></a>
                                     </li>
-                                    <li>
-                                        <a class="{{ Nav::isRoute('involve.request.index') }}"
-                                            href="{{route('involve.request.index')}}">{{ __('adminstaticword.InvolvementRequests') }}</a>
-                                    </li>
-                                    <li>
-                                        <a class="{{ Nav::isRoute('involve.request') }}"
-                                            href="{{route('involve.request')}}">{{ __('adminstaticword.InvolvedInCourse') }}</a>
-                                    </li>
+                                @endif
+                                <!-- userenroll end -->
 
-                                </ul>
-                            </li>
-                            <!-- Question & Answer start  -->
-                            <li
-                                class="{{ Nav::isResource('instructorquestion') }} {{ Nav::isResource('instructoranswer') }}">
-                                <a href="javaScript:void();">
-                                    <i class="feather icon-help-circle text-secondary"></i><span>{{ __('adminstaticword.Question') }}
-                                        / {{ __('adminstaticword.Answer') }}</span><i
-                                        class="feather icon-chevron-right"></i>
-                                </a>
-                                <ul class="vertical-submenu">
+                                <!-- <li class="header">{{ __('Content') }}</li> -->
 
-                                    <li class="{{ Nav::isResource('instructorquestion') }}">
-                                        <a href="{{url('instructorquestion')}}">{{ __('adminstaticword.Question') }}</a>
-                                    </li>
-
-                                    <li class="{{ Nav::isResource('instructoranswer') }}">
-                                        <a href="{{url('instructoranswer')}}">{{ __('adminstaticword.Answer') }}</a>
-                                    </li>
-
-                                </ul>
-                            </li>
-                            <!-- Question & Answer end -->
-                            <!-- MultipleInstructor end -->
-                            <li class="header">{{ __('Financial') }}</li>
-
-                            <!-- userenroll start -->
-                            <li class="{{ Nav::isRoute('user.enroll.fullpayment') }} {{ Nav::isRoute('user.enroll.installment') }}">
-                                <a href="javaScript:void();">
-                                    <i class="feather icon-users text-secondary"></i><span>{{ __('adminstaticword.EnrolledStudents') }}</span><i
-                                        class="feather icon-chevron-right"></i>
-                                </a>
-                                <ul class="vertical-submenu">
-                                    <li class="{{ Nav::isRoute('user.enroll.fullpayment') }}">
-                                        <a href="{{ route('user.enroll.fullpayment') }}">{{ __('adminstaticword.FullPayments') }}</a>
-                                    </li>
-                                    <li class="{{ Nav::isRoute('user.enroll.installment') }}">
-                                        <a href="{{ route('user.enroll.installment') }}">{{ __('adminstaticword.PaymentInInstallments') }}</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <!-- userenroll end -->
-
-                            <!-- <li class="header">{{ __('Content') }}</li> -->
-
-                            <!-- Announcement start -->
-                            <!-- <li class="{{ Nav::isResource('instructor/announcement') }}">
-                                <a href="{{url('instructor/announcement')}}">
+                                <!-- Announcement start -->
+                                <!-- <li class="{{ Nav::isResource('instructor/announcement') }}">
+                                <a href="{{ url('instructor/announcement') }}">
                                     <i
                                         class="feather icon-volume-1 text-secondary"></i><span>{{ __('adminstaticword.Announcement') }}</span>
                                 </a>
                             </li> -->
-                            <!-- Announcement end -->
-                            <!-- featurecourse end -->
-                           
-                            <!-- blog start -->
-                            <!-- <li class="{{ Nav::isResource('blog') }}">
-                                <a  href="{{url('blog')}}">
+                                <!-- Announcement end -->
+                                <!-- featurecourse end -->
+
+                                <!-- blog start -->
+                                <!-- <li class="{{ Nav::isResource('blog') }}">
+                                <a  href="{{ url('blog') }}">
                                     <i
                                         class="feather icon-book text-secondary"></i><span>{{ __('adminstaticword.Blog') }}</span>
                                 </a>
                             </li> -->
-                            <!-- blog end -->
+                                <!-- blog end -->
 
 
-                            <!-- revenue start  -->
-                            <!-- <li class="{{ Nav::isResource('pending.payout') }} {{ Nav::isRoute('admin.completed') }}">
+                                <!-- revenue start  -->
+                                <!-- <li class="{{ Nav::isResource('pending.payout') }} {{ Nav::isRoute('admin.completed') }}">
                                 <a href="javaScript:void();">
                                     <i
                                         class="feather icon-dollar-sign text-secondary"></i><span>{{ __('adminstaticword.MyRevenue') }}</span><i
@@ -250,66 +270,67 @@
                                 <ul class="vertical-submenu">
 
                                     <li class="{{ Nav::isResource('pending.payout') }}">
-                                        <a href="{{route('pending.payout')}}">{{ __('adminstaticword.PendingPayout') }}</a>
+                                        <a href="{{ route('pending.payout') }}">{{ __('adminstaticword.PendingPayout') }}</a>
                                     </li>
 
                                     <li class="{{ Nav::isRoute('admin.completed') }}">
                                         <a
-                                            href="{{route('admin.completed')}}">{{ __('adminstaticword.CompletedPayout') }}</a>
+                                            href="{{ route('admin.completed') }}">{{ __('adminstaticword.CompletedPayout') }}</a>
                                     </li>
 
                                 </ul>
                             </li> -->
-                            <!-- revenue end -->
+                                <!-- revenue end -->
 
-                            <!-- report start  -->
-                            @can(['report.quiz-report.manage'])
-                            <li class="header">{{ __('Reports') }}</li>
+                                <!-- report start  -->
+                                @can(['report.quiz-report.manage'])
+                                    <li class="header">{{ __('Reports') }}</li>
 
-                            <li class="{{url('show/progress/report')}} {{ Nav::isResource('show/quiz/report') }}">
-                                <a href="javaScript:void();">
-                                    <i
-                                        class="feather icon-file-text text-secondary"></i><span>{{ __('adminstaticword.Report') }}</span><i
-                                        class="feather icon-chevron-right"></i>
-                                </a>
-                                <ul class="vertical-submenu">
+                                    <li
+                                        class="{{ url('show/progress/report') }} {{ Nav::isResource('show/quiz/report') }}">
+                                        <a href="javaScript:void();">
+                                            <i
+                                                class="feather icon-file-text text-secondary"></i><span>{{ __('adminstaticword.Report') }}</span><i
+                                                class="feather icon-chevron-right"></i>
+                                        </a>
+                                        <ul class="vertical-submenu">
 
-                                    <li class="{{ Nav::isResource('show/quiz/report') }}">
-                                        <a href="{{url('show/quiz/report')}}"> {{ __('Quiz') }} {{ __('adminstaticword.Report') }}</a>
+                                            <li class="{{ Nav::isResource('show/quiz/report') }}">
+                                                <a href="{{ url('show/quiz/report') }}"> {{ __('Quiz') }}
+                                                    {{ __('adminstaticword.Report') }}</a>
+                                            </li>
+                                            <!-- <li class="{{ Nav::isResource('show/progress/report') }}">
+                                                                <a href="{{ url('show/progress/report') }}">
+                                                                    Progress{{ __('adminstaticword.Report') }}</a>
+                                                            </li> -->
+                                        </ul>
                                     </li>
-                                    <!-- <li class="{{ Nav::isResource('show/progress/report') }}">
-                                        <a href="{{url('show/progress/report')}}">
-                                            Progress{{ __('adminstaticword.Report') }}</a>
-                                    </li> -->
-                                </ul>
-                            </li>
-                            @endcan
-                            <!-- report end -->
-                            
-                            <!-- <li class="header">{{ __('Settings') }}</li> -->
-                            
-                            <!-- PayoutSettings start -->
-                            <!-- @if(isset($isetting))
-                        
-                            <li class="{{ Nav::isResource('instructor.pay') }}">
-                                <a href="{{route('instructor.pay')}}">
+                                @endcan
+                                <!-- report end -->
+
+                                <!-- <li class="header">{{ __('Settings') }}</li> -->
+
+                                <!-- PayoutSettings start -->
+                                <!-- @if (isset($isetting))
+<li class="{{ Nav::isResource('instructor.pay') }}">
+                                <a href="{{ route('instructor.pay') }}">
                                     <i
                                         class="feather icon-settings text-secondary"></i><span>{{ __('adminstaticword.PayoutSettings') }}</span>
                                 </a>
                             </li>
-                            @endif -->
-                            <!-- PayoutSettings end -->
+@endif -->
+                                <!-- PayoutSettings end -->
 
-                            <!-- Vacation Enable start -->
-                            <!-- <li class="{{ Nav::isResource('vacation.view') }}">
-                                <a href="{{route('vacation.view')}}">
+                                <!-- Vacation Enable start -->
+                                <!-- <li class="{{ Nav::isResource('vacation.view') }}">
+                                <a href="{{ route('vacation.view') }}">
                                     <i
                                         class="feather icon-toggle-left text-secondary"></i><span>{{ __('Vacation Enable') }}</span>
                                 </a>
                             </li> -->
-                            <!-- Vacation Enable end -->
+                                <!-- Vacation Enable end -->
 
-                        </ul>
+                            </ul>
                         @endif
                     </div>
 

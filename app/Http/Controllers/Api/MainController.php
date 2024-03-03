@@ -4009,11 +4009,9 @@ class MainController extends Controller
     public function overdue()
     {
         $userId = Auth::user()->id;
-
         if (!$userId) {
             return [];
         }
-
         $ordersIds = Order::whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->with([
@@ -4023,31 +4021,36 @@ class MainController extends Controller
                             ->where('status', null);
                     }
                 ])->select('id')->get();
-
         $ids = [];
         if ($ordersIds) {
             foreach ($ordersIds as $orderId) {
                 $ids[] = $orderId->id;
             }
         }
-
         $orders = Order::whereIn('id', $ids)->whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
-        })->with([
-                    'courses',
-                    'bundle',
-                    'payment_plan' => function ($query) {
-                        $query
-                            ->where('status', null);
-                        // ->where('due_date', '<=', now()->addDays(2))
-                    }
-                ])
+        })
+        ->where('enroll_expire', '>=', date('Y-m-d'))
+        ->where(function ($q) {
+            $q->whereHas('courses', function ($q) {
+                $q->active();
+            })
+                ->OrWhereHas('bundle', function ($q) {
+                    $q->active();
+                });
+        })
+            ->with([
+                'courses',
+                'bundle',
+                'payment_plan' => function ($query) {
+                    $query
+                        ->where('status', null);
+                    // ->where('due_date', '<=', now()->addDays(2))
+                }
+            ])
             ->get();
-
         $response = [];
-
         $userPayInstallments = Cache::get($userId) ?? [];
-
         for ($i = 0; $i < count($orders); $i++) {
             $item = null;
             if (isset($orders[$i]->courses) && !empty($orders[$i]->courses->title)) {
@@ -4068,7 +4071,6 @@ class MainController extends Controller
                     'installment_no' => $paymentPlan->installment_no,
                 ];
             }
-
             $response[] = [
                 'typeId' => $item->id,
                 'name' => $item->title,
@@ -4077,7 +4079,6 @@ class MainController extends Controller
                 'installments' => $installments,
             ];
         }
-
         return response()->json($response);
     }
 }

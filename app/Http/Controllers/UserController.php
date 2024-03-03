@@ -245,6 +245,9 @@ class UserController extends Controller
 
         } elseif ($request->role == 'instructor') {
             $input['role'] = 'instructor';
+        } elseif ($request->role == 'abpp') {
+            $input['role'] = 'instructor';
+            $input['is_abpp'] = true;
         } elseif ($request->role == 'admin') {
             $input['role'] = 'admin';
         } else {
@@ -448,8 +451,13 @@ class UserController extends Controller
 
         if ($request->role == 'user') {
             $input['role'] = 'user';
+            $input['is_abpp'] = false;
         } elseif ($request->role == 'instructor') {
             $input['role'] = 'instructor';
+            $input['is_abpp'] = false;
+        } elseif ($request->role == 'abpp') {
+            $input['role'] = 'instructor';
+            $input['is_abpp'] = true;
         } elseif ($request->role == 'admin') {
             $input['role'] = 'admin';
         } else {

@@ -14,15 +14,15 @@ class ABPPSeeder extends Seeder
      */
     public function run()
     {
-        // $IsABPPExist = DB::table('roles')->where('name', '=', 'ABPP')->exists();
-        // if (!$IsABPPExist) {
-        //     DB::table('roles')->insert([
-        //         'name' => 'ABPP',
-        //         'guard_name' => 'web',
-        //         'created_at' => now(),
-        //         'updated_at' => now()
-        //     ]);
-        // }
+        $IsABPPExist = DB::table('roles')->where('name', '=', 'ABPP')->exists();
+        if (!$IsABPPExist) {
+            DB::table('roles')->insert([
+                'name' => 'ABPP',
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
 
         $userBulkExist = DB::table('permissions')->where('name', '=', 'user.bulk')->exists();
         if (!$userBulkExist) {

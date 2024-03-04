@@ -311,7 +311,17 @@ class ManualEnrollmentController extends Controller
                 $pay_amount += $order_item->installments[2]->amount;
             }
         } elseif ($request->payment_type === 'full') {
-            $pay_amount = $order_item->discount_price;
+            if($order_item->discount_type){
+                if($order_item->discount_type == 'fixed'){
+                    $pay_amount = $order_item->price - $order_item->discount_price;
+                }else if($order_item->discount_type == 'percentage'){
+                    $pay_amount = $order_item->price - ($order_item->price * $order_item->discount_price);
+                }
+            }else if($order_item->discount_price == 0){
+                $pay_amount = $order_item->price;
+            }else{
+                $pay_amount = $order_item->discount_price;
+            }
         }
 
         $lastOrder = Order::orderBy('created_at', 'desc')->first();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\SESService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Socialite;
@@ -103,8 +104,11 @@ class AuthController extends Controller
         if($setting->w_email_enable == 1){
             try{
                
-                Mail::to($auth_user['email'])->send(new WelcomeUser($auth_user));
-               
+//                Mail::to($auth_user['email'])->send(new WelcomeUser($auth_user));
+                $to = $auth_user['email'];
+                $subject = 'Welcome Email';
+                $bladeView = 'email.welcomeuser';
+                $result = (new SESService())->sendEmail($to, $subject, $bladeView,$auth_user);
             }
             catch(\Swift_TransportException $e){
 

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\SESService;
 use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
@@ -41,17 +42,29 @@ class SendTwoFactorCode extends Notification implements ShouldQueue
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return \Aws\Result
      */
-    public function toMail(User $notifiable): MailMessage
+    public function toMail(User $notifiable)
     {
-        return (new MailMessage())
-            ->subject('Elite-Class Two Factor Authentication Code')
-            ->greeting("Hi, {$notifiable->fname}")
-            ->line("Your two factor code is {$notifiable->two_factor_code}")
-            ->action('Verify Here', route('verify.index',['code' => $notifiable->two_factor_code]))
-            ->line('The code will expire in 10 minutes')
-            ->line('If you have not tried to login, ignore this message.');
+//        return (new MailMessage())
+//            ->subject('Elite-Class Two Factor Authentication Code')
+//            ->greeting("Hi, {$notifiable->fname}")
+//            ->line("Your two factor code is {$notifiable->two_factor_code}")
+//            ->action('Verify Here', route('verify.index',['code' => $notifiable->two_factor_code]))
+//            ->line('The code will expire in 10 minutes')
+//            ->line('If you have not tried to login, ignore this message.');
+        $to = $notifiable->email;
+        $subject = 'Elite-Class Two Factor Authentication Code';
+        $bladeView = 'email.verify_otp'; // Blade template for two-factor authentication email
+        $data = [
+            'fname' => $notifiable->fname,
+            'code' => $notifiable->two_factor_code,
+            'actionUrl' => route('verify.index', ['code' => $notifiable->two_factor_code])
+        ];
+
+        $sesService = new SESService();
+        return $sesService->sendEmail($to, $subject, $bladeView, $data);
+
     }
 
     /**

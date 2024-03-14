@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Aws\Ses\SesClient;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 
@@ -22,19 +23,17 @@ class SESService
         ]);
     }
 
-    public function sendEmail($to, $subject, $bladeView,$data=[])
+    public function sendEmail($to, $subject, $message)
     {
-        $htmlContent = View::make($bladeView, $data)->render();
-
         $result = $this->sesClient->sendEmail([
             'Destination' => [
                 'ToAddresses' => [$to],
             ],
             'Message' => [
                 'Body' => [
-                    'Html' => [
+                    'Text' => [
                         'Charset' => 'UTF-8',
-                        'Data' => $htmlContent,
+                        'Data' => $message,
                     ],
                 ],
 
@@ -45,7 +44,6 @@ class SESService
             ],
             'Source' => 'no-reply@elite-class.com',
         ]);
-
         return $result;
     }
 }

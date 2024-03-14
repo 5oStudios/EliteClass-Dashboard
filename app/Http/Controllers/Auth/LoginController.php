@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\SESService;
 use App\User;
 use App\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\MessageBag;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -65,7 +67,14 @@ class LoginController extends Controller
 
         if (!auth()->user()->hasRole('user-unblock-admin')) {
             $request->user()->generateTwoFactorCode();
-            $request->user()->notify(new SendTwoFactorCode());
+//            $request->user()->notify(new SendTwoFactorCode());
+            $user = $request->user();
+            $subject = 'Elite-Class Two Factor Authentication Code';
+            $message = "Hi, {$user->fname}  ";
+            $message .= " Your two factor code is {$user->two_factor_code} ";
+            $message .= 'The code will expire in 10 minutes ';
+            $message .= ' If you have not tried to login, ignore this message.';
+            (new SESService())->sendEmail($user['email'],$subject,$message);
         }
 
         if (Auth::user()->status == 1) {

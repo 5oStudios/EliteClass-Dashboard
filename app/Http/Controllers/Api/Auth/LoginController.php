@@ -43,6 +43,7 @@ class LoginController extends Controller
         $authUser = User::where('email', trim($request->email))->where('role', 'user')->orWhere(function ($query) use ($request) {
             $query->where('mobile', trim($request->email))->where('role', 'user');
         })->first();
+
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . Str::remove('+', trim($request->email)) . "' and `role` = 'user'))")->first();
 
         if (isset($authUser) && $authUser->status == 0) {
@@ -81,6 +82,7 @@ class LoginController extends Controller
                     } else {
                         return response()->json(array("errors" => ["message" => [__("Verify your email")]]), 403);
                     }
+
                 }
 
             } else {

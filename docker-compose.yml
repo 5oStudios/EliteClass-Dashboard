@@ -37,6 +37,7 @@ services:
     volumes:
       - dashboard:/var/www/html/public
       - uploads:/app/storage/public
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     depends_on:
       - mysql
       - redis

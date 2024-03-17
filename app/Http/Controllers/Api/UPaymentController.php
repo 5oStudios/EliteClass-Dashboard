@@ -77,7 +77,7 @@ class UPaymentController extends Controller
         foreach ($carts as $c) {
             //cart item price i.e. offer_price
             // $total_amount = $total_amount + $c->offer_price;
-            if (is_null($c->offer_type) && $c->offer_price) {
+            if ((is_null($c->offer_type) && $c->offer_price) || $c->installment === 1) {
                 $total_amount += $c->offer_price;
             } else {
                 //fixed

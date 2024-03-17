@@ -120,8 +120,6 @@ services:
       - lms-network
     depends_on:
       - dashboard
-    profiles:
-      - production
 
 # volumes
 volumes:

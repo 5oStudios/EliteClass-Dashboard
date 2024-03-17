@@ -152,7 +152,6 @@ class UPaymentController extends Controller
 
         foreach ($carts as $cart) {
             $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
-
             $created_orders[] = Order::create([
                 'title' => $cart_item->_title(),
                 'price' => $cart_item->price,
@@ -170,7 +169,7 @@ class UPaymentController extends Controller
                 'transaction_id' => 0,
                 'payment_method' => ($cart->installment == 0 && $cart->cartCoupon && ($cart->cartCoupon->disamount >= $cart->offer_price)) ? 'Coupon' : $request->payment_method,
                 // 'total_amount' => $cart->installment == 1 ? $cart->price : $cart->offer_price,
-                'total_amount' => $cart->installment == 1 ? (isset($cart->price) ? $cart->price : 0) : (isset($cart->offer_price) ? $cart->offer_price : 0),
+                'total_amount' => $total_amount,  //$cart->installment == 1 ? (isset($cart->price) ? $cart->price : 0) : (isset($cart->offer_price) ? $cart->offer_price : 0),
                 'paid_amount' => 0,
                 'installments' => $cart->installment,
                 'total_installments' => $cart->installment == 1 ? $cart_item->total_installments : null,
@@ -441,7 +440,31 @@ class UPaymentController extends Controller
                 }
             }
 
-            $created_order->paid_amount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? 0 : $carts[$key]->offer_price - $carts[$key]->cartCoupon->disamount) : $carts[$key]->offer_price) : $created_order->installments_list->sum('total_amount');
+            $amountToPay = 0;
+            if($carts[$key]->installment === 1){
+                $amountToPay = $carts[$key]->offer_price;
+            }else{
+                if ($carts[$key]->offer_type === 'fixed'){
+                    $amountToPay = $carts[$key]->price - $carts[$key]->offer_price;
+                }elseif ($carts[$key]->offer_type === 'percentage'){
+                    $amountToPay = $carts[$key]->price - (($carts[$key]->offer_price / 100) * $carts[$key]->price);
+                }
+            }
+            if ($carts[$key]->cartCoupon){
+                $amountToPay = $carts[$key]->cartCoupon->disamount >= $amountToPay ? 0 : $amountToPay - $carts[$key]->cartCoupon->disamount;
+            }
+
+            $created_order->paid_amount = $amountToPay;
+
+//            $created_order->paid_amount = $carts[$key]->installment == 0 ?
+//                (
+//                    $carts[$key]->cartCoupon ?
+//                    (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? 0 : $carts[$key]->offer_price - $carts[$key]->cartCoupon->disamount)
+//                    : $amountToPay
+//                )
+//                : $created_order->installments_list->sum('total_amount')
+//            ;
+
             $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? $carts[$key]->offer_price : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
             $created_order->coupon_id = $carts[$key]->installment == 0 ? optional($carts[$key]->cartCoupon)->coupon_id : null;
             $created_order->transaction_id = $wallet_transaction->id;

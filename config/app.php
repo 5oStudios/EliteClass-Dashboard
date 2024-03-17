@@ -54,12 +54,12 @@ return [
      * Production
      *'upayment_api_key' => '6f46707ec547879c3ff055be66db24ff82b53a56'
      */
-    'upayment_url' => 'https://api.upayments.com/payment-request',
-    'upayment_merchant_id' => '46613',
-    'upayment_username' => 'Elite',
-    'upayment_password' => 'uLM0yjHy6Zlz',
-    'upayment_api_key' => '$2y$10$qXfmheCvdawp.hNcjTUvaOjRJwe6AE3YiYrNTfdH6tMSe.818x5Mu', // encrypted api key
-    'upayment_test_mode' => 0, // production mode enabled
+    'upayment_url' => env('UPAYMENT_URL', 'https://api.upayments.com/payment-request'),
+    'upayment_merchant_id' => env('UPAYMENT_MERCHANT_ID', '46613'),
+    'upayment_username' => env('UPAYMENT_USERNAME','Elite'),
+    'upayment_password' => env('UPAYMENT_PASSWORD', 'uLM0yjHy6Zlz'),
+    'upayment_api_key' => env('UPAYMENT_API_KEY', '$2y$10$qXfmheCvdawp.hNcjTUvaOjRJwe6AE3YiYrNTfdH6tMSe.818x5Mu'), // encrypted api key
+    'upayment_test_mode' => env('UPAYMENT_TEST_MODE', 0), // production mode enabled
 
 
     /*

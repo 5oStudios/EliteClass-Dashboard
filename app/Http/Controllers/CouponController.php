@@ -198,7 +198,6 @@ class CouponController extends Controller
 
             // stripe coupon creation
             // $input = $this->processSubscriptionCoupon($input);
-            dd($input);
             $coupon->create($input);
 
             return redirect("coupon")->with('success', trans('flash.CouponCreatedSuccessfully'));

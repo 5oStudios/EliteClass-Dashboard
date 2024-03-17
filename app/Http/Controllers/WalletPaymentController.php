@@ -52,15 +52,28 @@ class WalletPaymentController extends Controller
         $carts = Cart::where('user_id',auth()->id())->get();
            
         foreach($carts as $cart)
-        { 
-            if ($cart->offer_price != 0)
-            {
-                $pay_amount =  $cart->offer_price;
+        {
+            if ((is_null($cart->offer_type) && $cart->offer_price) || $cart->installment === 1) {
+                $pay_amount = $cart->offer_price;
+            } else {
+                //fixed
+                if ($cart->offer_type == 'fixed') {
+                    $pay_amount = ($cart->price - $cart->offer_price);
+                }
+                //%
+                elseif ($cart->offer_type == 'percentage') {
+                    $pay_amount = ($cart->price - (($cart->offer_price / 100) * $cart->price));
+                }
             }
-            else
-            {
-                $pay_amount =  $cart->price;
-            }
+
+//            if ($cart->offer_price != 0)
+//            {
+//                $pay_amount =  $cart->offer_price;
+//            }
+//            else
+//            {
+//                $pay_amount =  $cart->price;
+//            }
 
             if ($cart->disamount != 0 || $cart->disamount != NULL)
             {

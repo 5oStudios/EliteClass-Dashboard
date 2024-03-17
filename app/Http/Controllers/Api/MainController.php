@@ -1256,7 +1256,9 @@ class MainController extends Controller
         $course = Course::find($request->course_id);
         $cart = Cart::where('course_id', $course->id)->where('user_id', $auth->id)->first();
 
-        if (isset($request->payment_type) && $request->payment_type == 'installments' && isset($request->installments) && $course->installment && $course->installments) {
+        if (isset($request->payment_type) && $request->payment_type == 'installments' &&
+            isset($request->installments) && $course->installment && $course->installments
+        ) {
             $due_inst = $course->installments->where('due_date', '<', date('Y-m-d'))->pluck('id')->toArray();
             $inst = $course->installments->pluck('id')->toArray();
             if (count($request->installments) < count($due_inst)) {

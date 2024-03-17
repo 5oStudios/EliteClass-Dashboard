@@ -320,7 +320,7 @@
                                     <br>
                                         <label for="discount_type">{{ __('discount_type') }}</label>
                                         <select name="discount_type" id="discount_type" class="form-control js-example-basic-single col-md-7 col-xs-12 mb-2">
-                                            <option value="none" disabled {{ ($cor->discount_type ?? null) == 'none' ? 'selected' : '' }}>
+                                            <option value="none" disabled {{ ($cor->discount_type ?? null) == null ? 'selected' : '' }}>
                                                 {{ __('frontstaticword.SelectanOption') }}
                                             </option>
                                             <option value="percentage" {{ ($cor->discount_type ?? null) == 'percentage' ? 'selected' : '' }}>

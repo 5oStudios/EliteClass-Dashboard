@@ -476,7 +476,9 @@ class CourseController extends Controller
         // return Storage::get('public/classOne.pdf');
 
         if (request()->has('path') && Storage::exists(request()->query('path'))) {
-            ob_end_clean();
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
             ob_start();
 
             $filename = urldecode(pathinfo(request()->query('path'), PATHINFO_BASENAME));
@@ -512,8 +514,7 @@ class CourseController extends Controller
 
         if ($request->type == 'download') {
 
-            if ($courseClass->downloadable === '1') {
-
+            if ($courseClass->downloadable === 1) {
                 $queryParams = "user_id=$user->id&time=$now";
                 $expiree = encryptData($queryParams);
                 return response()->json(['URL' => env('API_URL') . "/courseclass/file/$request->class_id/download?key=$expiree"]);
@@ -523,7 +524,7 @@ class CourseController extends Controller
 
         } else if ($request->type == 'print') {
 
-            if ($courseClass->printable === '1') {
+            if ($courseClass->printable === 1) {
 
                 $queryParams = "user_id=$user->id&time=$now";
                 $expiree = encryptData($queryParams);
@@ -542,7 +543,9 @@ class CourseController extends Controller
 
         if ($courseclass->printable == '1') {
             if (Storage::exists($pathToFile)) {
-                ob_end_clean();
+                if (ob_get_level() > 0) {
+                    ob_end_clean();
+                }
                 ob_start();
 
                 return Storage::get($pathToFile);

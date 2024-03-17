@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -39,47 +40,36 @@ class SendOtp extends Command
      */
     public function handle()
     {
+
         if (!env('ENABLE_OTP_CRON')) {
             $this->info('OTP Fetch is disabled!');
             return 0;
         }
 
-        try {
-            $pdo = new \PDO('mysql:host='.$_ENV['PROD_DB_HOST'].';dbname='.$_ENV['PROD_DB_DATABASE'],
-                $_ENV['PROD_DB_USERNAME'], $_ENV['PROD_DB_PASSWORD']);
-        }catch (\PDOException $e) {
-            $this->error('Database connection failed');
-            return 0;
+        // select all users that have otp available and not expired
+        $users = User::whereNotNull('two_factor_code')
+            ->where('two_factor_expires_at', '>', now())
+            ->get()
+        ;
 
-        }
-
-        // get all users that have otp available and not expired
-        $stmt = $pdo->prepare(
-            "SELECT email, mobile, two_factor_code 
-                    FROM users 
-                    WHERE two_factor_code IS NOT NULL AND two_factor_expires_at > NOW()
-                    ");
-        $stmt->execute();
-        $otps = $stmt->fetchAll();
-
-        foreach ($otps as $otp){
-            if ($otp && $otp['mobile'] !== "") {
+        foreach ($users as $user){
+            if ($user && $user->mobile !== "") {
 
                 $sentOpts = Cache::get('otp_sent', []);
 
-                if (in_array($otp['two_factor_code'], $sentOpts)){
+                if (in_array($user->two_factor_code, $sentOpts)){
                     continue;
                 }
 
                 try {
                     $response = Http::asForm()->post('https://app.whacenter.com/api/send', [
                         'device_id' => env('WHACENTER_DEVICE_ID'),
-                        'number' => $otp['mobile'],
-                        'message' => 'Your Elite-Class OTP is: ' . $otp['two_factor_code'],
+                        'number' => $user->mobile,
+                        'message' => 'Your Elite-Class OTP is: ' . $user->two_factor_code,
                     ]);
 
                     if ($response->successful()){
-                        $sentOpts = array_merge($sentOpts, [$otp['two_factor_code']]);
+                        $sentOpts = array_merge($sentOpts, [$user->two_factor_code]);
                         Cache::put('otp_sent', $sentOpts, now()->addDay());
                     }
 

@@ -37,11 +37,31 @@ services:
     volumes:
       - dashboard:/var/www/html/public
       - uploads:/app/storage/public
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     depends_on:
       - mysql
       - redis
 
-# mysql container
+  supervisor:
+    build:
+      context: docker/supervisor
+      dockerfile: Dockerfile
+    image: lms-supervisor
+    container_name: lms-supervisor
+    restart: unless-stopped
+    networks:
+      - lms-network
+    environment:
+      TZ: "Asia/Kuwait"
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+    volumes:
+      - ./.env:/var/www/html/.env
+    depends_on:
+      - dashboard
+
+  # mysql container
   mysql:
     image: mysql:8.0
     container_name: lms-mysql
@@ -101,8 +121,6 @@ services:
       - lms-network
     depends_on:
       - dashboard
-    profiles:
-      - production
 
 # volumes
 volumes:

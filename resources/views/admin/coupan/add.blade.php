@@ -111,9 +111,17 @@
                                             {{ __('adminstaticword.SelectanOption') }}
                                         </option>
                                         @foreach ($courses as $product)
-                                            <option value="{{ $product->id }}">{{ $product['title'] }}
+                                        <option value="{{ $product->id }}">
+                                            {{ $product['title'] }}
+                                            @if ($product->discount_type == 'fixed')
+                                                - {{ $product->price - $product->discount_price }}
+                                            @elseif ($product->discount_type == 'percentage')
+                                                - {{ (100 - $product->discount_price / 100) * $product->price }}
+                                            @elseif ($product->discount_price != 0)
                                                 - {{ $product->discount_price }}
-                                            </option>
+                                            @endif
+                                        </option>
+
                                         @endforeach
                                     </select>
                                 </div>

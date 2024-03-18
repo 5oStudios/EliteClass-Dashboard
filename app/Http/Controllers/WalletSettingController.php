@@ -51,25 +51,25 @@ class WalletSettingController extends Controller
             $input = $request->all();
 
             if ($settings) {
-                if (!isset($input['status'])) {
+                if (!isset ($input['status'])) {
                     $input['status'] = 0;
                 } else {
                     $input['status'] = 1;
                 }
 
-                if (!isset($input['paytm_enable'])) {
+                if (!isset ($input['paytm_enable'])) {
                     $input['paytm_enable'] = 0;
                 } else {
                     $input['paytm_enable'] = 1;
                 }
 
-                if (!isset($input['paypal_enable'])) {
+                if (!isset ($input['paypal_enable'])) {
                     $input['paypal_enable'] = 0;
                 } else {
                     $input['paypal_enable'] = 1;
                 }
 
-                if (!isset($input['stripe_enable'])) {
+                if (!isset ($input['stripe_enable'])) {
                     $input['stripe_enable'] = 0;
                 } else {
                     $input['stripe_enable'] = 1;
@@ -80,25 +80,25 @@ class WalletSettingController extends Controller
                 /** Create new wallet settings if not exist */
                 $settings = new WalletSettings();
 
-                if (!isset($input['status'])) {
+                if (!isset ($input['status'])) {
                     $input['status'] = 0;
                 } else {
                     $input['status'] = 1;
                 }
 
-                if (!isset($input['paytm_enable'])) {
+                if (!isset ($input['paytm_enable'])) {
                     $input['paytm_enable'] = 0;
                 } else {
                     $input['paytm_enable'] = 1;
                 }
 
-                if (!isset($input['paypal_enable'])) {
+                if (!isset ($input['paypal_enable'])) {
                     $input['paypal_enable'] = 0;
                 } else {
                     $input['paypal_enable'] = 1;
                 }
 
-                if (!isset($input['stripe_enable'])) {
+                if (!isset ($input['stripe_enable'])) {
                     $input['stripe_enable'] = 0;
                 } else {
                     $input['stripe_enable'] = 1;
@@ -177,7 +177,9 @@ class WalletSettingController extends Controller
     {
         $request = $request->except('_token');
 
-        ob_end_clean();
+        if (ob_get_length() > 0 || ob_get_contents()) {
+            ob_end_clean();
+        }
         ob_start();
 
         return (new TransactionsExport($request))->download();

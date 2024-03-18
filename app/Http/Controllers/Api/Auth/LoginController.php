@@ -40,13 +40,16 @@ class LoginController extends Controller
 
 
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . trim($request->email) . "' and `role` = 'user'))")->first();
-        $authUser = User::where('email', trim($request->email))->where('role', 'user')->orWhere(function ($query) use ($request) {
-            $query->where('mobile', trim($request->email))->where('role', 'user');
-        })->first();
+        $authUser = User::where('email', trim($request->email))
+            ->where('role', 'user')->orWhere(function ($query) use ($request) {
+                $query->where('mobile', trim($request->email))->where('role', 'user');
+            })->first();
+
+        // dd($authUser);
 
         // $authUser = User::whereRaw("((`email` = '$request->email' and `role` = 'user') or ( `mobile` = '" . Str::remove('+', trim($request->email)) . "' and `role` = 'user'))")->first();
 
-        if (isset($authUser) && $authUser->status == 0) {
+        if (isset ($authUser) && $authUser->status == 0) {
             return response()->json(array("errors" => ["message" => [__('Blocked User')]]), 406);
         } else {
 
@@ -54,11 +57,11 @@ class LoginController extends Controller
             $result = null;
             $setting = Setting::first();
 
-            if (isset($authUser)) {
-                $request->email = $authUser->email;
+            if (isset ($authUser)) {
+                $request->merge(['email' => $authUser->email]);
 
                 if ($setting->verify_enable == 0) {
-                    if (isset($request->role)) {
+                    if (isset ($request->role)) {
                         if ($authUser->role == 'instructor') {
                             $res = $this->issueToken($request, 'password');
                         } else {
@@ -70,7 +73,7 @@ class LoginController extends Controller
 
                 } else {
                     if ($authUser->email_verified_at != NULL) {
-                        if (isset($request->role)) {
+                        if (isset ($request->role)) {
                             if ($authUser->role == 'instructor') {
                                 $res = $this->issueToken($request, 'password');
                             } else {
@@ -94,7 +97,7 @@ class LoginController extends Controller
                 return response()->json(array("errors" => ["message" => [__("Invalid Login")]]), 400);
             } else {
 
-                if (isset($authUser) && $authUser->is_locked == 1) {
+                if (isset ($authUser) && $authUser->is_locked == 1) {
                     return response()->json(array("errors" => ["message" => [__('user_block_multi_device_login')]]), 406);
                 }
 
@@ -145,7 +148,7 @@ class LoginController extends Controller
             $authUser->facebook_id = $request->code;
             $authUser->fname = $request->name;
             $authUser->save();
-            if (isset($authUser) && $authUser->status == '0') {
+            if (isset ($authUser) && $authUser->status == '0') {
                 return response()->json(array("message" => 'Blocked User'), 401);
             } else {
                 if (Hash::check('password', $authUser->password)) {
@@ -192,7 +195,7 @@ class LoginController extends Controller
             $authUser->fname = $request->name;
             $authUser->save();
 
-            if (isset($authUser) && $authUser->status == '0') {
+            if (isset ($authUser) && $authUser->status == '0') {
                 return response()->json(array("message" => 'Blocked User'), 401);
             } else {
 
@@ -369,7 +372,7 @@ class LoginController extends Controller
         //check status and block condition and return response
         // return msg your a/c is not active.
 
-        if (isset($authUser) && $authUser->status == '0') {
+        if (isset ($authUser) && $authUser->status == '0') {
             return response()->json(array("errors" => ["msg" => ["Blocked User"]]), 401);
         } else {
 

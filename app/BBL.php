@@ -171,4 +171,18 @@ class BBL extends Model
     {
         return url('images/bg/' . $this->image);
     }
+
+    public function _finalprice()
+    {
+        if($this->discount_type !== null){
+            if($this->discount_type == 'percentage'){
+                return $this->price - ($this->price * $this->discount_price / 100);
+            }else{
+                return $this->price - $this->discount_price;
+            }
+        }else{
+            return $this->discount_price;
+        }
+    }
+
 }

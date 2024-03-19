@@ -137,7 +137,11 @@ class Coupon extends Model
 
     public function Apply($item, $type = null)
     {
-        $amount = $type ? $item->amount : $item->discount_price;
+        if ($item instanceof Course || $item instanceof BundleCourse || $item instanceof BBL) {
+            $amount = $item->_finalPrice();
+        } else {
+            $amount = $type ? $item->amount : $item->discount_price;
+        }
 
         if ($this->distype == 'per') {
             $per = (($amount * $this->amount) / 100);

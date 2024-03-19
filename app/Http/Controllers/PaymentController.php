@@ -212,7 +212,7 @@ class PaymentController extends Controller
         $request['from_date'] = Carbon::createFromFormat('Y-m-d', $request['from_date'])->startOfDay();
         $request['to_date'] = Carbon::createFromFormat('Y-m-d', $request['to_date'])->endOfDay();
 
-        ob_end_clean();
+        if (ob_get_contents()) ob_end_clean();
         ob_start();
 
         return (new InvoicesExport($request))->download();

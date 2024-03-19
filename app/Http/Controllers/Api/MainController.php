@@ -1875,12 +1875,12 @@ class MainController extends Controller
 
             //for coupon discount total
             if ($c->installment == 0 && $c->cartCoupon) {
-                $cpn_discount = ($c->cartCoupon->disamount > $c->offer_price) ? ($cpn_discount + $c->offer_price) : ($cpn_discount + $c->cartCoupon->disamount);
+                $cpn_discount = ($c->cartCoupon->disamount > $total_amount) ? ($cpn_discount + $total_amount) : ($cpn_discount + $c->cartCoupon->disamount);
 
             } elseif ($c->installment == 1) {
                 foreach ($c->cartCoupons as $cartCoupon) {
                     if (in_array($cartCoupon->installment_id, $c->total_installments)) {
-                        $cpn_discount = ($cartCoupon->disamount >= $c->offer_price) ? ($cpn_discount + $c->offer_price) : ($cpn_discount + $cartCoupon->disamount);
+                        $cpn_discount = ($cartCoupon->disamount >= $total_amount) ? ($cpn_discount + $total_amount) : ($cpn_discount + $cartCoupon->disamount);
                     }
                 }
             }

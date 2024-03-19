@@ -161,26 +161,10 @@ class CourseController extends Controller
                     return "<a href='" . route('course.users', [$row->id]) . "'>" . $row->enrolled_count . "</a>";
                 })
                 ->editColumn('type', function ($row) {
-                    if (is_null($row->discount_type)) {
-                        if ($row->discount_price != 0) {
-                            return __('Paid');
-                        } elseif ($row->discount_price == 0) {
-                            return __('Free');
-                        }
+                    if ($row->type == 1) {
+                        return __('Paid');
                     } else {
-                        if ($row->discount_type == 'percentage') {
-                            if ($row->discount_price >= 100) {
-                                return __('Free');
-                            } else {
-                                return __('Paid');
-                            }
-                        } elseif ($row->discount_type == 'fixed') {
-                            if ($row->discount_price >= $row->price) {
-                                return __('Free');
-                            } else {
-                                return __('Paid');
-                            }
-                        }
+                        return __('Free');
                     }
                 })
                 ->editColumn('status', 'admin.course.datatables.status')
@@ -309,14 +293,14 @@ class CourseController extends Controller
         $input['drip_enable'] = 0;
         $input['featured'] = 0;
 
-        $input['installment'] = isset($request->installment) ? 1 : 0;
-        $input['type'] = isset($request->type) ? 1 : 0;
-        $input['status'] = isset($request->status) ? 1 : 0;
+        $input['installment'] = isset ($request->installment) ? 1 : 0;
+        $input['type'] = isset ($request->type) ? 1 : 0;
+        $input['status'] = isset ($request->status) ? 1 : 0;
 
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
 
-        if (!isset($input['discount_price']) || !isset($input['discount_type']) || $input['discount_price'] == 0) {
+        if (!isset ($input['discount_price']) || !isset ($input['discount_type']) || $input['discount_price'] == 0) {
             // $input['discount_price'] = null;
             $input['discount_type'] = null;
         }
@@ -338,7 +322,7 @@ class CourseController extends Controller
         $instructor_course = Course::where('id', $id)->where('user_id', Auth::user()->id)->where('status', 1)->first();
 
         if (Auth::user()->role != "instructor" && Auth::user()->role != "user") {
-            if (!isset($instructor_course)) {
+            if (!isset ($instructor_course)) {
                 abort(404, 'Page Not Found.');
             }
         }
@@ -408,7 +392,7 @@ class CourseController extends Controller
         $oldInstallments = $course->total_installments;
 
         if (auth()->user()->role == 'admin') {
-            if (isset($request->status)) {
+            if (isset ($request->status)) {
                 $input['status'] = 1;
             } else {
                 $input['status'] = 0;
@@ -417,7 +401,7 @@ class CourseController extends Controller
             }
         }
 
-        if (isset($request->installment)) {
+        if (isset ($request->installment)) {
             $input['installment'] = 1;
             CourseChapter::where('course_id', $id)->whereNull('unlock_installment')->update([
                 'unlock_installment' => 1
@@ -427,7 +411,7 @@ class CourseController extends Controller
         }
 
         // $input['featured'] = isset($request->featured) ? 1 : 0;
-        $input['type'] = isset($request->type) ? 1 : 0;
+        $input['type'] = isset ($request->type) ? 1 : 0;
 
         $slug = str_slug($request->title, '-');
         $input['slug'] = $slug;
@@ -567,7 +551,7 @@ class CourseController extends Controller
             'ch_sub_category' => $course->childcategory_id,
         ]);
 
-        if (isset($request->total_installments) && $request->total_installments != $oldInstallments) {
+        if (isset ($request->total_installments) && $request->total_installments != $oldInstallments) {
             return redirect()->to('/course')->with('success', trans('flash.UpdateTotalInstallments'));
         }
 
@@ -848,9 +832,9 @@ class CourseController extends Controller
         $allQuestionnaires = QuestionnaireCourse::with('course:id,title')
             ->with('questionnaire:id,title')
             ->select(['id', 'course_id', 'questionnaire_id', 'appointment'])->get();
-        if($allQuestionnaires){
+        if ($allQuestionnaires) {
             $allQuestionnaires = $allQuestionnaires->toArray();
-        }else{
+        } else {
             $allQuestionnaires = [];
         }
 
@@ -858,7 +842,7 @@ class CourseController extends Controller
         // $countries = Allcountry::get();
 
         // return view('admin.course.show', compact('installments', 'cor', 'course', 'courseinclude', 'whatlearns', 'coursechapters', 'coursechapter', 'relatedcourse', 'courseclass', 'announsments', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'appointment', 'papers', 'users', 'countries'));
-        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires','allQuestionnaires'));
+        return view('admin.course.show', compact('installments', 'cor', 'course', 'whatlearns', 'courses', 'coursechapters', 'coursechapter', 'courseclass', 'reports', 'questions', 'quizes', 'topics', 'classquizes', 'bbl_meetings', 'offline_sessions', 'users', 'chapterExists', 'orderExists', 'questionnaires', 'allQuestionnaires'));
     }
 
     public function duplicate(Request $request, $id)
@@ -1191,7 +1175,7 @@ class CourseController extends Controller
                 'max:4',
                 function ($attribute, $value, $fail) {
                     for ($i = 1; $i < count($value); $i++) {
-                        if ($value[$i] < $value[$i - 1] && !empty($value[$i])) {
+                        if ($value[$i] < $value[$i - 1] && !empty ($value[$i])) {
                             $fail(__('Installment date should not be less than previous installment date'));
                         }
                     }
@@ -1383,7 +1367,7 @@ class CourseController extends Controller
         if (Auth::check()) {
             $private_courses = PrivateCourse::where('course_id', '=', $id)->first();
 
-            if (isset($private_courses)) {
+            if (isset ($private_courses)) {
                 $user_id = array();
                 array_push($user_id, $private_courses->user_id);
                 $user_id = array_values(array_filter($user_id));
@@ -1399,7 +1383,7 @@ class CourseController extends Controller
             $cart = Cart::where('user_id', Auth::user()->id)->where('course_id', $id)->first();
             $instruct_course = Course::where('id', '=', $id)->where('user_id', '=', Auth::user()->id)->first();
 
-            if (!empty($bundle_check)) {
+            if (!empty ($bundle_check)) {
                 if (Auth::user()->role == 'user') {
                     $bundle = Order::where('user_id', Auth::user()->id)->where('bundle_id', '!=', null)->where('status', 1)->get();
 

@@ -91,19 +91,19 @@ class UPaymentController extends Controller
             }
 
             //for coupon discount total
-            if ($c->installment == 0 && $c->cartCoupon) {
-                $coupon_discount = ($c->cartCoupon->disamount >= $c->offer_price) ? ($coupon_discount + $c->offer_price) : ($coupon_discount + $c->cartCoupon->disamount);
+            if ($c->installment === 0 && $c->cartCoupon) {
+                $coupon_discount = ($c->cartCoupon->disamount >= $total_amount) ? ($coupon_discount + $total_amount) : ($coupon_discount + $c->cartCoupon->disamount);
             } elseif ($c->installment == 1) {
                 foreach ($c->cartCoupons as $cartCoupon) {
                     if (in_array($cartCoupon->installment_id, $c->total_installments)) {
-                        $coupon_discount = ($cartCoupon->disamount >= $c->offer_price) ? ($coupon_discount + $c->offer_price) : ($coupon_discount + $cartCoupon->disamount);
+                        $coupon_discount = ($cartCoupon->disamount >= $total_amount) ? ($coupon_discount + $total_amount) : ($coupon_discount + $cartCoupon->disamount);
                     }
                 }
             }
         }
 
         if ($coupon_discount != 0) {
-            $pay_amount = ($total_amount - $coupon_discount) > 0 ? ($total_amount - $coupon_discount) : 0;
+            $pay_amount = max(($total_amount - $coupon_discount), 0);
         } else {
             $pay_amount = $total_amount;
         }
@@ -151,7 +151,21 @@ class UPaymentController extends Controller
 
 
         foreach ($carts as $cart) {
+
             $cart_item = $cart->course_id ? Course::find($cart->course_id) : ($cart->bundle_id ? BundleCourse::find($cart->bundle_id) : ($cart->meeting_id ? BBL::find($cart->meeting_id) : ($cart->chapter_id ? CourseChapter::find($cart->chapter_id) : OfflineSession::find($cart->offline_session_id))));
+            $order_total=0;
+            if ($cart->installment == 1) {
+                $order_total = $cart->offer_price;
+            } else {
+                if ($cart->offer_type == 'fixed') {
+                    $order_total = $cart->price - $cart->offer_price;
+                } elseif ($cart->offer_type == 'percentage') {
+                    $order_total = $cart->price - (($cart->offer_price / 100) * $cart->price);
+                } else {
+                    $order_total = $cart->offer_price;
+                }
+            }
+
             $created_orders[] = Order::create([
                 'title' => $cart_item->_title(),
                 'price' => $cart_item->price,
@@ -168,8 +182,7 @@ class UPaymentController extends Controller
                 'order_id' => $trackId,
                 'transaction_id' => 0,
                 'payment_method' => ($cart->installment == 0 && $cart->cartCoupon && ($cart->cartCoupon->disamount >= $cart->offer_price)) ? 'Coupon' : $request->payment_method,
-                // 'total_amount' => $cart->installment == 1 ? $cart->price : $cart->offer_price,
-                'total_amount' => $total_amount,  //$cart->installment == 1 ? (isset($cart->price) ? $cart->price : 0) : (isset($cart->offer_price) ? $cart->offer_price : 0),
+                'total_amount' => $order_total,
                 'paid_amount' => 0,
                 'installments' => $cart->installment,
                 'total_installments' => $cart->installment == 1 ? $cart_item->total_installments : null,
@@ -393,7 +406,7 @@ class UPaymentController extends Controller
                             'progress' => 0,
                             'mark_chapter_id' => [],
                             'all_chapter_id' => $chapters,
-                            'status' => '1'
+                            'status' => 1
                         ]
                     );
                 }
@@ -448,6 +461,8 @@ class UPaymentController extends Controller
                     $amountToPay = $carts[$key]->price - $carts[$key]->offer_price;
                 }elseif ($carts[$key]->offer_type === 'percentage'){
                     $amountToPay = $carts[$key]->price - (($carts[$key]->offer_price / 100) * $carts[$key]->price);
+                }else {
+                    $amountToPay = $carts[$key]->offer_price;
                 }
             }
             if ($carts[$key]->cartCoupon){
@@ -455,15 +470,6 @@ class UPaymentController extends Controller
             }
 
             $created_order->paid_amount = $amountToPay;
-
-//            $created_order->paid_amount = $carts[$key]->installment == 0 ?
-//                (
-//                    $carts[$key]->cartCoupon ?
-//                    (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? 0 : $carts[$key]->offer_price - $carts[$key]->cartCoupon->disamount)
-//                    : $amountToPay
-//                )
-//                : $created_order->installments_list->sum('total_amount')
-//            ;
 
             $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? $carts[$key]->offer_price : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
             $created_order->coupon_id = $carts[$key]->installment == 0 ? optional($carts[$key]->cartCoupon)->coupon_id : null;

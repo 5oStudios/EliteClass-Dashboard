@@ -92,11 +92,11 @@ class UPaymentController extends Controller
 
             //for coupon discount total
             if ($c->installment === 0 && $c->cartCoupon) {
-                $coupon_discount = ($c->cartCoupon->disamount >= $c->offer_price) ? ($coupon_discount + $c->offer_price) : ($coupon_discount + $c->cartCoupon->disamount);
+                $coupon_discount = ($c->cartCoupon->disamount >= $total_amount) ? ($coupon_discount + $total_amount) : ($coupon_discount + $c->cartCoupon->disamount);
             } elseif ($c->installment == 1) {
                 foreach ($c->cartCoupons as $cartCoupon) {
                     if (in_array($cartCoupon->installment_id, $c->total_installments)) {
-                        $coupon_discount = ($cartCoupon->disamount >= $c->offer_price) ? ($coupon_discount + $c->offer_price) : ($coupon_discount + $cartCoupon->disamount);
+                        $coupon_discount = ($cartCoupon->disamount >= $total_amount) ? ($coupon_discount + $total_amount) : ($coupon_discount + $cartCoupon->disamount);
                     }
                 }
             }

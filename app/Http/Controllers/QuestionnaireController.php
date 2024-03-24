@@ -136,7 +136,6 @@ class QuestionnaireController extends Controller
         if ($distinctUsers) {
             $distinctUsers = $distinctUsers->toArray();
         }
-        // dd($distinctUsers);
 
         $students = [];
         foreach ($distinctUsers as $distinct) {
@@ -163,16 +162,14 @@ class QuestionnaireController extends Controller
 
         $summary = [];
         foreach ($questions as $question) {
-            // dd($question);
             $count = QuestionnaireAnswer::where('question_id', $question['id'])
                 ->where('questionnaire_course_id', $id)->count();
             $sum = QuestionnaireAnswer::where('question_id', $question['id'])
                 ->where('questionnaire_course_id', $id)->sum('rate');
-            // dd($sum / $count);
             $summary[] = [
                 'id' => $question['id'],
                 'title' => $question['title'],
-                'average' => $count == 0 ? $sum / $count : $count
+                'average' => $count != 0 ? $sum / $count : $count
             ];
         }
 
@@ -189,8 +186,6 @@ class QuestionnaireController extends Controller
         ];
 
         $questionnaire = $result;
-
-        //dd($questionnaire);
 
         return view('admin.course.questionnaire.questionnaire', compact('questionnaire'));
     }
@@ -384,7 +379,7 @@ class QuestionnaireController extends Controller
             $questionnaireIds = array_merge($questionnaireIds, $questionnaires->pluck('id')->toArray());
         }
 
-        if (empty($questionnaireIds)) {
+        if (empty ($questionnaireIds)) {
             return response()->json([
                 'message' => 'No questionnaires required',
                 'questionnaires' => []
@@ -423,7 +418,7 @@ class QuestionnaireController extends Controller
         ]);
     }
 
-    public function clone (Request $request)
+    public function clone(Request $request)
     {
         $request->validate([
             'appointment' => 'required|date_format:Y-m-d',

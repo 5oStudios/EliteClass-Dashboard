@@ -69,7 +69,7 @@ class CourseController extends Controller
     {
         $this->middleware('permission:courses.view', ['only' => ['index', 'show', 'showCourse', 'enrolledUsers', 'userCourseProgress']]);
         $this->middleware('permission:courses.create', ['only' => ['create', 'store', 'storeIntroductionVideo', 'InstallmentStore']]);
-        $this->middleware('permission:courses.edit', ['only' => ['update', 'storeIntroductionVideo', 'InstallmentStore', 'duplicate', 'status', 'courcestatus']]);
+        $this->middleware('permission:courses.edit', ['only' => ['update', 'storeIntroductionVideo', 'InstallmentStore', 'duplicate', 'status', 'courcestatus', 'removeIntroVideo']]);
         $this->middleware('permission:courses.delete', ['only' => ['destroy', 'bulk_delete']]);
     }
 
@@ -1449,5 +1449,15 @@ class CourseController extends Controller
         }
 
         return Redirect::route('login')->withInput()->with('delete', trans('flash.PleaseLogin'));
+    }
+
+    public function removeIntroVideo($id)
+    {
+        $course = Course::findOrFail($id);
+
+        $course->iframe_url = null;
+        $course->save();
+
+        return Redirect::back();
     }
 }

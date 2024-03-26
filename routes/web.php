@@ -39,7 +39,7 @@ Route::get('trans', function () {
     $result = @file_get_contents(resource_path() . '/lang/en.json');
     $result = json_decode($result);
 
-    $x = array();
+    $x = array ();
 
     foreach ($result as $key => $value) {
         $x[$key] = $key;
@@ -227,6 +227,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
             Route::post('permission', 'Roles\RolesController@createPermission');
 
             Route::resource('course', 'CourseController');
+            Route::get('/course/removeIntro/{id}', 'CourseController@removeIntroVideo');
             Route::post('duplicate/{id}', 'CourseController@duplicate')->name('course.duplicate');
             Route::post('course/introduction/{id}', 'CourseController@storeIntroductionVideo')->name('course.introduction');
             Route::get('course-users/{id}', 'CourseController@enrolledUsers')->name("course.users");
@@ -941,6 +942,7 @@ Route::middleware(['web', 'switch_languages'])->group(function () {
                 Route::get('enroll/show/{id}', 'EnrollmentController@enroll')->name('show.enroll');
 
                 Route::get('/coursecontent/{id}/{slug}', 'CourseController@CourseContentPage')->name('course.content')->middleware(['auth', 'twofactor']);
+                Route::get('/course/removeIntro/{id}', 'CourseController@CourseContentPage');
 
                 Route::post('addquestion/{id}', 'QuestionanswerController@question')->middleware(['auth', 'twofactor']);
                 Route::post('addanswer/{id}', 'AnswerController@answer')->middleware(['auth', 'twofactor']);

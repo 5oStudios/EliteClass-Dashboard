@@ -181,7 +181,7 @@ class UPaymentController extends Controller
                 'offline_session_id' => $cart->offline_session_id ?? null,
                 'order_id' => $trackId,
                 'transaction_id' => 0,
-                'payment_method' => ($cart->installment == 0 && $cart->cartCoupon && ($cart->cartCoupon->disamount >= $cart->offer_price)) ? 'Coupon' : $request->payment_method,
+                'payment_method' => ($cart->installment === 0 && $cart->cartCoupon && ($cart->cartCoupon->disamount >= $order_total)) ? 'Coupon' : $request->payment_method,
                 'total_amount' => $order_total,
                 'paid_amount' => 0,
                 'installments' => $cart->installment,
@@ -199,7 +199,7 @@ class UPaymentController extends Controller
 
             $productName[] = $cart_item->_title();
             $productQty[] = '1';
-            $productPrice[] = ($cart->offer_price - $cart->disamount) > 0 ? $cart->offer_price - $cart->disamount : 0;
+            $productPrice[] = $cart->_netAmount();
         }
 
         $udf = [
@@ -453,7 +453,7 @@ class UPaymentController extends Controller
                 }
             }
 
-            $amountToPay = 0;
+            $amountToPay = 0; $netAmount = 0;
             if($carts[$key]->installment === 1){
                 $amountToPay = $carts[$key]->offer_price;
             }else{
@@ -465,13 +465,15 @@ class UPaymentController extends Controller
                     $amountToPay = $carts[$key]->offer_price;
                 }
             }
+            $netAmount = $amountToPay;
+
             if ($carts[$key]->cartCoupon){
                 $amountToPay = $carts[$key]->cartCoupon->disamount >= $amountToPay ? 0 : $amountToPay - $carts[$key]->cartCoupon->disamount;
             }
 
             $created_order->paid_amount = $amountToPay;
 
-            $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $carts[$key]->offer_price) ? $carts[$key]->offer_price : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
+            $created_order->coupon_discount = $carts[$key]->installment == 0 ? ($carts[$key]->cartCoupon ? (($carts[$key]->cartCoupon->disamount >= $netAmount) ? $netAmount : $carts[$key]->cartCoupon->disamount) : 0) : $created_order->installments_list->sum('coupon_discount');
             $created_order->coupon_id = $carts[$key]->installment == 0 ? optional($carts[$key]->cartCoupon)->coupon_id : null;
             $created_order->transaction_id = $wallet_transaction->id;
             $created_order->status = 1;

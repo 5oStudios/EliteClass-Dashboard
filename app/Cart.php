@@ -154,4 +154,36 @@ class Cart extends Model
     {
         return $this->hasOne('App\CartCoupon', 'cart_id')->whereNull('installment_id');
     }
+
+    // calculate total amount after discount and coupon
+    public function _netAmount()
+    {
+        $total_amount=0;
+        if ((is_null($this->offer_type) && $this->offer_price) || $this->installment === 1) {
+            $total_amount += $this->offer_price;
+        } else {
+            if ($this->offer_type == 'fixed') {
+                $total_amount += ($this->price - $this->offer_price);
+            }
+            elseif ($this->offer_type == 'percentage') {
+                $total_amount += ($this->price - (($this->offer_price / 100) * $this->price));
+            }
+        }
+
+        if($this->cartCoupon()){
+            $coupon = Coupon::find($this->cartCoupon->coupon_id);
+            if($coupon){
+                if($coupon->amount > $total_amount){
+                    return $total_amount;
+                }
+                if($coupon->type == 'fixed'){
+                    $total_amount -= $coupon->amount;
+                }elseif($coupon->type == 'percentage'){
+                    $total_amount -= ($coupon->amount / 100) * $total_amount;
+                }
+            }
+        }
+        return $total_amount;
+    }
+
 }

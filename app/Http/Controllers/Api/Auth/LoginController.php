@@ -58,7 +58,7 @@ class LoginController extends Controller
             $setting = Setting::first();
 
             if (isset ($authUser)) {
-                $request->merge(['email' => $authUser->email]);
+                $request->merge(['username' => $authUser->email, 'email' => $authUser->email]);
 
                 if ($setting->verify_enable == 0) {
                     if (isset ($request->role)) {

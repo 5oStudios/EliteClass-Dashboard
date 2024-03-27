@@ -1143,7 +1143,7 @@ class MainController extends Controller
         }
 
 
-        if (!empty($wishlist)) {
+        if (!empty ($wishlist)) {
 
             return response()->json(array("errors" => ["message" => [__("It's already in your saved list")]]), 422);
 
@@ -1256,8 +1256,9 @@ class MainController extends Controller
         $course = Course::find($request->course_id);
         $cart = Cart::where('course_id', $course->id)->where('user_id', $auth->id)->first();
 
-        if (isset($request->payment_type) && $request->payment_type == 'installments' &&
-            isset($request->installments) && $course->installment && $course->installments
+        if (
+            isset ($request->payment_type) && $request->payment_type == 'installments' &&
+            isset ($request->installments) && $course->installment && $course->installments
         ) {
             $due_inst = $course->installments->where('due_date', '<', date('Y-m-d'))->pluck('id')->toArray();
             $inst = $course->installments->pluck('id')->toArray();
@@ -1282,7 +1283,7 @@ class MainController extends Controller
             // return all carts
             return $this->showcart();
 
-        } else if (isset($request->payment_type) && $request->payment_type == 'full') {
+        } else if (isset ($request->payment_type) && $request->payment_type == 'full') {
 
             $cart->update([
                 'price' => $course->price,
@@ -1307,18 +1308,18 @@ class MainController extends Controller
 
         $order = Order::where('user_id', $auth->id)->where('course_id', $course->id)->activeOrder()->first();
 
-        if (isset($order)) {
+        if (isset ($order)) {
             return response()->json(array("errors" => ["message" => [__("You already purchased this course")]]), 422);
 
         } else {
 
             $order2 = Order::where('user_id', $auth->id)->where('course_id', $course->id)->inActiveOrder()->first();
-            if (isset($order2)) {
+            if (isset ($order2)) {
                 return response()->json(array("errors" => ["message" => [__("You already purchased this course but Admin has disabled your enrollment")]]), 422);
 
             }
 
-            if (!empty($cart)) {
+            if (!empty ($cart)) {
                 // return all carts
                 return $this->showcart();
             } else {
@@ -1373,17 +1374,17 @@ class MainController extends Controller
         $cart = Cart::where('chapter_id', $chapter->id)->where('user_id', $auth->id)->first();
 
 
-        if (isset($order)) {
+        if (isset ($order)) {
             return response()->json(array("errors" => ["message" => [__("You already purchased this chapter")]]), 422);
 
         } else {
             $order2 = Order::where('user_id', $auth->id)->where('chapter_id', $chapter->id)->inActiveOrder()->first();
-            if (isset($order2)) {
+            if (isset ($order2)) {
                 return response()->json(array("errors" => ["message" => [__("You already purchased this chapter but Admin has disabled your enrollment")]]), 422);
 
             }
 
-            if (!empty($cart)) {
+            if (!empty ($cart)) {
                 return response()->json(array("errors" => ["message" => [__("Chapter is already in cart")]]), 422);
 
             } else {
@@ -1444,7 +1445,7 @@ class MainController extends Controller
 
         $cart = Cart::where('bundle_id', $bundle->id)->where('user_id', $auth->id)->first();
 
-        if (isset($request->payment_type) && $request->payment_type == 'installments' && isset($request->installments) && $bundle->installment && $bundle->installments) {
+        if (isset ($request->payment_type) && $request->payment_type == 'installments' && isset ($request->installments) && $bundle->installment && $bundle->installments) {
             $due_inst = $bundle->installments->where('due_date', '<', date('Y-m-d'))->pluck('id')->toArray();
             $inst = $bundle->installments->pluck('id')->toArray();
             if (count($request->installments) < count($due_inst)) {
@@ -1468,7 +1469,7 @@ class MainController extends Controller
             // return all carts
             return $this->showcart();
 
-        } else if (isset($request->payment_type) && $request->payment_type == 'full') {
+        } else if (isset ($request->payment_type) && $request->payment_type == 'full') {
 
             $cart->update([
                 'price' => $bundle->price,
@@ -1483,17 +1484,17 @@ class MainController extends Controller
 
         $order = Order::where('user_id', $auth->id)->where('bundle_id', $bundle->id)->activeOrder()->first();
 
-        if (isset($order)) {
+        if (isset ($order)) {
             return response()->json(array("errors" => ["message" => [__("You already purchased this package")]]), 422);
 
         } else {
             $order2 = Order::where('user_id', $auth->id)->where('bundle_id', $bundle->id)->inActiveOrder()->first();
-            if (isset($order2)) {
+            if (isset ($order2)) {
                 return response()->json(array("errors" => ["message" => [__("You already purchased this package but Admin has disabled your enrollment")]]), 422);
 
             }
 
-            if (!empty($cart)) {
+            if (!empty ($cart)) {
                 // return all carts
                 return $this->showcart();
             } else {
@@ -1546,17 +1547,17 @@ class MainController extends Controller
 
             $cart = Cart::where('meeting_id', $bbl_meeting->id)->where('user_id', $auth->id)->first();
 
-            if (isset($order)) {
+            if (isset ($order)) {
                 return response()->json(array("errors" => ["message" => [__("You already purchased this live streaming")]]), 422);
 
             } else {
                 $order2 = Order::where('user_id', $auth->id)->where('meeting_id', $bbl_meeting->id)->inActiveOrder()->first();
-                if (isset($order2)) {
+                if (isset ($order2)) {
                     return response()->json(array("errors" => ["message" => [__("You already purchased this live streaming but Admin has disabled your enrollment")]]), 422);
 
                 }
 
-                if (!empty($cart)) {
+                if (!empty ($cart)) {
                     return response()->json(array("errors" => ["message" => [__("Live streaming is already in cart")]]), 422);
 
                 } else {
@@ -1611,17 +1612,17 @@ class MainController extends Controller
 
             $cart = Cart::where('offline_session_id', $offline_session->id)->where('user_id', $auth->id)->first();
 
-            if (isset($order)) {
+            if (isset ($order)) {
                 return response()->json(array("errors" => ["message" => [__("You already purchased this In-person session")]]), 422);
 
             } else {
                 $order2 = Order::where('user_id', $auth->id)->where('offline_session_id', $offline_session->id)->inActiveOrder()->first();
-                if (isset($order2)) {
+                if (isset ($order2)) {
                     return response()->json(array("errors" => ["message" => [__("You already purchased this in-person session but Admin has disabled your enrollment")]]), 422);
 
                 }
 
-                if (!empty($cart)) {
+                if (!empty ($cart)) {
                     return response()->json(array("errors" => ["message" => [__("In-person session is already in cart")]]), 422);
 
                 } else {
@@ -1802,7 +1803,7 @@ class MainController extends Controller
 
             $installments = $c->course_id ? ($c->course->installment ? $c->course->installments->take($cart_item->total_installments) : []) : ($c->bundle_id ? ($c->bundle->installment ? $c->bundle->installments->take($cart_item->total_installments) : []) : []);
 
-            if (isset($installments)) {
+            if (isset ($installments)) {
 
                 $arr = [];
                 $count = 0;
@@ -2490,15 +2491,15 @@ class MainController extends Controller
 
             $instructor = Instructor::create([
                 'user_id' => $auth->id,
-                'fname' => isset($input['fname']) ? $input['fname'] : $auth->fname,
-                'lname' => isset($input['lname']) ? $input['lname'] : $auth->lname,
+                'fname' => isset ($input['fname']) ? $input['fname'] : $auth->fname,
+                'lname' => isset ($input['lname']) ? $input['lname'] : $auth->lname,
                 'email' => $input['email'],
-                'mobile' => isset($input['mobile']) ? trim($input['mobile']) : $auth->mobile,
-                'age' => isset($input['age']) ? $input['age'] : $auth->age,
-                'image' => isset($input['image']) ? $input['image'] : $auth->image,
+                'mobile' => isset ($input['mobile']) ? trim($input['mobile']) : $auth->mobile,
+                'age' => isset ($input['age']) ? $input['age'] : $auth->age,
+                'image' => isset ($input['image']) ? $input['image'] : $auth->image,
                 'file' => $input['file'],
-                'detail' => isset($input['detail']) ? $input['detail'] : $auth->detail,
-                'gender' => isset($input['gender']) ? $input['gender'] : $auth->gender,
+                'detail' => isset ($input['detail']) ? $input['detail'] : $auth->detail,
+                'gender' => isset ($input['gender']) ? $input['gender'] : $auth->gender,
                 'status' => '0',
             ]);
 
@@ -2594,7 +2595,7 @@ class MainController extends Controller
         $course = Course::find($class->course_id);
         $progress = CourseProgress::where('course_id', $course->id)->where('user_id', $auth->id)->activeProgress()->first();
 
-        if (isset($progress)) {
+        if (isset ($progress)) {
             $course_return = $progress->mark_chapter_id;
             if (!in_array($request->class_id, $course_return)) {
                 array_push($course_return, $request->class_id);
@@ -2791,7 +2792,7 @@ class MainController extends Controller
 
         $quiz = array();
 
-        if (isset($result->quiztopic)) {
+        if (isset ($result->quiztopic)) {
 
             foreach ($result->quiztopic as $key => $topic) {
 
@@ -2901,7 +2902,7 @@ class MainController extends Controller
 
                     if ($orderDate != null) {
                         $startDate = date("Y-m-d", strtotime("$orderDate +$days days"));
-                    } elseif (isset($course_id) && in_array($id, $course_id)) {
+                    } elseif (isset ($course_id) && in_array($id, $course_id)) {
                         $startDate = date("Y-m-d", strtotime("$bundle->created_at +$days days"));
                     } else {
                         $startDate = '0';
@@ -3442,7 +3443,7 @@ class MainController extends Controller
         }
 
         if (count($f_order) || $chapter_order) {
-            if (!empty($review)) {
+            if (!empty ($review)) {
                 return response()->json(array("errors" => ["message" => ['Already Reviewed !']]), 422);
             } else {
 
@@ -3798,7 +3799,7 @@ class MainController extends Controller
             $gsetting = Setting::first();
 
             //attandance start
-            if (!empty($order)) {
+            if (!empty ($order)) {
                 if ($gsetting->attandance_enable == 1) {
 
                     $date = Carbon::now();
@@ -3841,7 +3842,7 @@ class MainController extends Controller
             } elseif (Auth::guard('api')->User()->id == $course->user_id) {
                 return view('watch', compact('courses'));
             } else {
-                if (!empty($order)) {
+                if (!empty ($order)) {
 
                     $coursewatch = WatchCourse::where('course_id', '=', $id)->where('user_id', Auth::guard('api')->User()->id)->first();
 
@@ -3876,7 +3877,7 @@ class MainController extends Controller
                     } else {
                         return view('watch', compact('courses'));
                     }
-                } elseif (isset($course_id) && in_array($id, $course_id)) {
+                } elseif (isset ($course_id) && in_array($id, $course_id)) {
                     return view('watch', compact('courses'));
                 } else {
                     return response()->json(array('message' => 'Unauthorization Action', 'status' => 'fail'), 402);
@@ -3895,7 +3896,7 @@ class MainController extends Controller
         $help = ReviewHelpful::where('review_id', $id)->where('user_id', $user->id)->first();
 
         if ($request->review_like == '1') {
-            if (isset($help)) {
+            if (isset ($help)) {
 
                 ReviewHelpful::where('id', $help->id)
                     ->update([
@@ -3921,7 +3922,7 @@ class MainController extends Controller
             }
         } elseif ($request->review_dislike == '1') {
 
-            if (isset($help)) {
+            if (isset ($help)) {
 
                 ReviewHelpful::where('id', $help->id)
                     ->update([
@@ -3970,7 +3971,7 @@ class MainController extends Controller
             ->with(['courses.instructor'])
             ->find($catid);
 
-        if (isset($cat)) {
+        if (isset ($cat)) {
             foreach ($cat->courses as $course) {
 
                 $category_slider_courses[] = array(
@@ -4032,15 +4033,15 @@ class MainController extends Controller
         $orders = Order::whereIn('id', $ids)->whereHas('installments_list', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })
-        ->where('enroll_expire', '>=', date('Y-m-d'))
-        ->where(function ($q) {
-            $q->whereHas('courses', function ($q) {
-                $q->active();
-            })
-                ->OrWhereHas('bundle', function ($q) {
+            ->where('enroll_expire', '>=', date('Y-m-d'))
+            ->where(function ($q) {
+                $q->whereHas('courses', function ($q) {
                     $q->active();
-                });
-        })
+                })
+                    ->OrWhereHas('bundle', function ($q) {
+                        $q->active();
+                    });
+            })
             ->with([
                 'courses',
                 'bundle',
@@ -4055,9 +4056,9 @@ class MainController extends Controller
         $userPayInstallments = Cache::get($userId) ?? [];
         for ($i = 0; $i < count($orders); $i++) {
             $item = null;
-            if (isset($orders[$i]->courses) && !empty($orders[$i]->courses->title)) {
+            if (isset ($orders[$i]->courses) && !empty ($orders[$i]->courses->title)) {
                 $item = $orders[$i]->courses;
-            } elseif (isset($orders[$i]->bundle) && !empty($orders[$i]->bundle->title)) {
+            } elseif (isset ($orders[$i]->bundle) && !empty ($orders[$i]->bundle->title)) {
                 $item = $orders[$i]->bundle;
             } else {
                 continue;
@@ -4073,13 +4074,15 @@ class MainController extends Controller
                     'installment_no' => $paymentPlan->installment_no,
                 ];
             }
-            $response[] = [
-                'typeId' => $item->id,
-                'name' => $item->title,
-                'type' => isset($orders[$i]->courses) ? 'course' : 'bundle',
-                'image' => url($item->preview_image),
-                'installments' => $installments,
-            ];
+            if (count($installments) != 0) {
+                $response[] = [
+                    'typeId' => $item->id,
+                    'name' => $item->title,
+                    'type' => isset ($orders[$i]->courses) ? 'course' : 'bundle',
+                    'image' => url($item->preview_image),
+                    'installments' => $installments,
+                ];
+            }
         }
         return response()->json($response);
     }

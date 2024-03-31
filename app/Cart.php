@@ -170,7 +170,7 @@ class Cart extends Model
             }
         }
 
-        if($this->cartCoupon()){
+        if($this->cartCoupon !== null){
             $coupon = Coupon::find($this->cartCoupon->coupon_id);
             if($coupon){
                 if($coupon->amount > $total_amount){

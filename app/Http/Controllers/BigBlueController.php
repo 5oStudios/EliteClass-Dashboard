@@ -747,6 +747,7 @@ class BigBlueController extends Controller
 
             foreach ($all_recordings->recording as $meeting) {
                 $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                $existChapter = null;
                 if ($exist) {
                     $existChapter = CourseChapter::where('type_id', $exist->id)->first();
                 }
@@ -820,6 +821,7 @@ class BigBlueController extends Controller
             $unlinkedRecordings = [];
             foreach ($all_recordings->recording as $meeting) {
                 $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                $existChapter = null;
                 if ($exist) {
                     $existChapter = CourseChapter::where('type_id', $exist->id)->first();
                 }

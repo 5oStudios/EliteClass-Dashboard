@@ -25,9 +25,9 @@ class CoursechapterController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:course-chapter.view', ['only' => ['index','show']]);
-        $this->middleware('permission:course-chapter.create', ['only' => [ 'store', 'sort']]);
-        $this->middleware('permission:course-chapter.edit', ['only' => [ 'update','coursechapterstatus', 'duplicate', 'copyCourseClasses', 'sprt']]);
+        $this->middleware('permission:course-chapter.view', ['only' => ['index', 'show']]);
+        $this->middleware('permission:course-chapter.create', ['only' => ['store', 'sort']]);
+        $this->middleware('permission:course-chapter.edit', ['only' => ['update', 'coursechapterstatus', 'duplicate', 'copyCourseClasses', 'sprt']]);
         $this->middleware('permission:course-chapter.delete', ['only' => ['destroy', 'bulk_delete']]);
     }
 
@@ -119,7 +119,7 @@ class CoursechapterController extends Controller
         $cate = CourseChapter::findOrFail($id);
         $courses = Course::all();
         $installments = $cate->courses->installments()->get();
-        $bbl_meetings = BBL::whereNotNull('link_by')->where('is_ended', '<>', 1)->where('course_id', $cate->course_id)->get();
+        $bbl_meetings = BBL::whereNotNull('link_by')->where('course_id', $cate->course_id)->get();
         $offline_sessions = OfflineSession::whereNotNull('link_by')->where('is_ended', '<>', 1)->where('course_id', $cate->course_id)->get();
 
         return view('admin.course.coursechapter.edit', compact('cate', 'courses', 'installments', 'bbl_meetings', 'offline_sessions'));
@@ -200,10 +200,10 @@ class CoursechapterController extends Controller
         // }
 
         Cart::where(['chapter_id' => $id, 'installment' => '0'])
-                ->update([
-                    'price' => $request->price,
-                    'offer_price' => $request->price,
-        ]);
+            ->update([
+                'price' => $request->price,
+                'offer_price' => $request->price,
+            ]);
 
         $coursechapter->update($input);
 
@@ -251,7 +251,7 @@ class CoursechapterController extends Controller
             foreach ($enroll as $progress) {
                 $read_count = 0;
                 $chapters = CourseClass::select('id', 'status')->where('course_id', $course_id)->get();
-                $course_return = (array)$progress->mark_chapter_id;
+                $course_return = (array) $progress->mark_chapter_id;
 
                 $offset = array_diff($course_return, $chapters->pluck('id')->toArray());
                 if ($offset) {
@@ -263,7 +263,7 @@ class CoursechapterController extends Controller
                 $total_count = count($chapters->where('status', 1));
 
                 foreach ($course_return as $read_lesson) {
-                    $lesson = CourseClass::where([['id', $read_lesson],['status', 1]])->first();
+                    $lesson = CourseClass::where([['id', $read_lesson], ['status', 1]])->first();
                     if ($lesson) {
                         $read_count++;
                     }
@@ -273,9 +273,9 @@ class CoursechapterController extends Controller
                 $total_count == 0 ? $progres = 0 : $progres = ($read_count / $total_count) * 100;
 
                 $progress->update([
-                            'progress' => $progres,
-                            'mark_chapter_id' => array_values($course_return),
-                            'all_chapter_id' => $chapters->pluck('id'),
+                    'progress' => $progres,
+                    'mark_chapter_id' => array_values($course_return),
+                    'all_chapter_id' => $chapters->pluck('id'),
                 ]);
             }
         }
@@ -316,7 +316,7 @@ class CoursechapterController extends Controller
         foreach ($existingClasses as $key => $class) {
             if (
                 $class->file != null &&
-                ($class->type == 'pdf' ||  $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
+                ($class->type == 'pdf' || $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
                 Storage::exists("/files/$class->type/" . $class->file)
             ) {
                 $oldPathFile = Storage::path("/files/$class->type/" . $class->file);
@@ -336,10 +336,10 @@ class CoursechapterController extends Controller
                 'position' => (CourseClass::count() + 1),
                 'file' => $newclassFile,
             ]);
-    
+
             $new_class->save();
         }
-        
+
         $this->coursecredithours($newChapter->course_id); // update course credit hours on chapter status change
         $this->updatecourseprogress($newChapter->course_id); // update enrolled course progress
 
@@ -382,7 +382,7 @@ class CoursechapterController extends Controller
         foreach ($existingClasses as $key => $class) {
             if (
                 $class->file != null &&
-                ($class->type == 'pdf' ||  $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
+                ($class->type == 'pdf' || $class->type == 'zip' || $class->type == 'rar' || $class->type == 'word' || $class->type == 'excel' || $class->type == 'powerpoint') &&
                 Storage::exists("/files/$class->type/" . $class->file)
             ) {
                 $oldPathFile = Storage::path("/files/$class->type/" . $class->file);
@@ -454,7 +454,7 @@ class CoursechapterController extends Controller
     public function coursecredithours($course_id)
     {
         // $classes = CourseClass::where([['course_id', $course->id],['status', 1]])->get();
-        $classes = CourseClass::whereHas('coursechapters')->where([['course_id', $course_id],['status', 1]])->get();
+        $classes = CourseClass::whereHas('coursechapters')->where([['course_id', $course_id], ['status', 1]])->get();
         $sum = 0;
         foreach ($classes as $class) {
             $sum += $class->duration ?? 0;
@@ -479,7 +479,7 @@ class CoursechapterController extends Controller
                 $total_count = count($chapters->where('status', 1));
 
                 foreach ($course_return as $read_lesson) {
-                    $lesson = CourseClass::whereHas('coursechapters')->where([['id', $read_lesson],['status', 1]])->first();
+                    $lesson = CourseClass::whereHas('coursechapters')->where([['id', $read_lesson], ['status', 1]])->first();
                     if ($lesson) {
                         $read_count++;
                     }
@@ -489,10 +489,10 @@ class CoursechapterController extends Controller
                 $total_count == 0 ? $progres = 0 : $progres = ($read_count / $total_count) * 100;
 
                 $progress->update([
-                            'progress' => $progres,
-                            'mark_chapter_id' => $course_return,
-                            'all_chapter_id' => $chapters->pluck('id'),
-                            'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
+                    'progress' => $progres,
+                    'mark_chapter_id' => $course_return,
+                    'all_chapter_id' => $chapters->pluck('id'),
+                    'updated_at' => \Carbon\Carbon::now()->toDateTimeString(),
                 ]);
             }
         }

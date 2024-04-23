@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use Hash;
 use App\User;
+use Illuminate\Support\Facades\Log;
 use Validator;
 use App\Setting;
 use App\Mail\WelcomeUser;

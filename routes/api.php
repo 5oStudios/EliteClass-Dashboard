@@ -82,6 +82,7 @@ Route::middleware(['ip_block', 'switch_languages_api'])->group(function () {
 
   Route::post('instructors', 'Api\MainController@allinstructor');
   Route::post('course', 'Api\MainController@course');
+  Route::post('commander', 'Api\MainController@commander');
   Route::post('bundle/courses', 'Api\MainController@bundle');
   Route::post('live/meetings', 'Api\OtherApiController@meetings');
   Route::post('in-person/sessions', 'Api\OtherApiController@inpersonsession');

@@ -315,7 +315,7 @@ class ManualEnrollmentController extends Controller
                 if($order_item->discount_type == 'fixed'){
                     $pay_amount = $order_item->price - $order_item->discount_price;
                 }else if($order_item->discount_type == 'percentage'){
-                    $pay_amount = $order_item->price - ($order_item->price * $order_item->discount_price);
+                    $pay_amount = $order_item->price - (($order_item->price * $order_item->discount_price)/100);
                 }
             }else if($order_item->discount_price == 0){
                 $pay_amount = $order_item->price;

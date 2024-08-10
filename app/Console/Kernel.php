@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         \Torann\Currency\Console\Update::class,
         \Torann\Currency\Console\Cleanup::class,
         \Torann\Currency\Console\Manage::class,
+        \App\Console\Commands\CreateAdminUser::class,
         RenameVideo::class,
         Commands\DatabaseBackUp::class,
         ReplaceFiles::class,
